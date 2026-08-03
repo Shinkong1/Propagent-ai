@@ -83,7 +83,13 @@ export default function Sidebar() {
   const openFlyout = (key: string, el: HTMLElement) => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     const rect = el.getBoundingClientRect();
-    setFlyoutPos({ top: rect.top, left: rect.right + 6 });
+    const group = NAV.find(e => isNavGroup(e) && e.groupKey === key) as NavGroup | undefined;
+    const itemCount = group ? group.items.length : 0;
+    const estimatedHeight = 40 + itemCount * 34 + 12;
+    const margin = 8;
+    const maxTop = window.innerHeight - estimatedHeight - margin;
+    const top = Math.max(margin, Math.min(rect.top, maxTop));
+    setFlyoutPos({ top, left: rect.right + 6 });
     setHoverGroup(key);
   };
   const scheduleClose = () => {
@@ -238,6 +244,7 @@ export default function Sidebar() {
                 position: 'fixed', top: flyoutPos.top, left: flyoutPos.left, zIndex: 2000,
                 background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 10,
                 padding: 6, minWidth: 208, boxShadow: '0 10px 30px rgba(0,0,0,0.45)',
+                maxHeight: 'calc(100vh - 16px)', overflowY: 'auto',
               }}
             >
               <div style={{ padding: '6px 10px 8px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
