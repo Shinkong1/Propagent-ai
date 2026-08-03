@@ -1,0 +1,1 @@
+export default function PropertyTable(){ return <div>Properties</div> }

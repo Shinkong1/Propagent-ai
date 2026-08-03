@@ -1,0 +1,147 @@
+import { useEffect, useState } from 'react';
+import DashboardLayout from '../../components/DashboardLayout';
+import { UserSearch, Plus, Mail, Zap, ExternalLink, Search } from 'lucide-react';
+import { leads as leadsApi } from '../../lib/api';
+import toast from 'react-hot-toast';
+
+const STATUS_COLOR: any = { new: '#64748B', contacted: '#3B82F6', interested: '#8B5CF6', demo_scheduled: '#FBC02D', negotiating: '#F97316', closed_won: '#10B981', closed_lost: '#EF4444' };
+
+export default function Leads() {
+  const [leadList, setLeadList] = useState<any[]>([]);
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [scraping, setScraping] = useState(false);
+
+  useEffect(() => { leadsApi.list().then(r => setLeadList(r.data || [])).catch(() => {}); }, []);
+
+  const sendOutreach = async (id: string) => {
+    try {
+      await leadsApi.sendOutreach(id);
+      toast.success('Outreach email queued!');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to queue email');
+    }
+  };
+
+  const triggerScrape = async (source: string) => {
+    setScraping(true);
+    try {
+      await leadsApi.scrape({ source, location: 'Austin, TX' });
+      toast.success(`Scraping ${source} for new leads...`);
+      setTimeout(() => { leadsApi.list().then(r => setLeadList(r.data || [])); setScraping(false); }, 3000);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Scrape failed');
+      setScraping(false);
+    }
+  };
+
+  const updateStatus = async (id: string, status: string) => {
+    try {
+      await leadsApi.updateStatus(id, { status });
+      setLeadList(p => p.map(l => l.id === id ? { ...l, status } : l));
+    } catch { toast.error('Update failed'); }
+  };
+
+  const filtered = leadList.filter(l => {
+    const matchFilter = filter === 'all' || l.status === filter;
+    const matchSearch = !search || `${l.first_name} ${l.last_name} ${l.company} ${l.email}`.toLowerCase().includes(search.toLowerCase());
+    return matchFilter && matchSearch;
+  });
+
+  const scoreColor = (s: number) => s >= 80 ? '#10B981' : s >= 60 ? '#FBC02D' : '#64748B';
+
+  return (
+    <DashboardLayout>
+      <div style={{ maxWidth: 1200 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <div>
+            <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Lead CRM</h1>
+            <p style={{ color: '#64748B', fontSize: 14 }}>{leadList.length} leads · AI-powered outreach</p>
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {['google_maps', 'linkedin', 'zillow'].map(s => (
+              <button key={s} onClick={() => triggerScrape(s)} disabled={scraping}
+                style={{ padding: '8px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'IBM Plex Mono', cursor: 'pointer', textTransform: 'capitalize' }}>
+                {scraping ? '⟳' : '+'} {s.replace('_',' ')}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search leads..."
+              spellCheck autoCorrect="on"
+              style={{ paddingLeft: 30, paddingRight: 12, paddingTop: 8, paddingBottom: 8, background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: '#E2E8F0', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none', width: 200 }} />
+          </div>
+          {['all', 'new', 'contacted', 'interested', 'demo_scheduled', 'closed_won'].map(s => (
+            <button key={s} onClick={() => setFilter(s)} style={{
+              padding: '6px 12px', borderRadius: 6, border: `1px solid ${filter === s ? (STATUS_COLOR[s] || '#FBC02D') : 'var(--border-strong)'}`,
+              background: filter === s ? `${STATUS_COLOR[s] || '#FBC02D'}15` : 'transparent',
+              color: filter === s ? (STATUS_COLOR[s] || '#FBC02D') : '#64748B',
+              fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer', textTransform: 'capitalize',
+            }}>
+              {s.replace('_',' ')}
+            </button>
+          ))}
+        </div>
+
+        {/* Table */}
+        <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
+                {['Name', 'Company', 'Contact', 'Properties', 'Score', 'Status', 'Actions'].map(h => (
+                  <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', fontWeight: 500 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '48px', color: '#475569', fontFamily: 'IBM Plex Sans', fontSize: 14 }}>
+                  No leads yet. Click a scrape button to find landlords.
+                </td></tr>
+              ) : filtered.map((l: any) => (
+                <tr key={l.id} style={{ borderBottom: '1px solid var(--border-subtle)', transition: 'background 0.15s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#E2E8F0', fontFamily: 'IBM Plex Sans' }}>{l.first_name} {l.last_name}</div>
+                    <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{l.source}</div>
+                  </td>
+                  <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Sans' }}>{l.company || '—'}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Sans' }}>{l.email || '—'}</div>
+                    <div style={{ fontSize: 11, color: '#64748B' }}>{l.phone || ''}</div>
+                  </td>
+                  <td style={{ padding: '12px 16px', fontSize: 13, fontFamily: 'IBM Plex Mono', color: 'var(--text-primary)', textAlign: 'center' }}>{l.num_properties || '—'}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ flex: 1, height: 4, background: 'var(--border-input)', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ width: `${l.score}%`, height: '100%', background: scoreColor(l.score), borderRadius: 2 }} />
+                      </div>
+                      <span style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: scoreColor(l.score) }}>{l.score}</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <select value={l.status} onChange={e => updateStatus(l.id, e.target.value)}
+                      style={{ padding: '4px 8px', background: `${STATUS_COLOR[l.status]}15`, border: `1px solid ${STATUS_COLOR[l.status]}40`, borderRadius: 6, color: STATUS_COLOR[l.status], fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer', outline: 'none' }}>
+                      {Object.keys(STATUS_COLOR).map(s => <option key={s} value={s} style={{ background: 'var(--bg-surface)', color: '#E2E8F0' }}>{s.replace('_',' ')}</option>)}
+                    </select>
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <button onClick={() => sendOutreach(l.id)} title="Send AI outreach" style={{ padding: '6px 10px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 6, color: '#3B82F6', cursor: 'pointer', fontSize: 12 }}>
+                      <Mail size={13} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}

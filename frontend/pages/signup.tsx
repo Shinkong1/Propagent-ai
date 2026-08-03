@@ -1,0 +1,90 @@
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import { Zap } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { auth } from '../lib/api';
+import { setToken, setUser } from '../lib/auth';
+import { useLanguage } from '../lib/LanguageContext';
+
+export default function Signup() {
+  const router = useRouter();
+  const { t } = useLanguage();
+  const [form, setForm] = useState({ email: '', password: '', first_name: '', last_name: '', organization_name: '' });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await auth.signup(form);
+      setToken(res.data.access_token);
+      setUser(res.data);
+      toast.success('Account created! Welcome to PropAgent AI.');
+      router.push('/dashboard');
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || 'Signup failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const f = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(p => ({ ...p, [key]: e.target.value }));
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+      <div style={{ width: '100%', maxWidth: 440 }}>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Zap size={18} color="var(--bg-app)" strokeWidth={2.5} />
+            </div>
+            <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 20, color: 'var(--text-primary)' }}>PropAgent AI</span>
+          </div>
+          <h1 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 24, color: 'var(--text-primary)', marginBottom: 6 }}>{t('signup.title')}</h1>
+          <p style={{ color: '#64748B', fontSize: 14 }}>{t('signup.subtitle')}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+            <div>
+              <label style={labelStyle}>{t('signup.firstName')}</label>
+              <input type="text" required value={form.first_name} onChange={f('first_name')} placeholder="John" style={inputStyle} spellCheck autoCorrect="on" autoCapitalize="words" />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('signup.lastName')}</label>
+              <input type="text" required value={form.last_name} onChange={f('last_name')} placeholder="Smith" style={inputStyle} spellCheck autoCorrect="on" autoCapitalize="words" />
+            </div>
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>{t('signup.orgName')}</label>
+            <input type="text" required value={form.organization_name} onChange={f('organization_name')} placeholder="Smith Property Management" style={inputStyle} spellCheck autoCorrect="on" autoCapitalize="words" />
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>{t('login.email')}</label>
+            <input type="email" required value={form.email} onChange={f('email')} placeholder="you@company.com" style={inputStyle} spellCheck={false} autoCorrect="off" autoCapitalize="off" autoComplete="email" />
+          </div>
+          <div style={{ marginBottom: 24 }}>
+            <label style={labelStyle}>{t('login.password')}</label>
+            <input type="password" required minLength={8} value={form.password} onChange={f('password')} placeholder="Min 8 characters" style={inputStyle} spellCheck={false} autoCorrect="off" autoCapitalize="off" autoComplete="new-password" />
+          </div>
+          <button type="submit" disabled={loading} style={btnStyle}>
+            {loading ? 'Creating account...' : t('landing.startTrial')}
+          </button>
+          <p style={{ textAlign: 'center', marginTop: 12, fontSize: 11, color: '#475569', fontFamily: 'IBM Plex Mono' }}>
+            {t('landing.noCard')}
+          </p>
+        </form>
+
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: '#64748B' }}>
+          {t('signup.haveAccount')}{' '}
+          <Link href="/login" style={{ color: '#FBC02D', textDecoration: 'none', fontWeight: 600 }}>{t('signup.loginLink')}</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+const labelStyle: React.CSSProperties = { display: 'block', marginBottom: 5, fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' };
+const inputStyle: React.CSSProperties = { width: '100%', padding: '10px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 14, fontFamily: 'IBM Plex Sans', outline: 'none', boxSizing: 'border-box' };
+const btnStyle: React.CSSProperties = { width: '100%', padding: '12px', borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', fontSize: 15, border: 'none', cursor: 'pointer' };

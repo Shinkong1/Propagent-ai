@@ -1,0 +1,1 @@
+export default function MaintenanceBoard(){ return <div>Maintenance</div> }

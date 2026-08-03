@@ -1,0 +1,122 @@
+version: "3.9"
+
+services:
+  # ── Database ──
+  postgres:
+    image: postgres:15-alpine
+    container_name: propagent-db
+    environment:
+      POSTGRES_USER: propagent
+      POSTGRES_PASSWORD: propagent
+      POSTGRES_DB: propagent
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U propagent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ──
+  redis:
+    image: redis:7-alpine
+    container_name: propagent-redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── FastAPI Backend ──
+  backend:
+    build:
+      context: .
+      dockerfile: infra/docker/backend.Dockerfile
+    container_name: propagent-api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://propagent:propagent@postgres:5432/propagent
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      JWT_SECRET: ${JWT_SECRET:-jwt-secret-change-me}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      STRIPE_SECRET: ${STRIPE_SECRET:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_STARTER_PRICE_ID: ${STRIPE_STARTER_PRICE_ID:-}
+      STRIPE_PRO_PRICE_ID: ${STRIPE_PRO_PRICE_ID:-}
+      STRIPE_ENTERPRISE_PRICE_ID: ${STRIPE_ENTERPRISE_PRICE_ID:-}
+      TWILIO_SID: ${TWILIO_SID:-}
+      TWILIO_TOKEN: ${TWILIO_TOKEN:-}
+      TWILIO_PHONE: ${TWILIO_PHONE:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      ALLOWED_ORIGINS: '["http://localhost:3000","https://app.propagent.ai"]'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app/backend
+      - documents_data:/app/uploads
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ── Celery Worker ──
+  worker:
+    build:
+      context: .
+      dockerfile: infra/docker/worker.Dockerfile
+    container_name: propagent-worker
+    environment:
+      DATABASE_URL: postgresql://propagent:propagent@postgres:5432/propagent
+      REDIS_URL: redis://redis:6379/0
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A workers.celery_app worker --loglevel=info -c 4
+
+  # ── Celery Beat (scheduler) ──
+  beat:
+    build:
+      context: .
+      dockerfile: infra/docker/worker.Dockerfile
+    container_name: propagent-beat
+    environment:
+      DATABASE_URL: postgresql://propagent:propagent@postgres:5432/propagent
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+    command: celery -A workers.celery_app beat --loglevel=info
+
+  # ── Next.js Frontend ──
+  frontend:
+    image: node:20-alpine
+    container_name: propagent-frontend
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./frontend:/app
+    command: sh -c "npm install && npm run dev"
+
+volumes:
+  postgres_data:
+  redis_data:
+  documents_data:

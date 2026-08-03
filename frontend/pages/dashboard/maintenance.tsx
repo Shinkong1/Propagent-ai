@@ -1,0 +1,334 @@
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import DashboardLayout from '../../components/DashboardLayout';
+import { Plus, X, RefreshCw, Building2, Home } from 'lucide-react';
+import { maintenance as maintenanceApi, properties as propertiesApi } from '../../lib/api';
+import toast from 'react-hot-toast';
+
+const STATUSES = ['open', 'in_progress', 'waiting_vendor', 'scheduled', 'completed'];
+const STATUS_LABEL: any = { open: 'Open', in_progress: 'In Progress', waiting_vendor: 'Awaiting Vendor', scheduled: 'Scheduled', completed: 'Completed' };
+const STATUS_COLOR: any = { open: '#EF4444', in_progress: '#3B82F6', waiting_vendor: '#F97316', scheduled: '#8B5CF6', completed: '#10B981' };
+const PRIORITY_COLOR: any = { emergency: '#EF4444', high: '#F97316', medium: '#FBC02D', low: '#10B981' };
+
+export default function Maintenance() {
+  const router = useRouter();
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [propertyList, setPropertyList] = useState<any[]>([]);
+  const [vendorList, setVendorList] = useState<any[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [propertyFilter, setPropertyFilter] = useState('all');
+  const [form, setForm] = useState({ title: '', description: '', category: 'other', priority: 'medium', property_id: '', unit_id: '' });
+  const [createUnits, setCreateUnits] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const [selectedTicket, setSelectedTicket] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({ status: '', vendor_id: '', notes: '', actual_cost: '' });
+  const [saving, setSaving] = useState(false);
+
+  const [draggedTicketId, setDraggedTicketId] = useState<string | null>(null);
+  const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
+
+  const load = (propertyId?: string, openTicketId?: string) => {
+    maintenanceApi.list(undefined, propertyId === 'all' ? undefined : propertyId).then(r => {
+      const data = r.data || [];
+      setTickets(data);
+      if (openTicketId) {
+        const match = data.find((t: any) => t.id === openTicketId);
+        if (match) openTicket(match);
+      }
+    }).catch(() => {});
+  };
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const fromQuery = typeof router.query.property === 'string' ? router.query.property : 'all';
+    const ticketQuery = typeof router.query.ticket === 'string' ? router.query.ticket : undefined;
+    setPropertyFilter(fromQuery);
+    load(fromQuery, ticketQuery);
+    propertiesApi.list().then(r => setPropertyList(r.data || [])).catch(() => {});
+    maintenanceApi.vendors().then(r => setVendorList(r.data || [])).catch(() => {});
+  }, [router.isReady]);
+
+  const changePropertyFilter = (propertyId: string) => {
+    setPropertyFilter(propertyId);
+    load(propertyId);
+  };
+
+  const changeCreateProperty = (propertyId: string) => {
+    setForm(p => ({ ...p, property_id: propertyId, unit_id: '' }));
+    setCreateUnits([]);
+    if (propertyId) {
+      propertiesApi.listUnits(propertyId).then(r => setCreateUnits(r.data || [])).catch(() => {});
+    }
+  };
+
+  const create = async () => {
+    if (!form.property_id) { toast.error('Select a property'); return; }
+    setLoading(true);
+    try {
+      const payload: any = { ...form };
+      if (!payload.unit_id) delete payload.unit_id;
+      const res = await maintenanceApi.create(payload);
+      setTickets(p => [res.data, ...p]);
+      setShowModal(false);
+      setForm({ title: '', description: '', category: 'other', priority: 'medium', property_id: '', unit_id: '' });
+      setCreateUnits([]);
+      toast.success('Ticket created — AI is classifying...');
+    } catch { toast.error('Failed to create ticket'); }
+    finally { setLoading(false); }
+  };
+
+  const openTicket = (t: any) => {
+    setSelectedTicket(t);
+    setEditForm({
+      status: t.status || 'open',
+      vendor_id: t.vendor_id || '',
+      notes: t.notes || '',
+      actual_cost: t.actual_cost != null ? String(t.actual_cost) : '',
+    });
+  };
+
+  const saveTicket = async () => {
+    if (!selectedTicket) return;
+    setSaving(true);
+    try {
+      const payload: any = {
+        status: editForm.status,
+        vendor_id: editForm.vendor_id || undefined,
+        notes: editForm.notes || undefined,
+        actual_cost: editForm.actual_cost ? parseFloat(editForm.actual_cost) : undefined,
+      };
+      const res = await maintenanceApi.update(selectedTicket.id, payload);
+      setTickets(prev => prev.map(t => (t.id === selectedTicket.id ? res.data : t)));
+      setSelectedTicket(null);
+      toast.success('Ticket updated');
+    } catch { toast.error('Failed to update ticket'); }
+    finally { setSaving(false); }
+  };
+
+  const handleDrop = async (newStatus: string) => {
+    setDragOverStatus(null);
+    const ticketId = draggedTicketId;
+    setDraggedTicketId(null);
+    if (!ticketId) return;
+
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (!ticket || ticket.status === newStatus) return;
+
+    const previous = ticket;
+    setTickets(prev => prev.map(t => (t.id === ticketId ? { ...t, status: newStatus } : t)));
+
+    try {
+      const res = await maintenanceApi.update(ticketId, { status: newStatus });
+      setTickets(prev => prev.map(t => (t.id === ticketId ? res.data : t)));
+      toast.success(`Moved to ${STATUS_LABEL[newStatus]}`);
+    } catch {
+      setTickets(prev => prev.map(t => (t.id === ticketId ? previous : t)));
+      toast.error('Failed to move ticket');
+    }
+  };
+
+  // Kanban columns
+  const byStatus = STATUSES.reduce((acc, s) => {
+    acc[s] = tickets.filter(t => t.status === s);
+    return acc;
+  }, {} as any);
+
+  return (
+    <DashboardLayout>
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <div>
+            <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Maintenance</h1>
+            <p style={{ color: '#64748B', fontSize: 14 }}>{tickets.filter(t => t.status !== 'completed').length} active tickets</p>
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <select value={propertyFilter} onChange={e => changePropertyFilter(e.target.value)}
+              style={{ padding: '9px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none' }}>
+              <option value="all">All Properties</option>
+              {propertyList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+            <button onClick={() => load(propertyFilter)} style={{ padding: '9px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+              <RefreshCw size={14} />
+            </button>
+            <button onClick={() => setShowModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', border: 'none', borderRadius: 8, fontWeight: 700, fontFamily: 'Syne', fontSize: 14, cursor: 'pointer' }}>
+              <Plus size={16} /> New Ticket
+            </button>
+          </div>
+        </div>
+
+        {/* Kanban Board */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, overflowX: 'auto' }}>
+          {STATUSES.map(status => (
+            <div key={status}
+              onDragOver={e => { e.preventDefault(); if (dragOverStatus !== status) setDragOverStatus(status); }}
+              onDragLeave={() => setDragOverStatus(prev => (prev === status ? null : prev))}
+              onDrop={e => { e.preventDefault(); handleDrop(status); }}
+              style={{
+                minWidth: 200, borderRadius: 12, padding: 6,
+                background: dragOverStatus === status ? `${STATUS_COLOR[status]}0d` : 'transparent',
+                border: `1px dashed ${dragOverStatus === status ? STATUS_COLOR[status] : 'transparent'}`,
+                transition: 'background 0.15s, border-color 0.15s',
+              }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '6px 10px', borderRadius: 8, background: `${STATUS_COLOR[status]}15`, border: `1px solid ${STATUS_COLOR[status]}30` }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: STATUS_COLOR[status] }} />
+                <span style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: STATUS_COLOR[status], fontWeight: 600, letterSpacing: '0.5px' }}>
+                  {STATUS_LABEL[status].toUpperCase()}
+                </span>
+                <span style={{ marginLeft: 'auto', fontSize: 11, color: '#475569', fontFamily: 'IBM Plex Mono' }}>
+                  {byStatus[status]?.length || 0}
+                </span>
+              </div>
+
+              {(byStatus[status] || []).map((t: any) => (
+                <div key={t.id} onClick={() => openTicket(t)}
+                  draggable
+                  onDragStart={e => { setDraggedTicketId(t.id); e.dataTransfer.effectAllowed = 'move'; }}
+                  onDragEnd={() => { setDraggedTicketId(null); setDragOverStatus(null); }}
+                  style={{
+                    background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 10, padding: '12px', marginBottom: 10,
+                    cursor: 'grab', opacity: draggedTicketId === t.id ? 0.4 : 1,
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = STATUS_COLOR[status]; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; }}>
+                  <div style={{ fontSize: 12, color: '#E2E8F0', fontFamily: 'IBM Plex Sans', fontWeight: 600, marginBottom: 4, lineHeight: 1.3 }}>{t.title}</div>
+                  {t.property_name && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8, color: '#64748B', fontSize: 10, fontFamily: 'IBM Plex Mono' }}>
+                      <Building2 size={10} /> {t.property_name}{t.unit_number ? ` · Unit ${t.unit_number}` : ''}
+                    </div>
+                  )}
+                  <div style={{ fontSize: 11, color: '#64748B', marginBottom: 10, lineHeight: 1.4, fontFamily: 'IBM Plex Sans' }}>
+                    {t.description?.slice(0, 60)}{t.description?.length > 60 ? '...' : ''}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: `${PRIORITY_COLOR[t.priority]}20`, color: PRIORITY_COLOR[t.priority], fontFamily: 'IBM Plex Mono' }}>
+                      {t.priority}
+                    </span>
+                    <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(100,116,139,0.15)', color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono' }}>
+                      {t.category}
+                    </span>
+                    {t.vendor_name && (
+                      <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(139,92,246,0.15)', color: '#8B5CF6', fontFamily: 'IBM Plex Mono' }}>
+                        {t.vendor_name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {(byStatus[status] || []).length === 0 && (
+                <div style={{ textAlign: 'center', padding: '20px 0', color: '#334155', fontSize: 12, fontFamily: 'IBM Plex Mono' }}>
+                  empty
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Create Ticket Modal */}
+        {showModal && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: 440 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Create Ticket</h2>
+                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                <div>
+                  <label style={lbl}>Property</label>
+                  <select value={form.property_id} onChange={e => changeCreateProperty(e.target.value)} style={{ ...inp } as any}>
+                    <option value="">Select...</option>
+                    {propertyList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={lbl}>Unit (optional)</label>
+                  <select value={form.unit_id} onChange={e => setForm(p => ({ ...p, unit_id: e.target.value }))} disabled={!form.property_id} style={{ ...inp } as any}>
+                    <option value="">Unspecified</option>
+                    {createUnits.map(u => <option key={u.id} value={u.id}>Unit {u.unit_number}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={lbl}>Title</label>
+                <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="Leaking faucet in unit 3B" style={inp} spellCheck autoCorrect="on" autoCapitalize="sentences" />
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={lbl}>Description</label>
+                <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Describe the issue in detail..."
+                  spellCheck autoCorrect="on" autoCapitalize="sentences"
+                  style={{ ...inp, height: 90, resize: 'none' } as any} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+                <div>
+                  <label style={lbl}>Category</label>
+                  <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} style={{ ...inp } as any}>
+                    {['plumbing','electrical','hvac','appliance','structural','pest_control','cleaning','other'].map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={lbl}>Priority</label>
+                  <select value={form.priority} onChange={e => setForm(p => ({ ...p, priority: e.target.value }))} style={{ ...inp } as any}>
+                    {['low','medium','high','emergency'].map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </div>
+              </div>
+              <button onClick={create} disabled={loading} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+                {loading ? 'Creating...' : 'Create Ticket'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Ticket Modal */}
+        {selectedTicket && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: 460 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{selectedTicket.title}</h2>
+                <button onClick={() => setSelectedTicket(null)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16, color: '#64748B', fontSize: 12, fontFamily: 'IBM Plex Mono' }}>
+                <Home size={12} /> {selectedTicket.property_name}{selectedTicket.unit_number ? ` · Unit ${selectedTicket.unit_number}` : ' · Unit unspecified'}
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 13, fontFamily: 'IBM Plex Sans', lineHeight: 1.5, marginBottom: 18 }}>{selectedTicket.description}</p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                <div>
+                  <label style={lbl}>Status</label>
+                  <select value={editForm.status} onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))} style={{ ...inp } as any}>
+                    {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={lbl}>Assign Vendor</label>
+                  <select value={editForm.vendor_id} onChange={e => setEditForm(p => ({ ...p, vendor_id: e.target.value }))} style={{ ...inp } as any}>
+                    <option value="">Unassigned</option>
+                    {vendorList.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={lbl}>Notes</label>
+                <textarea value={editForm.notes} onChange={e => setEditForm(p => ({ ...p, notes: e.target.value }))} placeholder="Internal notes..."
+                  spellCheck autoCorrect="on" autoCapitalize="sentences"
+                  style={{ ...inp, height: 70, resize: 'none' } as any} />
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <label style={lbl}>Actual Cost ($)</label>
+                <input value={editForm.actual_cost} onChange={e => setEditForm(p => ({ ...p, actual_cost: e.target.value }))} placeholder="0.00" style={inp} spellCheck={false} autoCorrect="off" />
+              </div>
+              <button onClick={saveTicket} disabled={saving} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}
+
+const lbl: React.CSSProperties = { display: 'block', marginBottom: 5, fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' };
+const inp: React.CSSProperties = { width: '100%', padding: '9px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none', boxSizing: 'border-box' };

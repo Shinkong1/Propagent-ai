@@ -1,0 +1,1 @@
+export default function TenantTable(){ return <div>Tenants</div> }

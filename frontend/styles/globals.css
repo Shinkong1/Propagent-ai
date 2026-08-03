@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root,
+:root[data-theme="dark"] {
+  --navy-950: #060B18;
+  --navy-900: #0A1628;
+  --navy-800: #0F2040;
+  --amber: #FBC02D;
+  --amber-dim: rgba(251,192,45,0.15);
+
+  /* Theme tokens — dark (default) */
+  --bg-app: #060B18;
+  --bg-surface: #0A1628;
+  --bg-toast: #0F2040;
+  --border-strong: #162B56;
+  --border-input: #1E3A6E;
+  --border-subtle: #0F2040;
+  --text-primary: #F8FAFC;
+  --text-hover: #CBD5E1;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-faint: #475569;
+  --accent: #FBC02D;
+  --accent-dark: #F57F17;
+  --accent-rgb: 251,192,45;
+  --success: #10B981;
+  --danger: #EF4444;
+  --hover-overlay: rgba(255,255,255,0.04);
+}
+
+:root[data-theme="light"] {
+  --bg-app: #F1F5F9;
+  --bg-surface: #FFFFFF;
+  --bg-toast: #FFFFFF;
+  --border-strong: #E2E8F0;
+  --border-input: #CBD5E1;
+  --border-subtle: #EDF1F7;
+  --text-primary: #0F172A;
+  --text-hover: #1E293B;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --text-faint: #94A3B8;
+  --accent: #FBC02D;
+  --accent-dark: #F57F17;
+  --accent-rgb: 251,192,45;
+  --success: #10B981;
+  --danger: #EF4444;
+  --hover-overlay: rgba(15,23,42,0.04);
+}
+
+body {
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+h1, h2, h3, h4 { font-family: 'Syne', sans-serif; }
+
+.stat-number { font-family: 'IBM Plex Mono', monospace; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-surface); }
+::-webkit-scrollbar-thumb { background: var(--border-input); border-radius: 2px; }
+
+/* Glow effects */
+.amber-glow { box-shadow: 0 0 20px rgba(251,192,45,0.2); }
+.card-hover { transition: all 0.2s ease; }
+.card-hover:hover { transform: translateY(-1px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
