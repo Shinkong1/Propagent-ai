@@ -11,9 +11,13 @@ import { useLanguage } from '../lib/LanguageContext';
 import { useSidebar } from '../lib/SidebarContext';
 import { hasPlanAccess, PlanTier } from './PlanLock';
 
-type NavLeaf = { href: string; key: string; icon: any; minTier?: PlanTier };
+type NavLeaf = { group?: false; href: string; key: string; icon: any; minTier?: PlanTier; masterOnly?: boolean };
 type NavGroup = { group: true; groupKey: string; labelKey: string; icon: any; masterOnly?: boolean; items: NavLeaf[] };
-type NavEntry = (NavLeaf & { group?: false; masterOnly?: boolean }) | NavGroup;
+type NavEntry = NavLeaf | NavGroup;
+
+function isNavGroup(entry: NavEntry): entry is NavGroup {
+  return entry.group === true;
+}
 
 const NAV: NavEntry[] = [
   { href: '/dashboard', key: 'nav.overview', icon: LayoutDashboard },
@@ -149,7 +153,7 @@ export default function Sidebar() {
       {/* Nav */}
       <nav style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: collapsed ? '12px 8px' : '12px 12px' }}>
         {NAV.filter(item => !item.masterOnly || isMaster).map((entry) => {
-          if (entry.group) {
+          if (isNavGroup(entry)) {
             const { groupKey, labelKey, icon: Icon, items } = entry;
             const visibleItems = items;
             const active = visibleItems.some(i => isItemActive(i.href));
