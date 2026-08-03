@@ -182,5 +182,5 @@ const btnStyle: React.CSSProperties = {
   width: '100%', padding: '12px', borderRadius: 8,
   background: 'linear-gradient(135deg, #FBC02D, #F57F17)',
   color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', fontSize: 15,
-  border: 'none', cursor: 'pointer',
+  border: 'none', cursor: 'pointer', lineHeight: 1.4, boxSizing: 'border-box',
 };
