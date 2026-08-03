@@ -156,13 +156,6 @@ export default function Login() {
         </p>
         )}
 
-        {/* Demo credentials */}
-        {!mfaToken && (
-        <div style={{ marginTop: 16, padding: '12px 16px', background: 'rgba(var(--accent-rgb),0.08)', border: '1px solid rgba(var(--accent-rgb),0.2)', borderRadius: 8 }}>
-          <p style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#FBC02D', marginBottom: 4 }}>{t('login.demoCreds')}</p>
-          <p style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono' }}>demo@propagent.ai / demo1234</p>
-        </div>
-        )}
       </div>
     </div>
   );
