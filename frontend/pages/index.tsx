@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { Zap, Building2, MessageSquare, Wrench, Users, Phone, ChevronRight, Check } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
+import { useSidebar } from '../lib/SidebarContext';
 
 const FEATURES = [
   { icon: MessageSquare, title: 'AI Tenant Chat', desc: '24/7 automated responses to tenant queries, maintenance, and leasing questions.' },
@@ -35,6 +36,7 @@ const MOMENTS = [
 
 export default function Home() {
   const { t } = useLanguage();
+  const { isMobile } = useSidebar();
   return (
     <>
       <Head>
@@ -51,31 +53,32 @@ export default function Home() {
       
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
         {/* Nav */}
-        <nav style={{ 
+        <nav style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '20px 48px', borderBottom: '1px solid var(--border-subtle)',
+          padding: isMobile ? '16px' : '20px 48px', borderBottom: '1px solid var(--border-subtle)',
           position: 'sticky', top: 0, background: 'rgba(6,11,24,0.95)', backdropFilter: 'blur(12px)',
           zIndex: 100,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Zap size={16} color="var(--bg-app)" strokeWidth={2.5} />
             </div>
-            <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>PropAgent AI</span>
+            {!isMobile && <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>PropAgent AI</span>}
           </div>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <Link href="/pricing" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>{t('landing.pricing')}</Link>
-            <Link href="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>{t('landing.signIn')}</Link>
+          <div style={{ display: 'flex', gap: isMobile ? 8 : 12, alignItems: 'center' }}>
+            {!isMobile && <Link href="/pricing" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>{t('landing.pricing')}</Link>}
+            {!isMobile && <Link href="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>{t('landing.signIn')}</Link>}
+            {isMobile && <Link href="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>{t('landing.signIn')}</Link>}
             <Link href="/signup" style={{
               background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)',
-              padding: '8px 18px', borderRadius: 8, textDecoration: 'none',
-              fontSize: 14, fontWeight: 700, fontFamily: 'Syne',
+              padding: isMobile ? '8px 14px' : '8px 18px', borderRadius: 8, textDecoration: 'none',
+              fontSize: isMobile ? 13 : 14, fontWeight: 700, fontFamily: 'Syne', whiteSpace: 'nowrap',
             }}>{t('landing.getStarted')}</Link>
           </div>
         </nav>
 
         {/* Hero */}
-        <section style={{ textAlign: 'center', padding: '80px 24px 60px', maxWidth: 800, margin: '0 auto' }}>
+        <section style={{ textAlign: 'center', padding: isMobile ? '48px 20px 40px' : '80px 24px 60px', maxWidth: 800, margin: '0 auto' }}>
           <div style={{
             display: 'inline-block', padding: '4px 14px', borderRadius: 100,
             background: 'rgba(var(--accent-rgb),0.12)', border: '1px solid rgba(var(--accent-rgb),0.3)',
@@ -84,7 +87,7 @@ export default function Home() {
             {t('landing.tagline')}
           </div>
           <h1 style={{
-            fontFamily: 'Syne', fontWeight: 800, fontSize: 56, lineHeight: 1.1,
+            fontFamily: 'Syne', fontWeight: 800, fontSize: isMobile ? 34 : 56, lineHeight: 1.15,
             color: 'var(--text-primary)', marginBottom: 20, letterSpacing: '-1px',
           }}>
             {t('landing.heading1')}<br />
@@ -117,7 +120,11 @@ export default function Home() {
         </section>
 
         {/* Stats */}
-        <section style={{ display: 'flex', justifyContent: 'center', gap: 48, padding: '40px 24px', borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
+        <section style={{
+          display: isMobile ? 'grid' : 'flex', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : undefined,
+          justifyContent: 'center', gap: isMobile ? 24 : 48, padding: isMobile ? '32px 24px' : '40px 24px',
+          borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)',
+        }}>
           {[['15hrs', 'Saved/week avg'], ['94%', 'Response rate'], ['3x', 'Faster maintenance'], ['47%', 'Less vacancy']].map(([v, l]) => (
             <div key={l} style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 28, fontWeight: 600, color: '#FBC02D' }}>{v}</div>
