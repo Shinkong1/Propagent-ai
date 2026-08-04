@@ -1,18 +1,42 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { UserSearch, Plus, Mail, Zap, ExternalLink, Search } from 'lucide-react';
+import { UserSearch, Plus, Mail, Zap, ExternalLink, Search, X } from 'lucide-react';
 import { leads as leadsApi } from '../../lib/api';
 import toast from 'react-hot-toast';
 
 const STATUS_COLOR: any = { new: '#64748B', contacted: '#3B82F6', interested: '#8B5CF6', demo_scheduled: '#FBC02D', negotiating: '#F97316', closed_won: '#10B981', closed_lost: '#EF4444' };
+
+const EMPTY_LEAD_FORM = { first_name: '', last_name: '', company: '', email: '', phone: '', city: '', state: '' };
 
 export default function Leads() {
   const [leadList, setLeadList] = useState<any[]>([]);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [scraping, setScraping] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addForm, setAddForm] = useState(EMPTY_LEAD_FORM);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => { leadsApi.list().then(r => setLeadList(r.data || [])).catch(() => {}); }, []);
+
+  const addLead = async () => {
+    if (!addForm.first_name.trim() && !addForm.last_name.trim() && !addForm.company.trim()) {
+      toast.error('Enter at least a name or company');
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await leadsApi.create(addForm);
+      setLeadList(prev => [res.data, ...prev]);
+      toast.success('Lead added');
+      setShowAddModal(false);
+      setAddForm(EMPTY_LEAD_FORM);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to add lead');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const sendOutreach = async (id: string) => {
     try {
@@ -59,6 +83,10 @@ export default function Leads() {
             <p style={{ color: '#64748B', fontSize: 14 }}>{leadList.length} leads · AI-powered outreach</p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => setShowAddModal(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', border: 'none', borderRadius: 8, color: 'var(--bg-app)', fontSize: 12, fontFamily: 'Syne', fontWeight: 700, cursor: 'pointer' }}>
+              <Plus size={13} /> Add Lead
+            </button>
             {['google_maps', 'linkedin', 'zillow'].map(s => (
               <button key={s} onClick={() => triggerScrape(s)} disabled={scraping}
                 style={{ padding: '8px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'IBM Plex Mono', cursor: 'pointer', textTransform: 'capitalize' }}>
@@ -144,6 +172,65 @@ export default function Leads() {
           </div>
         </div>
       </div>
+
+      {showAddModal && (
+        <div
+          onClick={() => setShowAddModal(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 24, maxWidth: 440, width: '100%', maxHeight: '85vh', overflowY: 'auto' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 17, color: 'var(--text-primary)' }}>Add Lead</h2>
+              <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+              <FormField label="First Name" value={addForm.first_name} onChange={v => setAddForm(p => ({ ...p, first_name: v }))} />
+              <FormField label="Last Name" value={addForm.last_name} onChange={v => setAddForm(p => ({ ...p, last_name: v }))} />
+            </div>
+            <FormField label="Company" value={addForm.company} onChange={v => setAddForm(p => ({ ...p, company: v }))} style={{ marginBottom: 10 }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+              <FormField label="Email" value={addForm.email} onChange={v => setAddForm(p => ({ ...p, email: v }))} />
+              <FormField label="Phone" value={addForm.phone} onChange={v => setAddForm(p => ({ ...p, phone: v }))} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18 }}>
+              <FormField label="City" value={addForm.city} onChange={v => setAddForm(p => ({ ...p, city: v }))} />
+              <FormField label="State" value={addForm.state} onChange={v => setAddForm(p => ({ ...p, state: v }))} />
+            </div>
+
+            <button
+              onClick={addLead}
+              disabled={saving}
+              style={{
+                width: '100%', padding: '11px', borderRadius: 8, cursor: saving ? 'default' : 'pointer',
+                background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)',
+                fontWeight: 700, fontFamily: 'Syne', fontSize: 14, border: 'none', opacity: saving ? 0.6 : 1,
+              }}
+            >
+              {saving ? 'Saving...' : 'Add Lead'}
+            </button>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
+  );
+}
+
+function FormField({ label, value, onChange, style }: { label: string; value: string; onChange: (v: string) => void; style?: React.CSSProperties }) {
+  return (
+    <div style={style}>
+      <label style={{ display: 'block', marginBottom: 4, fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>{label}</label>
+      <input
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        spellCheck autoCorrect="on"
+        style={{ width: '100%', padding: '8px 10px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none', boxSizing: 'border-box' }}
+      />
+    </div>
   );
 }
