@@ -6,6 +6,14 @@ logger = logging.getLogger(__name__)
 
 
 async def vendor_agent_node(state: AgentState) -> AgentState:
+    # Maintenance intake is still mid-conversation (waiting on an answer to a
+    # clarifying question) — don't touch state. Overwriting current_agent to
+    # "vendor" here would corrupt the pending-agent tracking that routes the
+    # caller's next answer back to the maintenance agent instead of
+    # misrouting it through intent classification again.
+    if state.get("still_gathering"):
+        return state
+
     state["current_agent"] = "vendor"
     ticket_id = state.get("ticket_id")
     
