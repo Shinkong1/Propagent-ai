@@ -33,6 +33,10 @@ class AgentState(TypedDict):
     # Response
     response: str
     actions_taken: List[str]
+    # True while an agent is mid-intake (asking a clarifying question and
+    # expecting a direct answer next turn) — callers shouldn't be told "just
+    # say goodbye when you're done" while they're actively being interviewed.
+    still_gathering: bool
     
     # Context
     history: List[dict]

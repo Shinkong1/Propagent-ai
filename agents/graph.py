@@ -94,8 +94,16 @@ async def process_message(
     db=None,
     history: list = None,
     language: str = "en",
+    forced_agent: Optional[str] = None,
 ) -> dict:
-    """Main entry point: process a message through the agent pipeline"""
+    """Main entry point: process a message through the agent pipeline.
+
+    forced_agent skips intent classification entirely and continues directly
+    with a specific agent — used when the previous turn left the conversation
+    mid-intake (still_gathering), so a bare answer like "my name is Alex"
+    isn't misrouted to the generic chat agent just because it lacks the
+    original topic's keywords.
+    """
 
     initial_state: AgentState = {
         "message": message,
@@ -112,19 +120,23 @@ async def process_message(
         "actions_taken": [],
         "history": history or [],
         "metadata": {},
+        "still_gathering": False,
     }
-    
-    graph = get_graph()
-    
-    if graph:
-        try:
-            final_state = await graph.ainvoke(initial_state)
-        except Exception as e:
-            logger.error(f"Graph execution failed: {e}")
-            final_state = await _fallback_process(initial_state)
+
+    if forced_agent:
+        final_state = await _run_forced_agent(initial_state, forced_agent)
     else:
-        final_state = await _fallback_process(initial_state)
-    
+        graph = get_graph()
+
+        if graph:
+            try:
+                final_state = await graph.ainvoke(initial_state)
+            except Exception as e:
+                logger.error(f"Graph execution failed: {e}")
+                final_state = await _fallback_process(initial_state)
+        else:
+            final_state = await _fallback_process(initial_state)
+
     return {
         "response": final_state.get("response", "I'm here to help! How can I assist you?"),
         "intent": final_state.get("intent"),
@@ -132,7 +144,31 @@ async def process_message(
         "vendor_assigned": final_state.get("vendor_assigned", False),
         "actions_taken": final_state.get("actions_taken", []),
         "agent": final_state.get("current_agent"),
+        "still_gathering": final_state.get("still_gathering", False),
     }
+
+
+async def _run_forced_agent(state: AgentState, agent_name: str) -> AgentState:
+    """Continue directly with a specific agent, bypassing intent routing."""
+    state["current_agent"] = agent_name
+    if agent_name == "maintenance":
+        from agents.agents.maintenance_agent import maintenance_agent_node
+        from agents.agents.vendor_agent import vendor_agent_node
+        state = await maintenance_agent_node(state)
+        state = await vendor_agent_node(state)
+    elif agent_name == "leasing":
+        from agents.agents.leasing_agent import leasing_agent_node
+        state = await leasing_agent_node(state)
+    elif agent_name == "screening":
+        from agents.agents.screening_agent import screening_agent_node
+        state = await screening_agent_node(state)
+    elif agent_name == "sales":
+        from agents.agents.sales_agent import sales_agent_node
+        state = await sales_agent_node(state)
+    else:
+        from agents.agents.tenant_support_agent import tenant_support_agent_node
+        state = await tenant_support_agent_node(state)
+    return state
 
 
 async def _fallback_process(state: AgentState) -> AgentState:

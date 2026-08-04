@@ -3,6 +3,7 @@ import logging
 from agents.graph import process_message
 from voice.call_session import (
     get_history, append_turns, bump_no_input_count, reset_no_input_count, clear_session,
+    get_pending_agent, set_pending_agent,
 )
 from voice.voice_i18n import get_voice_config, get_prompt, get_org_language
 
@@ -88,6 +89,7 @@ async def process_voice_input(speech: str, call_sid: str, caller_phone: str) -> 
             db.close()
 
         history = get_history(call_sid)
+        pending_agent = get_pending_agent(call_sid)
 
         result = await process_message(
             message=speech,
@@ -96,7 +98,10 @@ async def process_voice_input(speech: str, call_sid: str, caller_phone: str) -> 
             channel="voice",
             history=history,
             language=language,
+            forced_agent=pending_agent,
         )
+
+        set_pending_agent(call_sid, result.get("agent") if result.get("still_gathering") else None)
 
         response_text = result.get("response", "I'm processing your request.")
 
@@ -108,10 +113,14 @@ async def process_voice_input(speech: str, call_sid: str, caller_phone: str) -> 
             {"role": "assistant", "content": response_text},
         ])
 
-        if response_text.rstrip().endswith("?"):
-            response_text += " " + get_prompt(language, "just_say_goodbye")
-        else:
-            response_text += " " + get_prompt(language, "anything_else")
+        # Mid-intake (agent just asked a clarifying question and is waiting on
+        # a direct answer) — don't tack on "just say goodbye", it reads as the
+        # call wrapping up when it's actually still actively gathering info.
+        if not result.get("still_gathering"):
+            if response_text.rstrip().endswith("?"):
+                response_text += " " + get_prompt(language, "just_say_goodbye")
+            else:
+                response_text += " " + get_prompt(language, "anything_else")
 
         return build_response_twiml(response_text, continue_listening=True, language=language)
 

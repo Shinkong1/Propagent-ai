@@ -61,10 +61,34 @@ def reset_no_input_count(call_sid: str) -> None:
         logger.warning(f"Failed to reset no-input counter for {call_sid}: {e}")
 
 
+def get_pending_agent(call_sid: str) -> "str | None":
+    """Which agent (if any) is mid-intake and expecting a direct answer to
+    its last question — set when a turn leaves still_gathering=True, so the
+    next turn skips intent classification and goes straight back to it."""
+    try:
+        return _get_client().get(f"voice:pending_agent:{call_sid}")
+    except Exception as e:
+        logger.warning(f"Pending agent lookup unavailable for {call_sid}: {e}")
+        return None
+
+
+def set_pending_agent(call_sid: str, agent: "str | None") -> None:
+    try:
+        client = _get_client()
+        key = f"voice:pending_agent:{call_sid}"
+        if agent:
+            client.setex(key, CALL_SESSION_TTL, agent)
+        else:
+            client.delete(key)
+    except Exception as e:
+        logger.warning(f"Failed to update pending agent for {call_sid}: {e}")
+
+
 def clear_session(call_sid: str) -> None:
     try:
         client = _get_client()
         client.delete(f"voice:history:{call_sid}")
         client.delete(f"voice:noinput:{call_sid}")
+        client.delete(f"voice:pending_agent:{call_sid}")
     except Exception as e:
         logger.warning(f"Failed to clear call session for {call_sid}: {e}")
