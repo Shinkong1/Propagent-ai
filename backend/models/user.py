@@ -33,6 +33,9 @@ class Organization(Base):
     # sync via billing webhook events — null when no Stripe subscription exists yet (e.g.
     # manually created orgs), never fabricated.
     subscription_status = Column(String(30), nullable=True)
+    # Set the moment a checkout session with a trial is first created for this org, so
+    # a cancel/resubscribe cycle can't be used to keep claiming new 14-day trials.
+    trial_used = Column(Boolean, default=False, nullable=False)
     referral_code = Column(String(20), unique=True, nullable=True)
     referred_by_org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True)
     is_active = Column(Boolean, default=True)

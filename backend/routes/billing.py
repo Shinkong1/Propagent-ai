@@ -39,6 +39,10 @@ async def create_checkout(
     if not price_id:
         raise HTTPException(status_code=400, detail="Invalid plan")
 
+    from models.user import Organization
+    org = db.query(Organization).filter(Organization.id == current_user.organization_id).first()
+    grant_trial = bool(org and not org.trial_used)
+
     try:
         session = stripe.checkout.Session.create(
             mode="subscription",
@@ -47,7 +51,11 @@ async def create_checkout(
             cancel_url=f"{settings.FRONTEND_URL}/pricing",
             metadata={"org_id": str(current_user.organization_id), "plan": plan},
             managed_payments={"enabled": False},
+            **({"subscription_data": {"trial_period_days": 14}} if grant_trial else {}),
         )
+        if grant_trial:
+            org.trial_used = True
+            db.commit()
         return {"url": session.url}
     except Exception as e:
         logger.error(f"Stripe checkout error: {e}")
