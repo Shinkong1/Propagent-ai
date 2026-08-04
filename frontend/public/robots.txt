@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /oauth
+
+Sitemap: https://propagentai.vercel.app/sitemap.xml

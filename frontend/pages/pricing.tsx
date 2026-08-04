@@ -41,7 +41,10 @@ export default function Pricing() {
 
   return (
     <>
-      <Head><title>Pricing — PropAgent AI</title></Head>
+      <Head>
+        <title>Pricing — PropAgent AI</title>
+        <meta name="description" content="Simple, transparent pricing for AI-powered property management. Starter, Professional, and Enterprise plans." />
+      </Head>
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
         <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 48px', borderBottom: '1px solid var(--border-subtle)' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>

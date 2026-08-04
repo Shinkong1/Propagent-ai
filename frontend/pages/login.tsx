@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Head from 'next/head';
 import { Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { auth, mfa as mfaApi, oauth } from '../lib/api';
@@ -58,7 +59,13 @@ export default function Login() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <>
+      <Head>
+        <title>Sign In — PropAgent AI</title>
+        <meta name="description" content="Sign in to your PropAgent AI property management dashboard." />
+        <meta name="robots" content="noindex" />
+      </Head>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ width: '100%', maxWidth: 420, padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
@@ -157,7 +164,8 @@ export default function Login() {
         )}
 
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 

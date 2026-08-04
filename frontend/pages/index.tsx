@@ -19,6 +19,13 @@ export default function Home() {
       <Head>
         <title>PropAgent AI — AI-Powered Property Management</title>
         <meta name="description" content="Automate tenant communication, maintenance, leasing, and more with AI." />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="PropAgent AI — AI-Powered Property Management" />
+        <meta property="og:description" content="Automate tenant communication, maintenance, leasing, and more with AI." />
+        <meta property="og:image" content="/icon-512.png" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="PropAgent AI — AI-Powered Property Management" />
+        <meta name="twitter:description" content="Automate tenant communication, maintenance, leasing, and more with AI." />
       </Head>
       
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
@@ -141,7 +148,11 @@ export default function Home() {
         </section>
 
         <footer style={{ textAlign: 'center', padding: '20px', borderTop: '1px solid var(--border-subtle)', color: '#334155', fontSize: 12, fontFamily: 'IBM Plex Mono' }}>
-          © 2024 PropAgent AI · AI-Powered Property Management
+          © {new Date().getFullYear()} PropAgent AI · AI-Powered Property Management
+          <span style={{ margin: '0 8px' }}>·</span>
+          <Link href="/terms" style={{ color: '#475569', textDecoration: 'none' }}>Terms</Link>
+          <span style={{ margin: '0 8px' }}>·</span>
+          <Link href="/privacy" style={{ color: '#475569', textDecoration: 'none' }}>Privacy</Link>
         </footer>
       </div>
     </>

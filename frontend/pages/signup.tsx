@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Head from 'next/head';
 import { Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { auth } from '../lib/api';
@@ -11,10 +12,15 @@ export default function Signup() {
   const router = useRouter();
   const { t } = useLanguage();
   const [form, setForm] = useState({ email: '', password: '', first_name: '', last_name: '', organization_name: '' });
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!agreed) {
+      toast.error(t('signup.mustAgree'));
+      return;
+    }
     setLoading(true);
     try {
       const res = await auth.signup(form);
@@ -32,7 +38,12 @@ export default function Signup() {
   const f = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(p => ({ ...p, [key]: e.target.value }));
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+    <>
+      <Head>
+        <title>Sign Up — PropAgent AI</title>
+        <meta name="description" content="Start your free trial of PropAgent AI — AI-powered property management. No credit card required." />
+      </Head>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 440 }}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
@@ -68,6 +79,21 @@ export default function Signup() {
             <label style={labelStyle}>{t('login.password')}</label>
             <input type="password" required minLength={8} value={form.password} onChange={f('password')} placeholder="Min 8 characters" style={inputStyle} spellCheck={false} autoCorrect="off" autoCapitalize="off" autoComplete="new-password" />
           </div>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 18, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={e => setAgreed(e.target.checked)}
+              style={{ marginTop: 2, flexShrink: 0, accentColor: '#FBC02D' }}
+            />
+            <span style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              {t('signup.agreePrefix')}{' '}
+              <Link href="/terms" target="_blank" style={{ color: '#FBC02D', textDecoration: 'none' }}>{t('signup.termsLink')}</Link>
+              {' '}{t('signup.agreeAnd')}{' '}
+              <Link href="/privacy" target="_blank" style={{ color: '#FBC02D', textDecoration: 'none' }}>{t('signup.privacyLink')}</Link>
+            </span>
+          </label>
+
           <button type="submit" disabled={loading} style={btnStyle}>
             {loading ? 'Creating account...' : t('landing.startTrial')}
           </button>
@@ -81,7 +107,8 @@ export default function Signup() {
           <Link href="/login" style={{ color: '#FBC02D', textDecoration: 'none', fontWeight: 600 }}>{t('signup.loginLink')}</Link>
         </p>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
