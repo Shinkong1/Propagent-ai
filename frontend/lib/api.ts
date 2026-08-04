@@ -16,13 +16,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401
+// Handle 401 (bad/expired token) and 402 (trial ended, no active subscription)
 api.interceptors.response.use(
   (r) => r,
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('token');
       window.location.href = '/login';
+    }
+    if (error.response?.status === 402 && typeof window !== 'undefined' && window.location.pathname !== '/pricing') {
+      window.location.href = '/pricing?trialEnded=1';
     }
     return Promise.reject(error);
   }

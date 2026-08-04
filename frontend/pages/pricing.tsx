@@ -59,6 +59,14 @@ export default function Pricing() {
         </nav>
 
         <div style={{ maxWidth: 1000, margin: '0 auto', padding: '72px 24px' }}>
+          {router.query.trialEnded && (
+            <div style={{
+              background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10,
+              padding: '14px 18px', marginBottom: 32, textAlign: 'center', fontSize: 14, color: '#EF4444', fontFamily: 'IBM Plex Sans',
+            }}>
+              Your 14-day free trial has ended. Choose a plan below to keep using PropAgent.
+            </div>
+          )}
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 44, color: 'var(--text-primary)', marginBottom: 14 }}>Simple Pricing</h1>
             <p style={{ color: '#64748B', fontSize: 17, fontFamily: 'IBM Plex Sans' }}>Scale your property management AI at any portfolio size</p>

@@ -36,6 +36,9 @@ class Organization(Base):
     # Set the moment a checkout session with a trial is first created for this org, so
     # a cancel/resubscribe cycle can't be used to keep claiming new 14-day trials.
     trial_used = Column(Boolean, default=False, nullable=False)
+    # 14 days from signup — the free window before an active Stripe subscription is
+    # required to keep using the app at all. See middleware/auth.py's access check.
+    trial_ends_at = Column(DateTime, nullable=True)
     referral_code = Column(String(20), unique=True, nullable=True)
     referred_by_org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True)
     is_active = Column(Boolean, default=True)

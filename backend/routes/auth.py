@@ -13,7 +13,7 @@ from schemas.auth import (
 from middleware.auth import hash_password, verify_password, create_access_token, get_current_user
 from middleware.plan_gate import require_role
 from middleware.rate_limit import limiter
-from datetime import datetime
+from datetime import datetime, timedelta
 from models.platform import OrgEventType
 from services.platform_service import generate_referral_code, log_org_event
 
@@ -53,6 +53,7 @@ async def signup(request: Request, payload: SignupRequest, db: Session = Depends
     org = Organization(
         name=payload.organization_name, slug=slug,
         referral_code=generate_referral_code(), referred_by_org_id=referred_by_org_id,
+        trial_ends_at=datetime.utcnow() + timedelta(days=14),
     )
     db.add(org)
     db.flush()
