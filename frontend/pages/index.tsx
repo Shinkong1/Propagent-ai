@@ -12,6 +12,27 @@ const FEATURES = [
   { icon: Zap, title: 'Autonomous Agents', desc: 'LangGraph orchestrates 7 specialized agents working together automatically.' },
 ];
 
+const MOMENTS = [
+  {
+    title: 'The 2am pipe burst',
+    quote: '"Tenant texts at 2:14am: \'water everywhere.\' You\'re asleep. By the time you see it, it\'s been leaking for six hours."',
+    pain: 'Pain · after-hours emergencies wait for a human',
+    resolution: 'Voice AI answers in one ring, classifies it urgent, texts the on-call plumber, and confirms an ETA to the tenant — before you\'ve even seen the message.',
+  },
+  {
+    title: 'The vacant unit bleeding rent',
+    quote: '"Unit 4B has been empty for three weeks. Every showing request means answering the same five questions again."',
+    pain: 'Pain · manual leasing inquiries stall vacant units',
+    resolution: 'AI tenant chat qualifies every inquiry instantly — pets, income, move-in date — and books the serious ones straight onto your calendar. 47% less vacancy time on average.',
+  },
+  {
+    title: 'The awkward rent chase',
+    quote: '"Rent\'s ten days late again. You don\'t want to be \'that landlord,\' so you wait. Then it\'s thirty days late."',
+    pain: 'Pain · collections feel personal, so they get delayed',
+    resolution: 'The Collections agent sends the first reminder on day one — friendly, consistent, logged — and escalates on a schedule you set, so it\'s never coming from you.',
+  },
+];
+
 export default function Home() {
   const { t } = useLanguage();
   return (
@@ -105,8 +126,35 @@ export default function Home() {
           ))}
         </section>
 
+        {/* Moments — where the hours actually go */}
+        <section style={{ maxWidth: 1100, margin: '0 auto', padding: '80px 24px 40px' }}>
+          <p style={{ textAlign: 'center', fontSize: 12, fontFamily: 'IBM Plex Mono', color: '#FBC02D', letterSpacing: '1px', marginBottom: 10, textTransform: 'uppercase' }}>
+            Where the hours actually go
+          </p>
+          <h2 style={{ textAlign: 'center', fontFamily: 'Syne', fontWeight: 800, fontSize: 36, color: 'var(--text-primary)', marginBottom: 48, maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' }}>
+            Three moments where PropAgent measurably changes your week.
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+            {MOMENTS.map(m => (
+              <div key={m.title} style={{
+                background: 'var(--bg-surface)', border: '1px solid var(--border-strong)',
+                borderRadius: 14, padding: '26px 24px', display: 'flex', flexDirection: 'column', gap: 14,
+              }}>
+                <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 17, color: 'var(--text-primary)' }}>{m.title}</div>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, fontStyle: 'italic', fontFamily: 'IBM Plex Sans' }}>{m.quote}</p>
+                <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#EF4444', letterSpacing: '0.3px' }}>{m.pain}</div>
+                <div style={{ height: 1, background: 'var(--border-subtle)' }} />
+                <p style={{ fontSize: 14, lineHeight: 1.6, fontFamily: 'IBM Plex Sans' }}>
+                  <span style={{ color: '#FBC02D', fontWeight: 700, fontFamily: 'Syne' }}>PropAgent → </span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{m.resolution}</span>
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Features */}
-        <section style={{ maxWidth: 1100, margin: '0 auto', padding: '80px 24px' }}>
+        <section style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px 80px' }}>
           <h2 style={{ textAlign: 'center', fontFamily: 'Syne', fontWeight: 800, fontSize: 36, color: 'var(--text-primary)', marginBottom: 12 }}>
             Everything Automated
           </h2>
