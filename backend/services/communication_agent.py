@@ -11,6 +11,8 @@ paid integrations (WhatsApp Business API, a mobile app with push
 subscriptions) that don't exist in this app.
 """
 import logging
+import smtplib
+import socket
 from datetime import date
 
 from config import settings
@@ -76,11 +78,35 @@ def send_sms(to_phone: str, body: str) -> tuple:
         return "failed", str(e)
 
 
+class _SMTP_IPv4(smtplib.SMTP):
+    """Some cloud hosts (Render included) advertise a working IPv6 route that
+    isn't actually usable, so a plain smtplib.SMTP() connect can fail with
+    'Network is unreachable' before ever reaching the SMTP handshake, even
+    though outbound IPv4 works fine. Force IPv4 address resolution so the
+    connection actually goes out."""
+
+    def _get_socket(self, host, port, timeout):
+        infos = socket.getaddrinfo(host, port, socket.AF_INET, socket.SOCK_STREAM)
+        last_err = None
+        for family, socktype, proto, _canonname, sockaddr in infos:
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                if timeout is not None:
+                    sock.settimeout(timeout)
+                sock.connect(sockaddr)
+                return sock
+            except OSError as e:
+                last_err = e
+                if sock is not None:
+                    sock.close()
+        raise last_err or OSError(f"No IPv4 address found for {host}")
+
+
 def send_email(to_email: str, subject: str, body: str) -> tuple:
     if not (settings.SMTP_USER and settings.SMTP_PASSWORD):
         return "logged_only", None
     try:
-        import smtplib
         from email.mime.text import MIMEText
         from email.mime.multipart import MIMEMultipart
 
@@ -94,7 +120,7 @@ def send_email(to_email: str, subject: str, body: str) -> tuple:
         # handlers on a single-worker server, so a hung connection to the SMTP
         # host would otherwise block every other request on the process, not
         # just this one.
-        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as server:
+        with _SMTP_IPv4(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as server:
             server.starttls()
             server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
             server.sendmail(settings.FROM_EMAIL, to_email, msg.as_string())
