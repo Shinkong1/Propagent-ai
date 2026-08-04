@@ -26,10 +26,11 @@ def notify_owner(
     owner = db.query(User).filter(User.is_master == True, User.is_active == True).first()
 
     email_status = "logged_only"
+    email_error = None
     if owner and owner.email:
         org_line = f" (from {organization.name})" if organization else ""
         email_body = f"From: {sender_name or 'Unknown'} <{sender_email or 'no email on file'}>{org_line}\n\n{body}"
-        email_status, _ = send_email(owner.email, f"[PropAgent AI] {subject}", email_body)
+        email_status, email_error = send_email(owner.email, f"[PropAgent AI] {subject}", email_body)
     else:
         logger.warning("No active master/owner account found — owner notification logged only.")
 
@@ -41,6 +42,7 @@ def notify_owner(
         subject=subject,
         body=body,
         email_status=email_status,
+        email_error=email_error,
     )
     db.add(message)
     db.commit()

@@ -68,9 +68,11 @@ class OwnerMessageResponse(BaseModel):
     subject: str
     body: str
     email_status: str
+    email_error: Optional[str] = None
     created_at: datetime
     reply_body: Optional[str] = None
     reply_status: Optional[str] = None
+    reply_error: Optional[str] = None
     replied_at: Optional[datetime] = None
 
     class Config:

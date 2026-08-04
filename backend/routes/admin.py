@@ -176,8 +176,8 @@ async def list_owner_messages(db: Session = Depends(get_db)):
             id=m.id, source=m.source.value, organization_id=m.organization_id,
             organization_name=m.organization_name, sender_name=m.sender_name,
             sender_email=m.sender_email, subject=m.subject, body=m.body,
-            email_status=m.email_status, created_at=m.created_at,
-            reply_body=m.reply_body, reply_status=m.reply_status, replied_at=m.replied_at,
+            email_status=m.email_status, email_error=m.email_error, created_at=m.created_at,
+            reply_body=m.reply_body, reply_status=m.reply_status, reply_error=m.reply_error, replied_at=m.replied_at,
         )
         for m in messages
     ]
@@ -197,6 +197,7 @@ async def reply_to_owner_message(message_id: UUID, payload: OwnerMessageReplyReq
     status, error = await run_in_threadpool(send_email, message.sender_email, f"Re: {message.subject}", payload.reply)
     message.reply_body = payload.reply
     message.reply_status = status
+    message.reply_error = error
     message.replied_at = datetime.utcnow()
     db.commit()
     db.refresh(message)
@@ -205,8 +206,8 @@ async def reply_to_owner_message(message_id: UUID, payload: OwnerMessageReplyReq
         id=message.id, source=message.source.value, organization_id=message.organization_id,
         organization_name=message.organization_name, sender_name=message.sender_name,
         sender_email=message.sender_email, subject=message.subject, body=message.body,
-        email_status=message.email_status, created_at=message.created_at,
-        reply_body=message.reply_body, reply_status=message.reply_status, replied_at=message.replied_at,
+        email_status=message.email_status, email_error=message.email_error, created_at=message.created_at,
+        reply_body=message.reply_body, reply_status=message.reply_status, reply_error=message.reply_error, replied_at=message.replied_at,
     )
 
 

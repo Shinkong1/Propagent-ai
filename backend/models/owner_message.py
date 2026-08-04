@@ -28,9 +28,11 @@ class OwnerMessage(Base):
     subject = Column(String(255), nullable=False)
     body = Column(Text, nullable=False)
     email_status = Column(String(20), nullable=False)  # sent | failed | logged_only
+    email_error = Column(Text, nullable=True)  # raw exception text when email_status == 'failed'
     created_at = Column(DateTime, default=datetime.utcnow)
     reply_body = Column(Text, nullable=True)
     reply_status = Column(String(20), nullable=True)  # sent | failed | logged_only
+    reply_error = Column(Text, nullable=True)
     replied_at = Column(DateTime, nullable=True)
 
     organization = relationship("Organization")

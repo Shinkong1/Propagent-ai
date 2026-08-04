@@ -588,6 +588,17 @@ export default function OwnerAdmin() {
               {selectedMessage.body}
             </div>
 
+            {selectedMessage.email_status !== 'sent' && selectedMessage.email_error && (
+              <div style={{ marginBottom: 18, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#EF4444', marginBottom: 4, letterSpacing: '0.5px' }}>
+                  EMAIL DELIVERY ERROR ({selectedMessage.email_status})
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono', wordBreak: 'break-word' }}>
+                  {selectedMessage.email_error}
+                </div>
+              </div>
+            )}
+
             {selectedMessage.reply_body && (
               <div style={{ marginBottom: 18 }}>
                 <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6, letterSpacing: '0.5px' }}>
@@ -599,6 +610,11 @@ export default function OwnerAdmin() {
                 <div style={{ background: 'rgba(251,192,45,0.06)', border: '1px solid rgba(251,192,45,0.2)', borderRadius: 10, padding: 16, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                   {selectedMessage.reply_body}
                 </div>
+                {selectedMessage.reply_status !== 'sent' && selectedMessage.reply_error && (
+                  <div style={{ marginTop: 8, fontSize: 11, color: '#EF4444', fontFamily: 'IBM Plex Mono', wordBreak: 'break-word' }}>
+                    {selectedMessage.reply_error}
+                  </div>
+                )}
               </div>
             )}
 
