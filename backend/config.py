@@ -36,11 +36,11 @@ class Settings(BaseSettings):
     # since the request as seen inside the container only shows the internal host.
     PUBLIC_BASE_URL: str = ""
 
-    SMTP_HOST: str = "smtp.sendgrid.net"
+    SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
-    FROM_EMAIL: str = "noreply@propagent.ai"
+    FROM_EMAIL: str = "propagentapp@gmail.com"
 
     ALLOWED_ORIGINS: list = ["http://localhost:3000", "https://app.propagent.ai"]
 

@@ -86,7 +86,7 @@ export default function Terms() {
           <Section title="13. Dispute Resolution; Binding Arbitration; Class Action Waiver">
             <strong>Please read this section carefully — it affects your legal rights.</strong> You and the Company agree that any dispute, claim, or controversy arising out of or relating to these Terms or the Service will be resolved by binding, individual arbitration administered by <Placeholder>[American Arbitration Association / JAMS]</Placeholder> under its rules then in effect, rather than in court, except that either party may bring an individual action in small-claims court.<br /><br />
             <strong>YOU AND THE COMPANY EACH WAIVE THE RIGHT TO A JURY TRIAL AND THE RIGHT TO PARTICIPATE IN A CLASS ACTION, CLASS ARBITRATION, OR REPRESENTATIVE PROCEEDING.</strong> Disputes will be resolved only on an individual basis, and claims of more than one customer cannot be arbitrated or litigated jointly or consolidated with those of any other customer. If this class-action waiver is found unenforceable as to a particular dispute, that dispute (and only that dispute) will proceed in court rather than in arbitration.<br /><br />
-            You may opt out of this arbitration agreement within 30 days of first accepting these Terms by sending written notice to <Placeholder>[legal@yourdomain.com]</Placeholder> with your name, account email, and a clear statement that you wish to opt out of arbitration.
+            You may opt out of this arbitration agreement within 30 days of first accepting these Terms by sending written notice to propagentapp@gmail.com with your name, account email, and a clear statement that you wish to opt out of arbitration.
           </Section>
 
           <Section title="14. Force Majeure">
@@ -110,7 +110,7 @@ export default function Terms() {
           </Section>
 
           <Section title="18. Contact">
-            Questions about these Terms can be sent to <Placeholder>[legal@yourdomain.com]</Placeholder>.
+            Questions about these Terms can be sent to propagentapp@gmail.com.
           </Section>
         </div>
         <PublicFooter />

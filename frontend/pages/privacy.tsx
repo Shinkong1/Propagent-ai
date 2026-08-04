@@ -66,7 +66,7 @@ export default function Privacy() {
           </Section>
 
           <Section title="8. Your Rights">
-            Depending on your location, you may have rights to access, correct, export, or delete your personal information. You can update most account information directly in Settings, or contact us at <Placeholder>[privacy@yourdomain.com]</Placeholder> to make a request.
+            Depending on your location, you may have rights to access, correct, export, or delete your personal information. You can update most account information directly in Settings, or contact us at propagentapp@gmail.com to make a request.
           </Section>
 
           <Section title="9. Cookies">
@@ -82,7 +82,7 @@ export default function Privacy() {
           </Section>
 
           <Section title="12. Contact">
-            Questions about this Privacy Policy or our <Link href="/terms" style={{ color: '#FBC02D' }}>Terms of Service</Link> can be sent to <Placeholder>[privacy@yourdomain.com]</Placeholder>.
+            Questions about this Privacy Policy or our <Link href="/terms" style={{ color: '#FBC02D' }}>Terms of Service</Link> can be sent to propagentapp@gmail.com.
           </Section>
         </div>
         <PublicFooter />
