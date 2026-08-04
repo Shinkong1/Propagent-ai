@@ -3,4 +3,4 @@ Allow: /
 Disallow: /dashboard
 Disallow: /oauth
 
-Sitemap: https://propagentai.vercel.app/sitemap.xml
+Sitemap: https://propagent.app/sitemap.xml
