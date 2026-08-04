@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '../../components/DashboardLayout';
 import TutorialWalkthrough from '../../components/TutorialWalkthrough';
-import { User, Mail, Building2, CreditCard, Shield, Globe, ChevronRight, MessageCircle } from 'lucide-react';
+import { User, Mail, Building2, CreditCard, Shield, Globe, ChevronRight } from 'lucide-react';
 import { auth, billing } from '../../lib/api';
 import { getUser } from '../../lib/auth';
 import { useLanguage } from '../../lib/LanguageContext';
@@ -86,18 +86,6 @@ export default function Profile() {
               </div>
             </Link>
 
-            <Link href="/dashboard/contact" style={{ textDecoration: 'none' }}>
-              <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <MessageCircle size={18} color="#FBC02D" />
-                  <div>
-                    <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>Contact Us</div>
-                    <div style={{ fontSize: 12, color: '#64748B' }}>Send a note directly to the PropAgent AI owner</div>
-                  </div>
-                </div>
-                <ChevronRight size={16} color="#64748B" />
-              </div>
-            </Link>
           </div>
 
           {/* Tutorial */}

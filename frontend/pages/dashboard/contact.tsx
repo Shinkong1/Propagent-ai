@@ -18,8 +18,12 @@ export default function ContactUs() {
     }
     setSending(true);
     try {
-      await contactApi.send(subject.trim(), message.trim());
-      toast.success(t('contact.sent'));
+      const res = await contactApi.send(subject.trim(), message.trim());
+      if (res.data?.status === 'sent') {
+        toast.success(t('contact.sent'));
+      } else {
+        toast.error(t('contact.sendFailed'));
+      }
       setSubject(''); setMessage('');
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || t('contact.sendFailed'));

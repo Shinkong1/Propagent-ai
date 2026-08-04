@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
   LayoutDashboard, Building2, Users, Wrench, UserSearch,
-  BarChart3, Phone, CreditCard, LogOut, Zap, User, Landmark, Sparkles, Boxes, ShieldCheck, AlertTriangle, TrendingUp, FileText, LineChart, ClipboardCheck, MessageSquare, Settings, Lock, Crown, ChevronLeft, ChevronRight, Workflow, Radar, ChevronRight as CaretRight, X
+  BarChart3, Phone, CreditCard, LogOut, Zap, User, Landmark, Sparkles, Boxes, ShieldCheck, AlertTriangle, TrendingUp, FileText, LineChart, ClipboardCheck, MessageSquare, MessageCircle, Settings, Lock, Crown, ChevronLeft, ChevronRight, Workflow, Radar, ChevronRight as CaretRight, X
 } from 'lucide-react';
 import { clearToken, getUser } from '../lib/auth';
 import { useLanguage } from '../lib/LanguageContext';
@@ -55,6 +55,7 @@ const NAV: NavEntry[] = [
 const BOTTOM_NAV: { href: string; key: string; icon: any }[] = [
   { href: '/dashboard/settings', key: 'nav.settings', icon: Settings },
   { href: '/dashboard/profile', key: 'nav.profile', icon: User },
+  { href: '/dashboard/contact', key: 'nav.contact', icon: MessageCircle },
 ];
 
 export const SIDEBAR_WIDTH_EXPANDED = 240;
