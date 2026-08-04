@@ -111,7 +111,7 @@ export default function Collections() {
         </div>
         <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('collections.subtitle')}</p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
           {kpis.map(k => (
             <div key={k.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '14px 16px' }}>
               <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>

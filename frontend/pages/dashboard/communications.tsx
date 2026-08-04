@@ -107,7 +107,7 @@ export default function Communications() {
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 14 }}>
             <div>
               <label style={lbl}>{t('communications.channel')}</label>
               <select value={channel} onChange={e => setChannel(e.target.value)} style={{ ...inp } as any}>

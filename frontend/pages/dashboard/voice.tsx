@@ -68,7 +68,8 @@ export default function Voice() {
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-strong)' }}>
             <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>Recent Calls</h3>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                 {['Caller', 'Time', 'Duration', 'Intent', 'AI Action', 'Status'].map(h => (
@@ -93,6 +94,7 @@ export default function Voice() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Config */}

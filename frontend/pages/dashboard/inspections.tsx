@@ -249,7 +249,7 @@ export default function Inspections() {
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('inspections.newInspection')}</h2>
                 <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>{t('portfolio.property')}</label>
                   <select value={propertyId} onChange={e => changeProperty(e.target.value)} style={{ ...inp } as any}>
@@ -265,7 +265,7 @@ export default function Inspections() {
                   </select>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>{t('inspections.inspectionType')}</label>
                   <select value={inspectionType} onChange={e => setInspectionType(e.target.value)} style={{ ...inp } as any}>

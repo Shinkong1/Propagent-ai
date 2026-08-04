@@ -4,6 +4,7 @@ import PlanLock, { hasPlanAccess } from '../../components/PlanLock';
 import { Workflow, Plus, Trash2, X, Play, Zap } from 'lucide-react';
 import { workflows as workflowsApi } from '../../lib/api';
 import { useLanguage } from '../../lib/LanguageContext';
+import { useSidebar } from '../../lib/SidebarContext';
 import toast from 'react-hot-toast';
 
 interface Condition { field: string; operator: string; value: string; }
@@ -23,6 +24,7 @@ const emptyAction = (): Action => ({ type: 'notify_owner', params: { subject: ''
 
 export default function WorkflowsPage() {
   const { t } = useLanguage();
+  const { isMobile } = useSidebar();
   const [rules, setRules] = useState<Rule[]>([]);
   const [meta, setMeta] = useState<Metadata | null>(null);
   const [loading, setLoading] = useState(true);
@@ -213,7 +215,7 @@ export default function WorkflowsPage() {
                 <button onClick={() => setConditions(c => [...c, emptyCondition()])} style={smallBtn}>+ {t('workflows.addCondition')}</button>
               </div>
               {conditions.map((cond, i) => (
-                <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8, marginBottom: 8 }}>
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr auto', gap: 8, marginBottom: 8 }}>
                   <select value={cond.field} onChange={e => setConditions(cs => cs.map((c, ci) => ci === i ? { ...c, field: e.target.value } : c))} style={inp as any}>
                     <option value="">{t('workflows.selectField')}</option>
                     {fields.map(f => <option key={f} value={f}>{f}</option>)}
@@ -275,7 +277,7 @@ export default function WorkflowsPage() {
                   <label style={lbl}>{t('workflows.testRule')}</label>
                 </div>
                 {fields.map(f => (
-                  <div key={f} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 8, marginBottom: 6, alignItems: 'center' }}>
+                  <div key={f} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '120px 1fr', gap: 8, marginBottom: 6, alignItems: 'center' }}>
                     <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono' }}>{f}</span>
                     <input
                       value={testData[f] || ''}

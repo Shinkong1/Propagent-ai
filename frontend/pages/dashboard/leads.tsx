@@ -90,7 +90,8 @@ export default function Leads() {
 
         {/* Table */}
         <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                 {['Name', 'Company', 'Contact', 'Properties', 'Score', 'Status', 'Actions'].map(h => (
@@ -140,6 +141,7 @@ export default function Leads() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </DashboardLayout>

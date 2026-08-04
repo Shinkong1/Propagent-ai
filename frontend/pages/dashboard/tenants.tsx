@@ -243,7 +243,8 @@ export default function Tenants() {
         )}
 
         <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                 {['Tenant', 'Property', 'Contact', 'Employment', 'Income', 'Screening', 'Status', 'Contract', 'Actions'].map(h => (
@@ -332,6 +333,7 @@ export default function Tenants() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Add Tenant Modal */}
@@ -342,7 +344,7 @@ export default function Tenants() {
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Add Tenant</h2>
                 <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>First Name</label>
                   <input value={form.first_name} onChange={e => setForm(p => ({ ...p, first_name: e.target.value }))} style={inp} {...textFieldAttrs('first_name')} />
@@ -352,7 +354,7 @@ export default function Tenants() {
                   <input value={form.last_name} onChange={e => setForm(p => ({ ...p, last_name: e.target.value }))} style={inp} {...textFieldAttrs('last_name')} />
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>Property</label>
                   <select value={form.property_id} onChange={e => changeAddProperty(e.target.value)} style={{ ...inp } as any}>
@@ -398,7 +400,7 @@ export default function Tenants() {
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Edit {editingTenant.first_name} {editingTenant.last_name}</h2>
                 <button onClick={() => setEditingTenant(null)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>First Name</label>
                   <input value={editForm.first_name} onChange={e => setEditForm((p: any) => ({ ...p, first_name: e.target.value }))} style={inp} {...textFieldAttrs('first_name')} />
@@ -415,7 +417,7 @@ export default function Tenants() {
                   Currently at {editingTenant.property_name}{editingTenant.unit_number ? ` · Unit ${editingTenant.unit_number}` : ''}
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                   <div>
                     <label style={lbl}>Assign Property</label>
                     <select value={editForm.property_id} onChange={e => changeEditProperty(e.target.value)} style={{ ...inp } as any}>

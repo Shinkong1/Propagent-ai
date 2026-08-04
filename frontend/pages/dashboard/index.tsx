@@ -90,7 +90,7 @@ export default function Dashboard() {
         </div>
 
         {/* Metrics Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 28 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 28 }}>
           <MetricCard label={t('dashboard.totalProperties')} value={stats?.total_properties ?? '—'} subtext="active" color="#FBC02D" icon={<Building2 size={18} />} trend={{ value: 12, label: 'this month' }} onClick={() => router.push('/dashboard/properties')} />
           <MetricCard label={t('dashboard.occupiedUnits')} value={`${stats?.occupied_units ?? '—'}/${stats?.total_units ?? '—'}`} subtext={`${stats?.vacancy_rate ?? 0}% ${t('dashboard.vacancyRate').toLowerCase()}`} color="#3B82F6" icon={<Users size={18} />} onClick={() => openModal('units')} />
           <MetricCard label={t('dashboard.monthlyRevenue')} value={stats ? formatMoney(stats.monthly_revenue) : '—'} subtext="from active leases" color="#10B981" icon={<DollarSign size={18} />} onClick={() => openModal('revenue')} />
@@ -100,7 +100,7 @@ export default function Dashboard() {
         </div>
 
         {/* Bottom: Recent Tickets + AI Chat */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
 
           {/* Recent Tickets */}
           <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 20 }}>

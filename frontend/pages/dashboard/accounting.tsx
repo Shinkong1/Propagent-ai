@@ -136,7 +136,7 @@ export default function Accounting() {
         </div>
 
         {/* Financial stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12, marginBottom: 28 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 28 }}>
           <StatCard icon={<TrendingUp size={15} color="#10B981" />} label="Income" value={fmtMoney(report?.total_income)} />
           <StatCard icon={<TrendingDown size={15} color="#EF4444" />} label="Expenses" value={fmtMoney(report?.total_expenses)} />
           <StatCard icon={<DollarSign size={15} color="#FBC02D" />} label="NOI" value={fmtMoney(report?.noi)} />
@@ -145,7 +145,7 @@ export default function Accounting() {
           <StatCard icon={<DollarSign size={15} color={report?.cash_flow < 0 ? '#EF4444' : '#10B981'} />} label="Cash Flow" value={fmtMoney(report?.cash_flow)} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
           {/* Recent Payments */}
           <Section title="Recent Rent Payments">
             {payments.length === 0 ? <Empty text="No payments recorded yet." /> : (
@@ -201,7 +201,7 @@ export default function Accounting() {
                   {leaseOptions.map(l => <option key={l.id} value={l.id}>{l.tenant_name} — {l.property_name} · Unit {l.unit_number}</option>)}
                 </select>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>Amount ({symbol})</label>
                   <input value={paymentForm.amount} onChange={e => setPaymentForm(p => ({ ...p, amount: e.target.value }))} style={inp} spellCheck={false} autoCorrect="off" />
@@ -213,7 +213,7 @@ export default function Accounting() {
                   </select>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>Due Date</label>
                   <input type="date" value={paymentForm.due_date} onChange={e => setPaymentForm(p => ({ ...p, due_date: e.target.value }))} style={inp} />
@@ -251,7 +251,7 @@ export default function Accounting() {
                   {propertyList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>Category</label>
                   <select value={expenseForm.category} onChange={e => setExpenseForm(p => ({ ...p, category: e.target.value }))} style={{ ...inp } as any}>

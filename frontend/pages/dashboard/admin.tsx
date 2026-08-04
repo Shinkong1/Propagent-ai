@@ -218,7 +218,7 @@ export default function OwnerAdmin() {
 
         {tab === 'subscribers' && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
               <KpiCard label={t('admin.organizations')} value={metrics?.total_organizations} sub={`${metrics?.active_organizations} ${t('admin.active')}`} icon={Building2} />
               <KpiCard label={t('admin.users')} value={metrics?.total_users} sub={`${metrics?.active_users} ${t('admin.active')}`} icon={Users} />
               <KpiCard label={t('admin.newThisMonth')} value={metrics?.new_organizations_this_month} sub={t('admin.newThisMonthSub')} icon={Sparkles} />
@@ -386,12 +386,12 @@ export default function OwnerAdmin() {
 
         {tab === 'revenue' && revenue && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
               <KpiCard label={t('admin.mrr')} value={formatMoney(revenue.mrr)} sub={t('admin.mrrSub')} icon={DollarSign} />
               <KpiCard label={t('admin.arr')} value={formatMoney(revenue.arr)} sub={t('admin.arrSub')} icon={TrendingUp} />
               <KpiCard label={t('admin.arpu')} value={formatMoney(revenue.arpu)} sub={t('admin.arpuSub')} icon={Users} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 20 }}>
               <KpiCard label={t('admin.churnRate')} value={revenue.churn_rate_30d !== null ? `${revenue.churn_rate_30d}%` : '—'} sub={revenue.churn_note || t('admin.churnSub')} icon={Repeat} />
               <KpiCard label={t('admin.ltv')} value={revenue.ltv !== null ? formatMoney(revenue.ltv) : '—'} sub={t('admin.ltvSub')} icon={Gift} />
             </div>
@@ -407,7 +407,7 @@ export default function OwnerAdmin() {
             </div>
 
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 12 }}>{t('admin.conversionFunnel')}</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 24 }}>
               <KpiCard label={t('admin.funnelSignups')} value={growth.conversion_funnel.signups} icon={Users} />
               <KpiCard label={t('admin.funnelActive')} value={growth.conversion_funnel.active} icon={Activity} />
               <KpiCard label={t('admin.funnelPaid')} value={growth.conversion_funnel.paid_plan} icon={DollarSign} />
@@ -431,7 +431,7 @@ export default function OwnerAdmin() {
         {tab === 'platform' && platform && (
           <>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 12 }}>{t('admin.systemHealth')}</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
               <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
                 <Database size={20} color={platform.health.database_ok ? '#10B981' : '#EF4444'} />
                 <div>
@@ -497,7 +497,7 @@ export default function OwnerAdmin() {
               <MiniBarChart data={businessAnalytics.signup_trend} valueKey="signups" labelKey="month" />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
               <KpiCard
                 label={t('admin.retention')}
                 value={businessAnalytics.retention.retention_rate !== null ? `${businessAnalytics.retention.retention_rate}%` : '—'}

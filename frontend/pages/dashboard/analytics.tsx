@@ -4,6 +4,7 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { portfolio as portfolioApi, accounting, maintenance as maintenanceApi, leads as leadsApi } from '../../lib/api';
 import { useLanguage } from '../../lib/LanguageContext';
 import { useCurrency } from '../../lib/CurrencyContext';
+import { useSidebar } from '../../lib/SidebarContext';
 
 const OPEN_STATUSES = ['open', 'in_progress', 'waiting_vendor', 'scheduled'];
 
@@ -78,6 +79,7 @@ function buildAnalytics(portfolioData: any, payments: any[], tickets: any[], lea
 
 export default function Analytics() {
   const { t } = useLanguage();
+  const { isMobile } = useSidebar();
   const { formatMoney: fmtMoney, symbol } = useCurrency();
   const [data, setData] = useState<ReturnType<typeof buildAnalytics> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -130,7 +132,7 @@ export default function Analytics() {
         </div>
 
         {/* KPIs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 28 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 28 }}>
           {kpis.map(({ label, value, sub }) => (
             <div key={label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '18px 20px' }}>
               <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 8, letterSpacing: '0.5px' }}>{label.toUpperCase()}</div>
@@ -141,7 +143,7 @@ export default function Analytics() {
         </div>
 
         {/* Charts */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: 20, marginBottom: 20 }}>
           {/* Revenue Chart */}
           <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 24 }}>
             <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 20 }}>{t('analytics.monthlyRevenue')}</h3>

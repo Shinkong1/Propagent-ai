@@ -61,7 +61,7 @@ export default function Pricing() {
             <p style={{ color: '#64748B', fontSize: 17, fontFamily: 'IBM Plex Sans' }}>Scale your property management AI at any portfolio size</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 }}>
             {PLANS.map(plan => (
               <div key={plan.key} style={{
                 background: 'var(--bg-surface)',

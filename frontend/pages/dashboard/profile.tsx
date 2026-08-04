@@ -7,11 +7,13 @@ import { auth, billing } from '../../lib/api';
 import { getUser } from '../../lib/auth';
 import { useLanguage } from '../../lib/LanguageContext';
 import { LANGUAGES } from '../../lib/translations';
+import { useSidebar } from '../../lib/SidebarContext';
 
 export default function Profile() {
   const [me, setMe] = useState<any>(getUser() || {});
   const [plans, setPlans] = useState<any[]>([]);
   const { language } = useLanguage();
+  const { isMobile } = useSidebar();
   const currentLang = LANGUAGES.find(l => l.code === language);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export default function Profile() {
           <p style={{ color: '#64748B', fontSize: 14 }}>Your account, and a quick tour of what PropAgent AI can do.</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '340px 1fr', gap: 24, alignItems: 'start' }}>
           {/* Account info */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 24 }}>

@@ -106,7 +106,7 @@ export default function Home() {
           <p style={{ textAlign: 'center', color: '#64748B', marginBottom: 48, fontFamily: 'IBM Plex Sans' }}>
             Seven specialized AI agents handle every aspect of property management
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 }}>
             {FEATURES.map(({ icon: Icon, title, desc }) => (
               <div key={title} style={{
                 background: 'var(--bg-surface)', border: '1px solid var(--border-strong)',

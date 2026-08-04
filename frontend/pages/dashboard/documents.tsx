@@ -303,7 +303,7 @@ export default function Documents() {
                 <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Sunset Towers Unit 3 Lease"
                   spellCheck autoCorrect="on" autoCapitalize="sentences" style={inp} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 20 }}>
                 <div>
                   <label style={lbl}>{t('compliance.category')}</label>
                   <select value={category} onChange={e => setCategory(e.target.value)} style={{ ...inp } as any}>
@@ -359,7 +359,7 @@ export default function Documents() {
               )}
 
               {genType === 'rent_increase_notice' && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                   <div>
                     <label style={lbl}>{t('documents.newRent')}</label>
                     <input type="number" value={genNewRent} onChange={e => { setGenNewRent(e.target.value); genErrors.delete('newRent'); setGenErrors(new Set(genErrors)); }} style={genErrors.has('newRent') ? errInp : inp} />

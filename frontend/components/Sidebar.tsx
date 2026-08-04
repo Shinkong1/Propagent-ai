@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
   LayoutDashboard, Building2, Users, Wrench, UserSearch,
-  BarChart3, Phone, CreditCard, LogOut, Zap, User, Landmark, Sparkles, Boxes, ShieldCheck, AlertTriangle, TrendingUp, FileText, LineChart, ClipboardCheck, MessageSquare, Settings, Lock, Crown, ChevronLeft, ChevronRight, Workflow, Radar, ChevronRight as CaretRight
+  BarChart3, Phone, CreditCard, LogOut, Zap, User, Landmark, Sparkles, Boxes, ShieldCheck, AlertTriangle, TrendingUp, FileText, LineChart, ClipboardCheck, MessageSquare, Settings, Lock, Crown, ChevronLeft, ChevronRight, Workflow, Radar, ChevronRight as CaretRight, X
 } from 'lucide-react';
 import { clearToken, getUser } from '../lib/auth';
 import { useLanguage } from '../lib/LanguageContext';
@@ -63,12 +63,19 @@ export const SIDEBAR_WIDTH_COLLAPSED = 68;
 export default function Sidebar() {
   const router = useRouter();
   const { t } = useLanguage();
-  const { collapsed, toggleCollapsed } = useSidebar();
+  const { collapsed, toggleCollapsed, mobileOpen, setMobileOpen, isMobile } = useSidebar();
+  const effectiveCollapsed = isMobile ? false : collapsed;
   const [plan, setPlan] = useState<string | null>(null);
   const [isMaster, setIsMaster] = useState(false);
   const [hoverGroup, setHoverGroup] = useState<string | null>(null);
   const [flyoutPos, setFlyoutPos] = useState<{ top: number; left: number } | null>(null);
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const closeTimer = useRef<any>(null);
+
+  useEffect(() => {
+    setMobileOpen(false);
+    setExpandedGroup(null);
+  }, [router.pathname]);
 
   useEffect(() => {
     setPlan(getUser()?.plan || 'starter');
@@ -81,6 +88,7 @@ export default function Sidebar() {
   };
 
   const openFlyout = (key: string, el: HTMLElement) => {
+    if (isMobile) return;
     if (closeTimer.current) clearTimeout(closeTimer.current);
     const rect = el.getBoundingClientRect();
     const group = NAV.find(e => isNavGroup(e) && e.groupKey === key) as NavGroup | undefined;
@@ -101,22 +109,31 @@ export default function Sidebar() {
   const isLocked = (minTier?: PlanTier) => !!minTier && plan !== null && !hasPlanAccess(minTier);
 
   return (
-    <aside style={{
-      width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED,
-      height: '100vh',
-      background: 'var(--bg-surface)',
-      borderRight: '1px solid var(--border-strong)',
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      zIndex: 100,
-      transition: 'width 0.18s ease',
-      overflow: 'hidden',
-    }}>
+    <>
+      {isMobile && mobileOpen && (
+        <div
+          onClick={() => setMobileOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999 }}
+        />
+      )}
+      <aside style={{
+        width: effectiveCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH_EXPANDED,
+        height: '100vh',
+        background: 'var(--bg-surface)',
+        borderRight: '1px solid var(--border-strong)',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        zIndex: 1000,
+        transition: isMobile ? 'transform 0.22s ease' : 'width 0.18s ease',
+        transform: isMobile ? (mobileOpen ? 'translateX(0)' : 'translateX(-100%)') : 'none',
+        boxShadow: isMobile && mobileOpen ? '0 0 40px rgba(0,0,0,0.5)' : 'none',
+        overflow: 'hidden',
+      }}>
       {/* Logo */}
-      <div style={{ padding: collapsed ? '20px 0' : '24px 20px 20px', borderBottom: '1px solid var(--border-strong)', display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'space-between' }}>
+      <div style={{ padding: effectiveCollapsed ? '20px 0' : '24px 20px 20px', borderBottom: '1px solid var(--border-strong)', display: 'flex', alignItems: 'center', justifyContent: effectiveCollapsed ? 'center' : 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
             width: 34, height: 34, borderRadius: 8, flexShrink: 0,
@@ -125,7 +142,7 @@ export default function Sidebar() {
           }}>
             <Zap size={18} color="var(--bg-surface)" strokeWidth={2.5} />
           </div>
-          {!collapsed && (
+          {!effectiveCollapsed && (
             <div>
               <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 16, color: 'var(--text-primary)', letterSpacing: '-0.3px', whiteSpace: 'nowrap' }}>
                 PropAgent
@@ -136,7 +153,14 @@ export default function Sidebar() {
             </div>
           )}
         </div>
-        {!collapsed && (
+        {isMobile ? (
+          <button onClick={() => setMobileOpen(false)} title={t('nav.close')} style={{
+            width: 28, height: 28, borderRadius: 6, border: '1px solid var(--border-strong)', background: 'transparent',
+            color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <X size={15} />
+          </button>
+        ) : !collapsed && (
           <button onClick={toggleCollapsed} title={t('nav.collapse')} style={{
             width: 24, height: 24, borderRadius: 6, border: '1px solid var(--border-strong)', background: 'transparent',
             color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
@@ -146,7 +170,7 @@ export default function Sidebar() {
         )}
       </div>
 
-      {collapsed && (
+      {!isMobile && collapsed && (
         <button onClick={toggleCollapsed} title={t('nav.expand')} style={{
           width: 28, height: 28, borderRadius: 6, border: '1px solid var(--border-strong)', background: 'var(--bg-surface)',
           color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -157,34 +181,59 @@ export default function Sidebar() {
       )}
 
       {/* Nav */}
-      <nav style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: collapsed ? '12px 8px' : '12px 12px' }}>
+      <nav style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: effectiveCollapsed ? '12px 8px' : '12px 12px' }}>
         {NAV.filter(item => !item.masterOnly || isMaster).map((entry) => {
           if (isNavGroup(entry)) {
             const { groupKey, labelKey, icon: Icon, items } = entry;
             const visibleItems = items;
             const active = visibleItems.some(i => isItemActive(i.href));
+            const expanded = isMobile && expandedGroup === groupKey;
             return (
-              <div
-                key={groupKey}
-                onMouseEnter={e => openFlyout(groupKey, e.currentTarget)}
-                onMouseLeave={scheduleClose}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  justifyContent: collapsed ? 'center' : 'flex-start',
-                  padding: collapsed ? '9px 0' : '9px 12px', borderRadius: 8, marginBottom: 2,
-                  background: active ? 'rgba(var(--accent-rgb),0.12)' : 'transparent',
-                  color: active ? '#FBC02D' : 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  fontFamily: 'IBM Plex Sans, sans-serif',
-                  fontSize: 13,
-                  fontWeight: active ? 600 : 400,
-                  borderLeft: collapsed ? 'none' : (active ? '2px solid #FBC02D' : '2px solid transparent'),
-                }}
-                title={collapsed ? t(labelKey) : undefined}
-              >
-                <Icon size={16} />
-                {!collapsed && <span style={{ flex: 1 }}>{t(labelKey)}</span>}
-                {!collapsed && <CaretRight size={13} style={{ opacity: 0.5 }} />}
+              <div key={groupKey}>
+                <div
+                  onMouseEnter={e => openFlyout(groupKey, e.currentTarget)}
+                  onMouseLeave={scheduleClose}
+                  onClick={() => { if (isMobile) setExpandedGroup(prev => prev === groupKey ? null : groupKey); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    justifyContent: effectiveCollapsed ? 'center' : 'flex-start',
+                    padding: effectiveCollapsed ? '9px 0' : '9px 12px', borderRadius: 8, marginBottom: 2,
+                    background: active ? 'rgba(var(--accent-rgb),0.12)' : 'transparent',
+                    color: active ? '#FBC02D' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    fontFamily: 'IBM Plex Sans, sans-serif',
+                    fontSize: 13,
+                    fontWeight: active ? 600 : 400,
+                    borderLeft: effectiveCollapsed ? 'none' : (active ? '2px solid #FBC02D' : '2px solid transparent'),
+                  }}
+                  title={effectiveCollapsed ? t(labelKey) : undefined}
+                >
+                  <Icon size={16} />
+                  {!effectiveCollapsed && <span style={{ flex: 1 }}>{t(labelKey)}</span>}
+                  {!effectiveCollapsed && <CaretRight size={13} style={{ opacity: 0.5, transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }} />}
+                </div>
+                {expanded && (
+                  <div style={{ paddingLeft: 14, marginBottom: 4 }}>
+                    {items.map(item => {
+                      const itemActive = isItemActive(item.href);
+                      const itemLocked = isLocked(item.minTier);
+                      return (
+                        <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }} onClick={() => setMobileOpen(false)}>
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', borderRadius: 7, marginBottom: 2,
+                            background: itemActive ? 'rgba(var(--accent-rgb),0.12)' : 'transparent',
+                            color: itemActive ? '#FBC02D' : (itemLocked ? '#475569' : 'var(--text-secondary)'),
+                            fontSize: 13, fontFamily: 'IBM Plex Sans, sans-serif', fontWeight: itemActive ? 600 : 400,
+                          }}>
+                            <item.icon size={14} />
+                            <span style={{ flex: 1 }}>{t(item.key)}</span>
+                            {itemLocked && <Lock size={11} />}
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           }
@@ -194,16 +243,16 @@ export default function Sidebar() {
           const locked = isLocked(minTier);
           return (
             <div key={href}>
-              {entry.masterOnly && !collapsed && (
+              {entry.masterOnly && !effectiveCollapsed && (
                 <div style={{ padding: '10px 12px 4px', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#475569', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                   {t('nav.platformAdmin')}
                 </div>
               )}
-              <Link href={href} style={{ textDecoration: 'none' }} title={collapsed ? t(key) : undefined}>
+              <Link href={href} style={{ textDecoration: 'none' }} title={effectiveCollapsed ? t(key) : undefined} onClick={() => setMobileOpen(false)}>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  justifyContent: collapsed ? 'center' : 'flex-start',
-                  padding: collapsed ? '9px 0' : '9px 12px', borderRadius: 8, marginBottom: 2,
+                  justifyContent: effectiveCollapsed ? 'center' : 'flex-start',
+                  padding: effectiveCollapsed ? '9px 0' : '9px 12px', borderRadius: 8, marginBottom: 2,
                   background: active ? 'rgba(var(--accent-rgb),0.12)' : 'transparent',
                   color: active ? '#FBC02D' : (locked ? '#475569' : 'var(--text-secondary)'),
                   cursor: 'pointer',
@@ -211,17 +260,17 @@ export default function Sidebar() {
                   fontFamily: 'IBM Plex Sans, sans-serif',
                   fontSize: 13,
                   fontWeight: active ? 600 : 400,
-                  borderLeft: collapsed ? 'none' : (active ? '2px solid #FBC02D' : '2px solid transparent'),
+                  borderLeft: effectiveCollapsed ? 'none' : (active ? '2px solid #FBC02D' : '2px solid transparent'),
                 }}
                 onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = 'var(--hover-overlay)'; (e.currentTarget as HTMLElement).style.color = locked ? '#64748B' : 'var(--text-hover)'; } }}
                 onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = locked ? '#475569' : 'var(--text-secondary)'; } }}
                 >
                   <Icon size={16} />
-                  {!collapsed && <span style={{ flex: 1 }}>{t(key)}</span>}
-                  {!collapsed && locked && <Lock size={11} />}
+                  {!effectiveCollapsed && <span style={{ flex: 1 }}>{t(key)}</span>}
+                  {!effectiveCollapsed && locked && <Lock size={11} />}
                 </div>
               </Link>
-              {entry.masterOnly && !collapsed && (
+              {entry.masterOnly && !effectiveCollapsed && (
                 <div style={{ padding: '6px 12px 4px', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#475569', letterSpacing: '0.8px', textTransform: 'uppercase', borderTop: '1px solid var(--border-strong)', marginTop: 6 }}>
                   {t('nav.propertyToolsBelow')}
                 </div>
@@ -231,8 +280,8 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Flyout submenu (portal, escapes sidebar overflow) */}
-      {hoverGroup && flyoutPos && createPortal(
+      {/* Flyout submenu (portal, escapes sidebar overflow) — desktop only */}
+      {!isMobile && hoverGroup && flyoutPos && createPortal(
         (() => {
           const group = NAV.find(e => e.group && e.groupKey === hoverGroup) as NavGroup | undefined;
           if (!group) return null;
@@ -279,26 +328,26 @@ export default function Sidebar() {
       )}
 
       {/* Bottom */}
-      <div style={{ padding: collapsed ? '12px 8px' : '12px 12px', borderTop: '1px solid var(--border-strong)' }}>
-        <Link href="/pricing" style={{ textDecoration: 'none' }} title={collapsed ? t('nav.upgradePlan') : undefined}>
+      <div style={{ padding: effectiveCollapsed ? '12px 8px' : '12px 12px', borderTop: '1px solid var(--border-strong)' }}>
+        <Link href="/pricing" style={{ textDecoration: 'none' }} title={effectiveCollapsed ? t('nav.upgradePlan') : undefined} onClick={() => setMobileOpen(false)}>
           <div style={{
-            padding: collapsed ? '8px 0' : '8px 12px', borderRadius: 8, marginBottom: 4,
+            padding: effectiveCollapsed ? '8px 0' : '8px 12px', borderRadius: 8, marginBottom: 4,
             background: 'rgba(var(--accent-rgb),0.08)', border: '1px solid rgba(var(--accent-rgb),0.2)',
             color: '#FBC02D', fontSize: 12, fontWeight: 600, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 8, justifyContent: collapsed ? 'center' : 'flex-start',
+            display: 'flex', alignItems: 'center', gap: 8, justifyContent: effectiveCollapsed ? 'center' : 'flex-start',
           }}>
             <CreditCard size={14} />
-            {!collapsed && t('nav.upgradePlan')}
+            {!effectiveCollapsed && t('nav.upgradePlan')}
           </div>
         </Link>
         {BOTTOM_NAV.map(({ href, key, icon: Icon }) => {
           const active = router.pathname.startsWith(href);
           return (
-            <Link key={href} href={href} style={{ textDecoration: 'none' }} title={collapsed ? t(key) : undefined}>
+            <Link key={href} href={href} style={{ textDecoration: 'none' }} title={effectiveCollapsed ? t(key) : undefined} onClick={() => setMobileOpen(false)}>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                justifyContent: collapsed ? 'center' : 'flex-start',
-                padding: collapsed ? '8px 0' : '8px 12px', borderRadius: 8, marginBottom: 4,
+                justifyContent: effectiveCollapsed ? 'center' : 'flex-start',
+                padding: effectiveCollapsed ? '8px 0' : '8px 12px', borderRadius: 8, marginBottom: 4,
                 background: active ? 'rgba(var(--accent-rgb),0.12)' : 'transparent',
                 color: active ? '#FBC02D' : '#64748B',
                 cursor: 'pointer', fontSize: 13,
@@ -307,21 +356,22 @@ export default function Sidebar() {
               onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#64748B'; } }}
               >
                 <Icon size={14} />
-                {!collapsed && t(key)}
+                {!effectiveCollapsed && t(key)}
               </div>
             </Link>
           );
         })}
-        <button onClick={handleLogout} title={collapsed ? t('nav.signOut') : undefined} style={{
-          width: '100%', padding: collapsed ? '8px 0' : '8px 12px', borderRadius: 8,
+        <button onClick={handleLogout} title={effectiveCollapsed ? t('nav.signOut') : undefined} style={{
+          width: '100%', padding: effectiveCollapsed ? '8px 0' : '8px 12px', borderRadius: 8,
           background: 'transparent', border: 'none', color: '#64748B',
           fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
-          justifyContent: collapsed ? 'center' : 'flex-start',
+          justifyContent: effectiveCollapsed ? 'center' : 'flex-start',
         }}>
           <LogOut size={14} />
-          {!collapsed && t('nav.signOut')}
+          {!effectiveCollapsed && t('nav.signOut')}
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

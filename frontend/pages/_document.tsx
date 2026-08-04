@@ -19,6 +19,7 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </Head>
       <body>

@@ -67,7 +67,7 @@ export default function PortfolioDashboard() {
         </div>
         <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('portfolio.subtitle')}</p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 28 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 28 }}>
           {kpis.map(k => (
             <div key={k.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '14px 16px' }}>
               <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
@@ -113,7 +113,7 @@ export default function PortfolioDashboard() {
                     {expanded === row.property_id && (
                       <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(255,255,255,0.02)' }}>
                         <td colSpan={8} style={{ padding: '14px' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                             {row.health_factors.map((f: any) => (
                               <div key={f.name}>
                                 <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', textTransform: 'uppercase', marginBottom: 3 }}>{t(`portfolio.factor.${f.name}`)}</div>

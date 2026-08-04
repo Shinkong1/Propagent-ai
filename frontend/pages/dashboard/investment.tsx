@@ -60,7 +60,7 @@ export default function InvestmentAnalysis() {
         </div>
         <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('investment.subtitle')}</p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
           {kpis.map(k => (
             <div key={k.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '14px 16px' }}>
               <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
@@ -98,7 +98,7 @@ export default function InvestmentAnalysis() {
                   <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.5 }}>{p.explanation}</p>
                 ) : (
                   <>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                       <div>
                         <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.capRate')}</div>
                         <div style={{ fontSize: 16, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono', fontWeight: 600 }}>{p.cap_rate}%</div>

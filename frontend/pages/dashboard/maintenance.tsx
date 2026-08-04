@@ -158,7 +158,7 @@ export default function Maintenance() {
         </div>
 
         {/* Kanban Board */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, overflowX: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 14, overflowX: 'auto' }}>
           {STATUSES.map(status => (
             <div key={status}
               onDragOver={e => { e.preventDefault(); if (dragOverStatus !== status) setDragOverStatus(status); }}
@@ -233,7 +233,7 @@ export default function Maintenance() {
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Create Ticket</h2>
                 <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>Property</label>
                   <select value={form.property_id} onChange={e => changeCreateProperty(e.target.value)} style={{ ...inp } as any}>
@@ -259,7 +259,7 @@ export default function Maintenance() {
                   spellCheck autoCorrect="on" autoCapitalize="sentences"
                   style={{ ...inp, height: 90, resize: 'none' } as any} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 20 }}>
                 <div>
                   <label style={lbl}>Category</label>
                   <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} style={{ ...inp } as any}>
@@ -293,7 +293,7 @@ export default function Maintenance() {
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: 13, fontFamily: 'IBM Plex Sans', lineHeight: 1.5, marginBottom: 18 }}>{selectedTicket.description}</p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>Status</label>
                   <select value={editForm.status} onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))} style={{ ...inp } as any}>

@@ -9,6 +9,7 @@ import {
 import { properties as propertiesApi, tenants as tenantsApi, maintenance as maintenanceApi, accounting as accountingApi } from '../../../lib/api';
 import { getUser } from '../../../lib/auth';
 import { useCurrency } from '../../../lib/CurrencyContext';
+import { useSidebar } from '../../../lib/SidebarContext';
 import toast from 'react-hot-toast';
 
 const TYPE_COLOR: any = { apartment: '#3B82F6', single_family: '#10B981', multi_family: '#8B5CF6', condo: '#F97316', commercial: '#EF4444' };
@@ -20,6 +21,7 @@ export default function PropertyDetail() {
   const router = useRouter();
   const { id } = router.query;
   const { formatMoney } = useCurrency();
+  const { isMobile } = useSidebar();
 
   const [property, setProperty] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
@@ -203,7 +205,7 @@ export default function PropertyDetail() {
         </div>
 
         {/* Stats row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 32 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 32 }}>
           <StatCard icon={<DollarSign size={16} color="#10B981" />} label="Monthly Revenue" value={formatMoney(stats?.monthly_revenue || 0)} />
           <StatCard icon={<Home size={16} color="#3B82F6" />} label="Occupancy" value={`${stats?.occupied_units || 0}/${stats?.total_units || 0}`} sub={`${stats?.vacancy_rate ?? 0}% vacant`} />
           <StatCard icon={<Wrench size={16} color="#F97316" />} label="Open Tickets" value={String(stats?.open_tickets ?? 0)} />
@@ -212,13 +214,13 @@ export default function PropertyDetail() {
 
         {/* Financials */}
         <Section title="Financials" action={<Link href={`/dashboard/accounting?property=${id}`} style={linkStyle}>View in Accounting</Link>}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 18 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 18 }}>
             <MiniStat label="NOI (annualized)" value={financials?.annualized_noi != null ? formatMoney(Math.round(financials.annualized_noi)) : '—'} />
             <MiniStat label="Cap Rate" value={financials?.cap_rate != null ? `${financials.cap_rate}%` : '—'} />
             <MiniStat label="DSCR" value={financials?.dscr != null ? financials.dscr.toFixed(2) : '—'} />
             <MiniStat label="Cash Flow" value={financials?.cash_flow != null ? formatMoney(Math.round(financials.cash_flow)) : '—'} negative={financials?.cash_flow < 0} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
             <div>
               <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 8 }}>RECENT PAYMENTS</div>
               {recentPayments.length === 0 ? <Empty text="No payments recorded." /> : (
@@ -251,7 +253,7 @@ export default function PropertyDetail() {
           </div>
         </Section>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginTop: 20 }}>
           {/* Units & occupancy */}
           <Section title="Units & Occupancy">
             {units.length === 0 ? <Empty text="No units yet." /> : (
@@ -407,7 +409,7 @@ export default function PropertyDetail() {
               <label style={{ ...mlbl, marginTop: 12 }}>Address</label>
               <input value={propertyForm.address || ''} onChange={e => setPropertyForm((p: any) => ({ ...p, address: e.target.value }))} spellCheck autoCorrect="on" style={minp} />
 
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 10, marginTop: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr 1fr', gap: 10, marginTop: 12 }}>
                 <div>
                   <label style={mlbl}>City</label>
                   <input value={propertyForm.city || ''} onChange={e => setPropertyForm((p: any) => ({ ...p, city: e.target.value }))} spellCheck autoCorrect="on" style={minp} />
@@ -422,7 +424,7 @@ export default function PropertyDetail() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginTop: 12 }}>
                 <div>
                   <label style={mlbl}>Property Type</label>
                   <select value={propertyForm.property_type || 'apartment'} onChange={e => setPropertyForm((p: any) => ({ ...p, property_type: e.target.value }))} style={minp as any}>
@@ -435,7 +437,7 @@ export default function PropertyDetail() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginTop: 12 }}>
                 <div>
                   <label style={mlbl}>Purchase Price</label>
                   <input type="number" value={propertyForm.purchase_price ?? ''} onChange={e => setPropertyForm((p: any) => ({ ...p, purchase_price: e.target.value }))} style={minp} />
@@ -464,7 +466,7 @@ export default function PropertyDetail() {
                 <button onClick={() => setEditingUnit(null)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
                 <div>
                   <label style={mlbl}>Unit Number</label>
                   <input value={unitForm.unit_number || ''} onChange={e => setUnitForm((u: any) => ({ ...u, unit_number: e.target.value }))} style={minp} />
@@ -475,7 +477,7 @@ export default function PropertyDetail() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginTop: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginTop: 12 }}>
                 <div>
                   <label style={mlbl}>Bedrooms</label>
                   <input type="number" value={unitForm.bedrooms ?? ''} onChange={e => setUnitForm((u: any) => ({ ...u, bedrooms: e.target.value }))} style={minp} />

@@ -142,7 +142,7 @@ export default function Compliance() {
         </div>
         <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('compliance.subtitle')}</p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 28 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 28 }}>
           {kpis.map(k => (
             <div key={k.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '14px 16px' }}>
               <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
@@ -206,7 +206,7 @@ export default function Compliance() {
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('compliance.addItem')}</h2>
                 <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>{t('portfolio.property')}</label>
                   <select value={form.property_id} onChange={e => setForm((p: any) => ({ ...p, property_id: e.target.value }))} style={{ ...inp } as any}>
@@ -224,7 +224,7 @@ export default function Compliance() {
                 <label style={lbl}>{t('compliance.itemTitle')}</label>
                 <input value={form.title} onChange={e => setForm((p: any) => ({ ...p, title: e.target.value }))} placeholder="Annual Fire Inspection" style={inp} spellCheck autoCorrect="on" autoCapitalize="sentences" />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>{t('compliance.issuingAuthority')}</label>
                   <input value={form.issuing_authority} onChange={e => setForm((p: any) => ({ ...p, issuing_authority: e.target.value }))} style={inp} spellCheck autoCorrect="on" autoCapitalize="words" />
@@ -234,7 +234,7 @@ export default function Compliance() {
                   <input value={form.reference_number} onChange={e => setForm((p: any) => ({ ...p, reference_number: e.target.value }))} style={inp} spellCheck={false} autoCorrect="off" />
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>{t('compliance.issuedDate')}</label>
                   <input type="date" value={form.issued_date} onChange={e => setForm((p: any) => ({ ...p, issued_date: e.target.value }))} style={inp} />
@@ -269,7 +269,7 @@ export default function Compliance() {
                 <label style={lbl}>{t('compliance.itemTitle')}</label>
                 <input value={editForm.title} onChange={e => setEditForm((p: any) => ({ ...p, title: e.target.value }))} style={inp} spellCheck autoCorrect="on" autoCapitalize="sentences" />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>{t('compliance.category')}</label>
                   <select value={editForm.category} onChange={e => setEditForm((p: any) => ({ ...p, category: e.target.value }))} style={{ ...inp } as any}>
@@ -285,7 +285,7 @@ export default function Compliance() {
                   </select>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>{t('compliance.issuedDate')}</label>
                   <input type="date" value={editForm.issued_date} onChange={e => setEditForm((p: any) => ({ ...p, issued_date: e.target.value }))} style={inp} />
@@ -295,7 +295,7 @@ export default function Compliance() {
                   <input type="date" value={editForm.expiration_date} onChange={e => setEditForm((p: any) => ({ ...p, expiration_date: e.target.value }))} style={inp} />
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={lbl}>{t('compliance.issuingAuthority')}</label>
                   <input value={editForm.issuing_authority} onChange={e => setEditForm((p: any) => ({ ...p, issuing_authority: e.target.value }))} style={inp} spellCheck autoCorrect="on" autoCapitalize="words" />

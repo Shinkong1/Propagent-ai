@@ -296,7 +296,7 @@ export default function SettingsPage() {
           <div>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.appearanceTitle')}</h2>
             <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('settings.appearanceSubtitle')}</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14, maxWidth: 480 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, maxWidth: 480 }}>
               {(['dark', 'light'] as const).map(mode => {
                 const isActive = theme === mode;
                 const Icon = mode === 'dark' ? Moon : Sun;
@@ -323,7 +323,7 @@ export default function SettingsPage() {
           <div>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('language.title')}</h2>
             <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('language.subtitle')}</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 20 }}>
               {LANGUAGES.map(lang => {
                 const isActive = language === lang.code;
                 return (
@@ -360,7 +360,7 @@ export default function SettingsPage() {
           <div>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.currencyTitle')}</h2>
             <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('settings.currencySubtitle')}</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14, maxWidth: 560 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, maxWidth: 560 }}>
               {CURRENCIES.map(cur => {
                 const isActive = currency === cur.code;
                 return (
@@ -417,7 +417,7 @@ export default function SettingsPage() {
                   <UserPlus size={15} color="#FBC02D" />
                   <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>{t('team.inviteTitle')}</h3>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
                   <div>
                     <label style={lbl}>{t('team.firstName')}</label>
                     <input value={inviteFirstName} onChange={e => setInviteFirstName(e.target.value)} spellCheck autoCorrect="on" autoCapitalize="words" style={inp} />

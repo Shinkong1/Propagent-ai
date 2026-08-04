@@ -63,7 +63,7 @@ export default function Properties() {
             <p style={{ fontFamily: 'IBM Plex Sans', fontSize: 16 }}>No properties yet. Add your first property.</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
             {props.map((p: any) => (
               <div key={p.id} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 20, transition: 'all 0.2s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#FBC02D'; }}
@@ -128,7 +128,7 @@ export default function Properties() {
                   </div>
                 );
               })}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 20 }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: 5, fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>Type</label>
                   <select value={form.property_type} onChange={e => setForm(p => ({ ...p, property_type: e.target.value }))}

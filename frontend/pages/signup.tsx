@@ -46,7 +46,7 @@ export default function Signup() {
         </div>
 
         <form onSubmit={handleSubmit} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
             <div>
               <label style={labelStyle}>{t('signup.firstName')}</label>
               <input type="text" required value={form.first_name} onChange={f('first_name')} placeholder="John" style={inputStyle} spellCheck autoCorrect="on" autoCapitalize="words" />
