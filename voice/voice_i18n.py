@@ -3,12 +3,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Neural-engine Polly voices — noticeably more natural/human than the default
+# Standard engine used previously (e.g. "Polly.Joanna" without a suffix).
 VOICE_CONFIG = {
-    "en": {"voice": "Polly.Joanna", "gather_language": "en-US", "name": "English"},
-    "es": {"voice": "Polly.Lupe", "gather_language": "es-US", "name": "Spanish"},
-    "fr": {"voice": "Polly.Lea", "gather_language": "fr-FR", "name": "French"},
-    "de": {"voice": "Polly.Vicki", "gather_language": "de-DE", "name": "German"},
-    "zh": {"voice": "Polly.Zhiyu", "gather_language": "cmn-CN", "name": "Chinese"},
+    "en": {"voice": "Polly.Joanna-Neural", "gather_language": "en-US", "name": "English"},
+    "es": {"voice": "Polly.Lupe-Neural", "gather_language": "es-US", "name": "Spanish"},
+    "fr": {"voice": "Polly.Lea-Neural", "gather_language": "fr-FR", "name": "French"},
+    "de": {"voice": "Polly.Vicki-Neural", "gather_language": "de-DE", "name": "German"},
+    "zh": {"voice": "Polly.Zhiyu-Neural", "gather_language": "cmn-CN", "name": "Chinese"},
 }
 
 PROMPTS = {

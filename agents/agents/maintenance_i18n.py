@@ -28,6 +28,7 @@ TEMPLATES = {
         "vendor_pending": "We'll assign a qualified vendor shortly.",
         "specialist": "A {category} specialist will be dispatched to resolve this.",
         "closing": "You'll receive updates on the repair status. Is there anything else you'd like to add about the issue?",
+        "no_tenant_match": "I'm not able to find your number on file as a tenant, so I can't file a maintenance ticket right now. Please contact your property manager's office directly, or ask them to add your number to their system. Is there anything else I can help with?",
     },
     "es": {
         "default_title": "su problema",
@@ -38,6 +39,7 @@ TEMPLATES = {
         "vendor_pending": "Asignaremos un proveedor calificado en breve.",
         "specialist": "Se enviará un especialista {category} para resolver esto.",
         "closing": "Recibirá actualizaciones sobre el estado de la reparación. ¿Hay algo más que quiera añadir sobre el problema?",
+        "no_tenant_match": "No puedo encontrar su número registrado como inquilino, así que no puedo crear un ticket de mantenimiento en este momento. Por favor, contacte directamente a la oficina de su administrador de propiedad, o pídale que agregue su número a su sistema. ¿Hay algo más en lo que pueda ayudarle?",
     },
     "fr": {
         "default_title": "votre problème",
@@ -48,6 +50,7 @@ TEMPLATES = {
         "vendor_pending": "Nous assignerons un prestataire qualifié sous peu.",
         "specialist": "Un spécialiste {category} sera envoyé pour résoudre ce problème.",
         "closing": "Vous recevrez des mises à jour sur l'état de la réparation. Souhaitez-vous ajouter autre chose concernant le problème ?",
+        "no_tenant_match": "Je ne trouve pas votre numéro enregistré comme locataire, donc je ne peux pas créer de ticket de maintenance pour le moment. Veuillez contacter directement le bureau de votre gestionnaire immobilier, ou lui demander d'ajouter votre numéro à son système. Puis-je vous aider avec autre chose ?",
     },
     "de": {
         "default_title": "Ihr Anliegen",
@@ -58,6 +61,7 @@ TEMPLATES = {
         "vendor_pending": "Wir werden in Kürze einen qualifizierten Dienstleister zuweisen.",
         "specialist": "Ein {category}spezialist wird zur Behebung entsandt.",
         "closing": "Sie erhalten Updates zum Reparaturstatus. Möchten Sie noch etwas zu dem Problem hinzufügen?",
+        "no_tenant_match": "Ich kann Ihre Nummer nicht als Mieter in unserem System finden, daher kann ich derzeit kein Wartungsticket erstellen. Bitte wenden Sie sich direkt an das Büro Ihrer Hausverwaltung oder bitten Sie diese, Ihre Nummer im System zu hinterlegen. Kann ich Ihnen sonst noch helfen?",
     },
     "zh": {
         "default_title": "您的问题",
@@ -68,6 +72,7 @@ TEMPLATES = {
         "vendor_pending": "我们将尽快分配合格的供应商。",
         "specialist": "我们将派遣{category}专业人员解决此问题。",
         "closing": "您将收到维修状态的更新。关于这个问题您还有什么需要补充的吗？",
+        "no_tenant_match": "我无法在系统中找到您的号码作为租户记录，因此目前无法创建维修工单。请直接联系您的物业管理办公室，或让他们将您的号码添加到系统中。还有什么我可以帮您的吗？",
     },
 }
 
