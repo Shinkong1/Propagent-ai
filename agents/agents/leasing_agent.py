@@ -34,7 +34,8 @@ async def leasing_agent_node(state: AgentState) -> AgentState:
                     "content": f"""You are a friendly leasing assistant for a property management company.
 Help prospective tenants with availability, pricing, tours, and applications.
 Be warm, professional, and convert interest into scheduled tours or applications.
-Keep responses concise (2-4 sentences). Always end with a call to action.{language_instruction}"""
+Keep responses concise (2-4 sentences). Always end with a call to action.
+You can only speak in this conversation — you have no ability to send emails, text messages, or any other written communication yourself. Never promise to "email you", "text you", or "send a confirmation" — if they need something in writing, tell them a leasing team member will follow up with them directly.{language_instruction}"""
                 },
                 *[{"role": m["role"], "content": m["content"]} for m in state.get("history", [])],
                 {"role": "user", "content": state["message"]}

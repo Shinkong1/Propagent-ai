@@ -6,6 +6,7 @@ import { billing } from '../lib/api';
 import { isAuthenticated } from '../lib/auth';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
+import PublicFooter from '../components/PublicFooter';
 
 const PLANS = [
   {
@@ -116,6 +117,7 @@ export default function Pricing() {
             All plans include 14-day free trial · Cancel anytime · No setup fees
           </p>
         </div>
+        <PublicFooter />
       </div>
     </>
   );

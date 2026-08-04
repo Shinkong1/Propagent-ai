@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { Zap, AlertTriangle } from 'lucide-react';
+import PublicFooter from '../components/PublicFooter';
 
 const LAST_UPDATED = 'August 3, 2026';
 
@@ -84,6 +85,7 @@ export default function Privacy() {
             Questions about this Privacy Policy or our <Link href="/terms" style={{ color: '#FBC02D' }}>Terms of Service</Link> can be sent to <Placeholder>[privacy@yourdomain.com]</Placeholder>.
           </Section>
         </div>
+        <PublicFooter />
       </div>
     </>
   );

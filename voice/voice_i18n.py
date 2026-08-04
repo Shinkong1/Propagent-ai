@@ -15,7 +15,7 @@ VOICE_CONFIG = {
 
 PROMPTS = {
     "en": {
-        "greeting": "Hello! You've reached the PropAgent AI property management assistant. Please describe your request after the tone, and press pound when finished.",
+        "greeting": "Hello! You've reached the PropAgent AI property management assistant. Please describe your request after the tone.",
         "listening": "Go ahead, I'm listening.",
         "no_catch_retry": "I didn't catch that. Please call back and try again.",
         "no_catch_repeat": "I didn't quite catch that. Could you please repeat your request?",
@@ -27,7 +27,7 @@ PROMPTS = {
         "plan_required": "Thanks for calling. Our AI phone assistant isn't enabled on this account yet. Please contact your property manager directly, or leave a message after the tone.",
     },
     "es": {
-        "greeting": "¡Hola! Se ha comunicado con el asistente de gestión de propiedades de PropAgent AI. Describa su solicitud después del tono y presione la tecla numeral al terminar.",
+        "greeting": "¡Hola! Se ha comunicado con el asistente de gestión de propiedades de PropAgent AI. Describa su solicitud después del tono.",
         "listening": "Adelante, le escucho.",
         "no_catch_retry": "No entendí eso. Por favor, vuelva a llamar e inténtelo de nuevo.",
         "no_catch_repeat": "No entendí bien eso. ¿Podría repetir su solicitud, por favor?",
@@ -39,7 +39,7 @@ PROMPTS = {
         "plan_required": "Gracias por llamar. Nuestro asistente telefónico de IA aún no está habilitado en esta cuenta. Comuníquese directamente con su administrador de propiedades, o deje un mensaje después del tono.",
     },
     "fr": {
-        "greeting": "Bonjour ! Vous avez contacté l'assistant de gestion immobilière de PropAgent AI. Veuillez décrire votre demande après le bip, puis appuyez sur dièse pour terminer.",
+        "greeting": "Bonjour ! Vous avez contacté l'assistant de gestion immobilière de PropAgent AI. Veuillez décrire votre demande après le bip.",
         "listening": "Allez-y, je vous écoute.",
         "no_catch_retry": "Je n'ai pas compris. Veuillez rappeler et réessayer.",
         "no_catch_repeat": "Je n'ai pas bien compris. Pourriez-vous répéter votre demande, s'il vous plaît ?",
@@ -51,7 +51,7 @@ PROMPTS = {
         "plan_required": "Merci de votre appel. Notre assistant téléphonique IA n'est pas encore activé sur ce compte. Veuillez contacter directement votre gestionnaire immobilier, ou laisser un message après le bip.",
     },
     "de": {
-        "greeting": "Hallo! Sie sind mit dem PropAgent AI Immobilienverwaltungs-Assistenten verbunden. Bitte beschreiben Sie Ihr Anliegen nach dem Ton und drücken Sie danach die Raute-Taste.",
+        "greeting": "Hallo! Sie sind mit dem PropAgent AI Immobilienverwaltungs-Assistenten verbunden. Bitte beschreiben Sie Ihr Anliegen nach dem Ton.",
         "listening": "Bitte sprechen Sie, ich höre zu.",
         "no_catch_retry": "Das habe ich nicht verstanden. Bitte rufen Sie erneut an.",
         "no_catch_repeat": "Das habe ich nicht ganz verstanden. Könnten Sie Ihr Anliegen bitte wiederholen?",
@@ -63,7 +63,7 @@ PROMPTS = {
         "plan_required": "Danke für Ihren Anruf. Unser KI-Telefonassistent ist für dieses Konto noch nicht aktiviert. Bitte wenden Sie sich direkt an Ihre Hausverwaltung oder hinterlassen Sie nach dem Ton eine Nachricht.",
     },
     "zh": {
-        "greeting": "您好！这里是 PropAgent AI 物业管理助手。请在提示音后说明您的需求，完成后请按井号键。",
+        "greeting": "您好！这里是 PropAgent AI 物业管理助手。请在提示音后说明您的需求。",
         "listening": "请说，我在听。",
         "no_catch_retry": "我没有听清楚。请重新致电再试一次。",
         "no_catch_repeat": "我没有听清楚。您能重复一下您的需求吗？",

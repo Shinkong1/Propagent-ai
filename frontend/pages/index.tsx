@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { Zap, Building2, MessageSquare, Wrench, Users, Phone, ChevronRight, Check } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 import { useSidebar } from '../lib/SidebarContext';
+import PublicFooter from '../components/PublicFooter';
 import { auth } from '../lib/api';
 import { setToken, setUser } from '../lib/auth';
 import toast from 'react-hot-toast';
@@ -263,13 +264,7 @@ export default function Home() {
           </Link>
         </section>
 
-        <footer style={{ textAlign: 'center', padding: '20px', borderTop: '1px solid var(--border-subtle)', color: '#334155', fontSize: 12, fontFamily: 'IBM Plex Mono' }}>
-          © {new Date().getFullYear()} PropAgent AI · AI-Powered Property Management
-          <span style={{ margin: '0 8px' }}>·</span>
-          <Link href="/terms" style={{ color: '#475569', textDecoration: 'none' }}>Terms</Link>
-          <span style={{ margin: '0 8px' }}>·</span>
-          <Link href="/privacy" style={{ color: '#475569', textDecoration: 'none' }}>Privacy</Link>
-        </footer>
+        <PublicFooter />
       </div>
     </>
   );

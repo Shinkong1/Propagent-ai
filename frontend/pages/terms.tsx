@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { Zap, AlertTriangle } from 'lucide-react';
+import PublicFooter from '../components/PublicFooter';
 
 const LAST_UPDATED = 'August 3, 2026';
 
@@ -112,6 +113,7 @@ export default function Terms() {
             Questions about these Terms can be sent to <Placeholder>[legal@yourdomain.com]</Placeholder>.
           </Section>
         </div>
+        <PublicFooter />
       </div>
     </>
   );
