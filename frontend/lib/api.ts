@@ -189,6 +189,7 @@ export const admin = {
   listUsers: () => api.get('/admin/users'),
   updateUser: (id: string, data: any) => api.patch(`/admin/users/${id}`, data),
   listMessages: () => api.get('/admin/messages'),
+  replyToMessage: (id: string, reply: string) => api.post(`/admin/messages/${id}/reply`, { reply }),
   subscribers: (search?: string, status?: string) => api.get('/admin/subscribers', { params: { search, status } }),
   revenue: () => api.get('/admin/revenue'),
   invoicesForOrg: (orgId: string) => api.get(`/admin/revenue/invoices/${orgId}`),

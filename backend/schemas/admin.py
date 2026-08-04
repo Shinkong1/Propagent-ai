@@ -69,6 +69,13 @@ class OwnerMessageResponse(BaseModel):
     body: str
     email_status: str
     created_at: datetime
+    reply_body: Optional[str] = None
+    reply_status: Optional[str] = None
+    replied_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
+
+
+class OwnerMessageReplyRequest(BaseModel):
+    reply: str

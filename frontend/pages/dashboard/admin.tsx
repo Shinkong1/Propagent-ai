@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/DashboardLayout';
 import {
   ShieldAlert, Crown, Building2, Users, DollarSign, Sparkles, MessageSquare,
-  TrendingUp, Activity, BarChart3, Search, Database, Server, Cpu, Plug, AlertOctagon, Repeat, Gift,
+  TrendingUp, Activity, BarChart3, Search, Database, Server, Cpu, Plug, AlertOctagon, Repeat, Gift, X, Send,
 } from 'lucide-react';
 import { admin as adminApi } from '../../lib/api';
 import { getUser, setUser } from '../../lib/auth';
@@ -66,6 +66,9 @@ export default function OwnerAdmin() {
   const [orgs, setOrgs] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
+  const [selectedMessage, setSelectedMessage] = useState<any>(null);
+  const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
   const [savingOrgId, setSavingOrgId] = useState<string | null>(null);
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
   const [subSearch, setSubSearch] = useState('');
@@ -155,6 +158,26 @@ export default function OwnerAdmin() {
       toast.error(err?.response?.data?.detail || t('admin.actionFailed'));
     } finally {
       setSavingUserId(null);
+    }
+  };
+
+  const sendReply = async () => {
+    if (!selectedMessage || !replyText.trim()) return;
+    setSendingReply(true);
+    try {
+      const res = await adminApi.replyToMessage(selectedMessage.id, replyText.trim());
+      setMessages(prev => prev.map(m => m.id === selectedMessage.id ? res.data : m));
+      setSelectedMessage(res.data);
+      setReplyText('');
+      if (res.data.reply_status === 'sent') {
+        toast.success('Reply sent');
+      } else {
+        toast.error('Reply could not be delivered by email — check SMTP settings. It has been saved on the message.');
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || t('admin.actionFailed'));
+    } finally {
+      setSendingReply(false);
     }
   };
 
@@ -357,7 +380,13 @@ export default function OwnerAdmin() {
                     {messages.length === 0 ? (
                       <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#475569' }}>{t('admin.noMessages')}</td></tr>
                     ) : messages.map(m => (
-                      <tr key={m.id} style={{ borderBottom: '1px solid var(--border-subtle)' }} title={m.body}>
+                      <tr
+                        key={m.id}
+                        onClick={() => { setSelectedMessage(m); setReplyText(''); }}
+                        style={{ borderBottom: '1px solid var(--border-subtle)', cursor: 'pointer' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--hover-overlay)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                      >
                         <td style={{ padding: '10px 14px' }}>
                           <span style={badge(m.source === 'chat' ? 'rgba(139,92,246,0.15)' : 'rgba(59,130,246,0.15)', m.source === 'chat' ? '#8B5CF6' : '#3B82F6')}>
                             {t(`admin.source.${m.source}`)}
@@ -368,7 +397,10 @@ export default function OwnerAdmin() {
                           <div style={{ fontSize: 11, color: '#64748B' }}>{m.sender_email || ''}</div>
                         </td>
                         <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)' }}>{m.organization_name || '—'}</td>
-                        <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.subject}</td>
+                        <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {m.subject}
+                          {m.replied_at && <span style={{ marginLeft: 6, fontSize: 10, color: '#10B981' }}>↩ replied</span>}
+                        </td>
                         <td style={{ padding: '10px 14px' }}>
                           <span style={badge(m.email_status === 'sent' ? 'rgba(16,185,129,0.15)' : m.email_status === 'failed' ? 'rgba(239,68,68,0.15)' : 'rgba(100,116,139,0.15)', m.email_status === 'sent' ? '#10B981' : m.email_status === 'failed' ? '#EF4444' : '#64748B')}>
                             {t(`admin.emailStatus.${m.email_status}`)}
@@ -528,6 +560,79 @@ export default function OwnerAdmin() {
 
         <p style={{ marginTop: 24, fontSize: 11, color: '#475569' }}>{t('admin.note')}</p>
       </div>
+
+      {selectedMessage && (
+        <div
+          onClick={() => setSelectedMessage(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 24, maxWidth: 560, width: '100%', maxHeight: '85vh', overflowY: 'auto' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 17, color: 'var(--text-primary)', marginBottom: 4 }}>{selectedMessage.subject}</h2>
+                <div style={{ fontSize: 12, color: '#64748B' }}>
+                  {selectedMessage.sender_name || '—'} · {selectedMessage.sender_email || 'no email on file'}
+                  {selectedMessage.organization_name && ` · ${selectedMessage.organization_name}`}
+                </div>
+                <div style={{ fontSize: 11, color: '#475569', marginTop: 2, fontFamily: 'IBM Plex Mono' }}>{new Date(selectedMessage.created_at).toLocaleString()}</div>
+              </div>
+              <button onClick={() => setSelectedMessage(null)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 16, fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.6, whiteSpace: 'pre-wrap', marginBottom: 18 }}>
+              {selectedMessage.body}
+            </div>
+
+            {selectedMessage.reply_body && (
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6, letterSpacing: '0.5px' }}>
+                  YOUR REPLY {selectedMessage.replied_at && `· ${new Date(selectedMessage.replied_at).toLocaleString()}`}
+                  {selectedMessage.reply_status && selectedMessage.reply_status !== 'sent' && (
+                    <span style={{ color: '#EF4444', marginLeft: 6 }}>(not delivered — {selectedMessage.reply_status})</span>
+                  )}
+                </div>
+                <div style={{ background: 'rgba(251,192,45,0.06)', border: '1px solid rgba(251,192,45,0.2)', borderRadius: 10, padding: 16, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                  {selectedMessage.reply_body}
+                </div>
+              </div>
+            )}
+
+            {selectedMessage.sender_email ? (
+              <div>
+                <label style={{ display: 'block', marginBottom: 6, fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>
+                  {selectedMessage.reply_body ? 'Send another reply' : 'Reply'}
+                </label>
+                <textarea
+                  value={replyText}
+                  onChange={e => setReplyText(e.target.value)}
+                  placeholder={`Reply to ${selectedMessage.sender_name || selectedMessage.sender_email}...`}
+                  style={{ width: '100%', minHeight: 110, padding: '10px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }}
+                />
+                <button
+                  onClick={sendReply}
+                  disabled={sendingReply || !replyText.trim()}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: '10px 20px',
+                    background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)',
+                    fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8,
+                    cursor: sendingReply || !replyText.trim() ? 'default' : 'pointer', fontSize: 13,
+                    opacity: sendingReply || !replyText.trim() ? 0.6 : 1,
+                  }}
+                >
+                  <Send size={14} /> {sendingReply ? 'Sending...' : 'Send Reply'}
+                </button>
+              </div>
+            ) : (
+              <p style={{ fontSize: 12, color: '#64748B', fontStyle: 'italic' }}>No sender email on file — can't reply directly to this message.</p>
+            )}
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

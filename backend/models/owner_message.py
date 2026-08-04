@@ -29,6 +29,9 @@ class OwnerMessage(Base):
     body = Column(Text, nullable=False)
     email_status = Column(String(20), nullable=False)  # sent | failed | logged_only
     created_at = Column(DateTime, default=datetime.utcnow)
+    reply_body = Column(Text, nullable=True)
+    reply_status = Column(String(20), nullable=True)  # sent | failed | logged_only
+    replied_at = Column(DateTime, nullable=True)
 
     organization = relationship("Organization")
 

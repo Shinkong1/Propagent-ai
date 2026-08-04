@@ -19,12 +19,13 @@ from models.property import Property, Unit
 from models.owner_message import OwnerMessage
 from schemas.admin import (
     PlatformMetrics, OrganizationAdminResponse, OrganizationAdminUpdate,
-    UserAdminResponse, UserAdminUpdate, OwnerMessageResponse,
+    UserAdminResponse, UserAdminUpdate, OwnerMessageResponse, OwnerMessageReplyRequest,
 )
 from middleware.plan_gate import require_master
 from models.platform import OrgEventType
 from services.platform_service import log_org_event
 from services import platform_analytics_service as analytics
+from services.communication_agent import send_email
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_master)])
@@ -175,9 +176,37 @@ async def list_owner_messages(db: Session = Depends(get_db)):
             organization_name=m.organization_name, sender_name=m.sender_name,
             sender_email=m.sender_email, subject=m.subject, body=m.body,
             email_status=m.email_status, created_at=m.created_at,
+            reply_body=m.reply_body, reply_status=m.reply_status, replied_at=m.replied_at,
         )
         for m in messages
     ]
+
+
+@router.post("/messages/{message_id}/reply", response_model=OwnerMessageResponse)
+async def reply_to_owner_message(message_id: UUID, payload: OwnerMessageReplyRequest, db: Session = Depends(get_db)):
+    """Send a real email reply (via the same SMTP path as everything else) back to
+    whoever sent this message, and record it on the message so the owner can see
+    what was already said."""
+    message = db.query(OwnerMessage).filter(OwnerMessage.id == message_id).first()
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    if not message.sender_email:
+        raise HTTPException(status_code=422, detail="This message has no sender email on file to reply to.")
+
+    status, error = send_email(message.sender_email, f"Re: {message.subject}", payload.reply)
+    message.reply_body = payload.reply
+    message.reply_status = status
+    message.replied_at = datetime.utcnow()
+    db.commit()
+    db.refresh(message)
+
+    return OwnerMessageResponse(
+        id=message.id, source=message.source.value, organization_id=message.organization_id,
+        organization_name=message.organization_name, sender_name=message.sender_name,
+        sender_email=message.sender_email, subject=message.subject, body=message.body,
+        email_status=message.email_status, created_at=message.created_at,
+        reply_body=message.reply_body, reply_status=message.reply_status, replied_at=message.replied_at,
+    )
 
 
 # ============================================================
