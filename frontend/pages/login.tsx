@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
-import { Zap } from 'lucide-react';
+import { Zap, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { auth, mfa as mfaApi, oauth } from '../lib/api';
 import { setToken, setUser } from '../lib/auth';
@@ -16,6 +16,7 @@ export default function Login() {
   const [mfaToken, setMfaToken] = useState<string | null>(null);
   const [mfaCode, setMfaCode] = useState('');
   const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     oauth.googleConfig().then(res => setGoogleEnabled(res.data.enabled)).catch(() => setGoogleEnabled(false));
@@ -114,13 +115,27 @@ export default function Login() {
           </div>
           <div style={{ marginBottom: 24 }}>
             <label style={labelStyle}>{t('login.password')}</label>
-            <input
-              type="password" required value={form.password}
-              onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-              placeholder="••••••••"
-              style={inputStyle}
-              spellCheck={false} autoCorrect="off" autoCapitalize="off" autoComplete="current-password"
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'} required value={form.password}
+                onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                placeholder="••••••••"
+                style={{ ...inputStyle, paddingRight: 40 }}
+                spellCheck={false} autoCorrect="off" autoCapitalize="off" autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(p => !p)}
+                aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
+                style={{
+                  position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', padding: 4, cursor: 'pointer',
+                  color: '#64748B', display: 'flex', alignItems: 'center',
+                }}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
           <button type="submit" disabled={loading} style={btnStyle}>
             {loading ? 'Signing in...' : t('login.submit')}

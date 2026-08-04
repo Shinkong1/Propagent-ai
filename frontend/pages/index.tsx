@@ -1,8 +1,16 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 import { Zap, Building2, MessageSquare, Wrench, Users, Phone, ChevronRight, Check } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 import { useSidebar } from '../lib/SidebarContext';
+import { auth } from '../lib/api';
+import { setToken, setUser } from '../lib/auth';
+import toast from 'react-hot-toast';
+
+const DEMO_EMAIL = 'demo@propagentai.com';
+const DEMO_PASSWORD = 'PropAgentDemo2026!';
 
 const FEATURES = [
   { icon: MessageSquare, title: 'AI Tenant Chat', desc: '24/7 automated responses to tenant queries, maintenance, and leasing questions.' },
@@ -52,6 +60,22 @@ const MOMENTS = [
 export default function Home() {
   const { t } = useLanguage();
   const { isMobile } = useSidebar();
+  const router = useRouter();
+  const [demoLoading, setDemoLoading] = useState(false);
+
+  const handleViewDemo = async () => {
+    setDemoLoading(true);
+    try {
+      const res = await auth.login({ email: DEMO_EMAIL, password: DEMO_PASSWORD });
+      setToken(res.data.access_token);
+      setUser(res.data);
+      router.push('/dashboard');
+    } catch {
+      toast.error('Demo is temporarily unavailable — please try again shortly.');
+      setDemoLoading(false);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -123,14 +147,14 @@ export default function Home() {
             }}>
               {t('landing.startTrial')} <ChevronRight size={18} />
             </Link>
-            <Link href="/dashboard" style={{
+            <button onClick={handleViewDemo} disabled={demoLoading} style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               background: 'var(--hover-overlay)', color: '#E2E8F0', border: '1px solid var(--border-strong)',
-              padding: '14px 28px', borderRadius: 10, textDecoration: 'none',
-              fontSize: 16, fontWeight: 500, fontFamily: 'IBM Plex Sans',
+              padding: '14px 28px', borderRadius: 10, cursor: demoLoading ? 'default' : 'pointer',
+              fontSize: 16, fontWeight: 500, fontFamily: 'IBM Plex Sans', opacity: demoLoading ? 0.6 : 1,
             }}>
-              {t('landing.viewDemo')}
-            </Link>
+              {demoLoading ? '...' : t('landing.viewDemo')}
+            </button>
           </div>
           <p style={{ marginTop: 16, fontSize: 12, color: '#475569', fontFamily: 'IBM Plex Mono' }}>
             {t('landing.noCard')}

@@ -28,7 +28,7 @@ export default function Terms() {
           <div style={{ display: 'flex', gap: 12, background: 'rgba(251,192,45,0.08)', border: '1px solid rgba(251,192,45,0.25)', borderRadius: 12, padding: '16px 18px', marginBottom: 32 }}>
             <AlertTriangle size={20} color="#FBC02D" style={{ flexShrink: 0, marginTop: 2 }} />
             <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
-              <strong style={{ color: '#FBC02D' }}>Draft placeholder — not legal advice.</strong> This is a starting-point template covering PropAgent AI's actual functionality. It has not been reviewed by an attorney. Replace the bracketed placeholders with your real legal entity, jurisdiction, and contact details, and have it reviewed by counsel before relying on it — especially the sections on AI-initiated calls/texts (TCPA), payment processing, and tenant data handling.
+              <strong style={{ color: '#FBC02D' }}>Draft placeholder — not legal advice, no attorney has reviewed this.</strong> This version adds commonly-used protective clauses (indemnification, arbitration/class-action waiver, liability limits, disclaimers) on top of the earlier draft, but "commonly used" is not the same as "enforceable for your business" — arbitration clauses in particular have jurisdiction-specific requirements to hold up, and consumer-protection carve-outs vary by state/country. Replace every bracketed placeholder with your real legal entity and jurisdiction, and get this reviewed by a licensed attorney before your first paying customer signs up. Operating without that review is a real, uninsured risk you're currently carrying.
             </p>
           </div>
 
@@ -65,26 +65,50 @@ export default function Terms() {
           </Section>
 
           <Section title="9. Disclaimers">
-            THE SERVICE, INCLUDING ALL AI-GENERATED CONTENT, RECOMMENDATIONS, AND DOCUMENT DRAFTS, IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. AI OUTPUTS (INCLUDING GENERATED LEASE CLAUSES, PRICING RECOMMENDATIONS, AND COMPLIANCE ASSESSMENTS) MAY CONTAIN ERRORS AND DO NOT CONSTITUTE LEGAL, FINANCIAL, OR PROFESSIONAL ADVICE. YOU ARE RESPONSIBLE FOR REVIEWING ALL AI-GENERATED OUTPUT BEFORE RELYING ON IT.
+            THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, OR NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, TIMELY, SECURE, OR ERROR-FREE, OR THAT ANY DEFECTS WILL BE CORRECTED.<br /><br />
+            AI-GENERATED CONTENT (INCLUDING GENERATED LEASE CLAUSES, PRICING RECOMMENDATIONS, COMPLIANCE ASSESSMENTS, TRANSCRIPTS, AND VOICE/SMS RESPONSES) MAY CONTAIN ERRORS AND DOES NOT CONSTITUTE LEGAL, FINANCIAL, TAX, OR PROFESSIONAL ADVICE. YOU ARE SOLELY RESPONSIBLE FOR REVIEWING AND VERIFYING ALL AI-GENERATED OUTPUT BEFORE RELYING ON OR ACTING UPON IT, INCLUDING BEFORE SENDING IT TO A THIRD PARTY.<br /><br />
+            YOU ARE SOLELY RESPONSIBLE FOR MAINTAINING YOUR OWN INDEPENDENT BACKUP OF ANY CUSTOMER DATA YOU CONSIDER CRITICAL. WE ARE NOT LIABLE FOR ANY LOSS, CORRUPTION, OR UNAUTHORIZED ACCESS TO CUSTOMER DATA EXCEPT TO THE EXTENT CAUSED BY OUR GROSS NEGLIGENCE OR WILLFUL MISCONDUCT.
           </Section>
 
-          <Section title="10. Limitation of Liability">
-            TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE COMPANY'S TOTAL LIABILITY ARISING OUT OF THESE TERMS OR THE SERVICE SHALL NOT EXCEED THE AMOUNT YOU PAID US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM. THE COMPANY IS NOT LIABLE FOR INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES.
+          <Section title="10. Indemnification">
+            You agree to defend, indemnify, and hold harmless the Company, its officers, directors, employees, and agents from and against any claims, liabilities, damages, losses, and expenses (including reasonable attorneys' fees) arising out of or in any way connected with: (a) your use or misuse of the Service; (b) Customer Data, including any tenant or third-party personal information you upload; (c) your violation of these Terms or of any law or regulation, including consent requirements for AI-initiated calls or texts under Section 5; or (d) your violation of any right of a tenant, lead, vendor, or other third party.
           </Section>
 
-          <Section title="11. Termination">
-            You may cancel your subscription at any time from Settings. We may suspend or terminate your access for breach of these Terms. Upon termination, your right to use the Service ends; we will retain Customer Data for a limited period as described in our Privacy Policy before deletion.
+          <Section title="11. Limitation of Liability">
+            TO THE MAXIMUM EXTENT PERMITTED BY LAW: (A) THE COMPANY SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, REVENUE, DATA, OR GOODWILL, ARISING OUT OF OR RELATED TO THESE TERMS OR THE SERVICE, REGARDLESS OF THE THEORY OF LIABILITY AND EVEN IF THE COMPANY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; AND (B) THE COMPANY'S TOTAL AGGREGATE LIABILITY ARISING OUT OF OR RELATED TO THESE TERMS OR THE SERVICE SHALL NOT EXCEED THE GREATER OF (I) THE AMOUNT YOU PAID THE COMPANY IN THE TWELVE (12) MONTHS PRECEDING THE EVENT GIVING RISE TO THE CLAIM, OR (II) ONE HUNDRED U.S. DOLLARS ($100). THESE LIMITATIONS APPLY EVEN IF ANY REMEDY FAILS OF ITS ESSENTIAL PURPOSE. SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OR LIMITATION OF CERTAIN DAMAGES, SO SOME OF THE ABOVE LIMITATIONS MAY NOT APPLY TO YOU.
           </Section>
 
-          <Section title="12. Governing Law">
-            These Terms are governed by the laws of <Placeholder>[State/Country]</Placeholder>, without regard to conflict-of-law principles. Any dispute shall be resolved in the courts located in <Placeholder>[Jurisdiction]</Placeholder>.
+          <Section title="12. Termination">
+            You may cancel your subscription at any time from Settings. We may suspend or terminate your access immediately, without notice, for actual or suspected breach of these Terms, non-payment, or conduct we reasonably believe exposes the Company or other users to risk or liability. Upon termination, your right to use the Service ends immediately; we will retain Customer Data for a limited period as described in our Privacy Policy before deletion. Sections 6, 9, 10, 11, 13, and 15 survive termination.
           </Section>
 
-          <Section title="13. Changes to These Terms">
-            We may update these Terms from time to time. We will post the updated Terms with a new "Last updated" date and, for material changes, provide additional notice (such as an email or in-app notification).
+          <Section title="13. Dispute Resolution; Binding Arbitration; Class Action Waiver">
+            <strong>Please read this section carefully — it affects your legal rights.</strong> You and the Company agree that any dispute, claim, or controversy arising out of or relating to these Terms or the Service will be resolved by binding, individual arbitration administered by <Placeholder>[American Arbitration Association / JAMS]</Placeholder> under its rules then in effect, rather than in court, except that either party may bring an individual action in small-claims court.<br /><br />
+            <strong>YOU AND THE COMPANY EACH WAIVE THE RIGHT TO A JURY TRIAL AND THE RIGHT TO PARTICIPATE IN A CLASS ACTION, CLASS ARBITRATION, OR REPRESENTATIVE PROCEEDING.</strong> Disputes will be resolved only on an individual basis, and claims of more than one customer cannot be arbitrated or litigated jointly or consolidated with those of any other customer. If this class-action waiver is found unenforceable as to a particular dispute, that dispute (and only that dispute) will proceed in court rather than in arbitration.<br /><br />
+            You may opt out of this arbitration agreement within 30 days of first accepting these Terms by sending written notice to <Placeholder>[legal@yourdomain.com]</Placeholder> with your name, account email, and a clear statement that you wish to opt out of arbitration.
           </Section>
 
-          <Section title="14. Contact">
+          <Section title="14. Force Majeure">
+            Neither party is liable for any failure or delay in performance to the extent caused by circumstances beyond its reasonable control, including acts of God, natural disaster, war, terrorism, riot, labor disputes, internet or utility failures, or failures of third-party service providers (including Stripe, Twilio, OpenAI, or cloud infrastructure providers).
+          </Section>
+
+          <Section title="15. Governing Law">
+            These Terms are governed by the laws of <Placeholder>[State/Country]</Placeholder>, without regard to conflict-of-law principles, except that the Federal Arbitration Act governs the interpretation and enforcement of the arbitration agreement in Section 13. Subject to Section 13, any dispute not subject to arbitration shall be resolved exclusively in the courts located in <Placeholder>[Jurisdiction]</Placeholder>, and you consent to personal jurisdiction there.
+          </Section>
+
+          <Section title="16. General Provisions">
+            <strong>Entire Agreement.</strong> These Terms, together with our Privacy Policy, constitute the entire agreement between you and the Company regarding the Service and supersede any prior agreements.<br /><br />
+            <strong>Severability.</strong> If any provision of these Terms is held unenforceable, that provision will be limited or eliminated to the minimum extent necessary, and the remaining provisions will remain in full force and effect.<br /><br />
+            <strong>No Waiver.</strong> Our failure to enforce any right or provision of these Terms is not a waiver of that right or provision.<br /><br />
+            <strong>Assignment.</strong> You may not assign these Terms without our prior written consent. We may assign these Terms without restriction, including in connection with a merger, acquisition, or sale of assets.<br /><br />
+            <strong>Compliance with Laws.</strong> You agree to comply with all applicable laws, including export control and sanctions laws, in your use of the Service.
+          </Section>
+
+          <Section title="17. Changes to These Terms">
+            We may update these Terms from time to time. We will post the updated Terms with a new "Last updated" date and, for material changes, provide additional notice (such as an email or in-app notification). Continued use of the Service after a material change constitutes acceptance of the updated Terms.
+          </Section>
+
+          <Section title="18. Contact">
             Questions about these Terms can be sent to <Placeholder>[legal@yourdomain.com]</Placeholder>.
           </Section>
         </div>
