@@ -13,6 +13,21 @@ const FEATURES = [
   { icon: Zap, title: 'Autonomous Agents', desc: 'LangGraph orchestrates 7 specialized agents working together automatically.' },
 ];
 
+const SEGMENTS = [
+  {
+    title: 'Independent Landlords',
+    desc: 'Managing a few units on the side? Let Voice AI take the 2am calls and triage maintenance so you\'re not on-call around the clock.',
+  },
+  {
+    title: 'Property Management Companies',
+    desc: 'Running dozens of properties across a team? Centralize leasing, maintenance, and collections into one AI-driven workflow instead of five disconnected tools.',
+  },
+  {
+    title: 'Fee Managers & Portfolio Operators',
+    desc: 'Managing properties for multiple owners? Keep every owner\'s books, reporting, and communications cleanly separated — automatically.',
+  },
+];
+
 const MOMENTS = [
   {
     title: 'The 2am pipe burst',
@@ -93,8 +108,11 @@ export default function Home() {
             {t('landing.heading1')}<br />
             <span style={{ color: '#FBC02D' }}>{t('landing.heading2')}</span>
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 18, lineHeight: 1.6, marginBottom: 36, fontFamily: 'IBM Plex Sans' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 18, lineHeight: 1.6, marginBottom: 16, fontFamily: 'IBM Plex Sans' }}>
             {t('landing.subtitle')}
+          </p>
+          <p style={{ color: '#64748B', fontSize: 14, lineHeight: 1.6, marginBottom: 36, fontFamily: 'IBM Plex Sans', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' }}>
+            Not a chatbot bolted onto your PMS — <span style={{ color: 'var(--text-secondary)' }}>a multi-agent AI platform that runs full workflows end-to-end: triage, dispatch, follow-up, and reporting, autonomously.</span>
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/signup" style={{
@@ -121,11 +139,12 @@ export default function Home() {
 
         {/* Stats */}
         <section style={{
-          display: isMobile ? 'grid' : 'flex', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : undefined,
-          justifyContent: 'center', gap: isMobile ? 24 : 48, padding: isMobile ? '32px 24px' : '40px 24px',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+          justifyItems: 'center', gap: isMobile ? 24 : 40, padding: isMobile ? '32px 24px' : '40px 24px',
+          maxWidth: 900, margin: '0 auto',
           borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)',
         }}>
-          {[['15hrs', 'Saved/week avg'], ['94%', 'Response rate'], ['3x', 'Faster maintenance'], ['47%', 'Less vacancy']].map(([v, l]) => (
+          {[['15hrs', 'Saved/week avg'], ['94%', 'Response rate'], ['3x', 'Faster maintenance'], ['47%', 'Less vacancy'], ['8', 'Languages supported']].map(([v, l]) => (
             <div key={l} style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 28, fontWeight: 600, color: '#FBC02D' }}>{v}</div>
               <div style={{ fontSize: 12, color: '#64748B', fontFamily: 'IBM Plex Sans', marginTop: 4 }}>{l}</div>
@@ -155,6 +174,24 @@ export default function Home() {
                   <span style={{ color: '#FBC02D', fontWeight: 700, fontFamily: 'Syne' }}>PropAgent → </span>
                   <span style={{ color: 'var(--text-secondary)' }}>{m.resolution}</span>
                 </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Segments — built for how you manage */}
+        <section style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
+          <h2 style={{ textAlign: 'center', fontFamily: 'Syne', fontWeight: 800, fontSize: 32, color: 'var(--text-primary)', marginBottom: 40 }}>
+            Built for how you manage
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20 }}>
+            {SEGMENTS.map(s => (
+              <div key={s.title} style={{
+                background: 'var(--bg-surface)', border: '1px solid var(--border-strong)',
+                borderRadius: 14, padding: '24px', borderTop: '3px solid #FBC02D',
+              }}>
+                <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 10 }}>{s.title}</div>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, fontFamily: 'IBM Plex Sans' }}>{s.desc}</p>
               </div>
             ))}
           </div>
