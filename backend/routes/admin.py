@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -193,7 +194,7 @@ async def reply_to_owner_message(message_id: UUID, payload: OwnerMessageReplyReq
     if not message.sender_email:
         raise HTTPException(status_code=422, detail="This message has no sender email on file to reply to.")
 
-    status, error = send_email(message.sender_email, f"Re: {message.subject}", payload.reply)
+    status, error = await run_in_threadpool(send_email, message.sender_email, f"Re: {message.subject}", payload.reply)
     message.reply_body = payload.reply
     message.reply_status = status
     message.replied_at = datetime.utcnow()

@@ -3,6 +3,7 @@ import logging
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from database.session import get_db
@@ -66,8 +67,8 @@ def _build_context(tenant: Tenant, template: str, payload: SendCommunicationRequ
     return context
 
 
-def _send_and_log(db: Session, org, tenant: Optional[Tenant], property_obj: Optional[Property],
-                   channel: str, template: str, subject: str, body: str) -> CommunicationLog:
+async def _send_and_log(db: Session, org, tenant: Optional[Tenant], property_obj: Optional[Property],
+                         channel: str, template: str, subject: str, body: str) -> CommunicationLog:
     org_id = org.id if org else None
     recipient = ""
     status = CommunicationStatus.logged_only
@@ -78,7 +79,9 @@ def _send_and_log(db: Session, org, tenant: Optional[Tenant], property_obj: Opti
         if org and not org.notify_sms_enabled:
             error = "SMS notifications are disabled in Settings for this organization."
         elif tenant and tenant.phone:
-            status_str, error = send_sms(tenant.phone, body)
+            # send_sms/send_email are blocking network calls — run off the event
+            # loop so a slow provider doesn't stall every other request.
+            status_str, error = await run_in_threadpool(send_sms, tenant.phone, body)
             status = CommunicationStatus(status_str)
         else:
             error = "No phone number on file for this tenant."
@@ -87,7 +90,7 @@ def _send_and_log(db: Session, org, tenant: Optional[Tenant], property_obj: Opti
         if org and not org.notify_email_enabled:
             error = "Email notifications are disabled in Settings for this organization."
         elif tenant and tenant.email:
-            status_str, error = send_email(tenant.email, subject, body)
+            status_str, error = await run_in_threadpool(send_email, tenant.email, subject, body)
             status = CommunicationStatus(status_str)
         else:
             error = "No email address on file for this tenant."
@@ -143,8 +146,8 @@ async def send_communication(
             subject, body = render_template(payload.template, context)
 
         tenant_property = db.query(Property).filter(Property.id == tenant.property_id).first() if tenant.property_id else None
-        logs.append(_send_and_log(db, current_user.organization, tenant, tenant_property,
-                                   payload.channel, payload.template, subject, body))
+        logs.append(await _send_and_log(db, current_user.organization, tenant, tenant_property,
+                                         payload.channel, payload.template, subject, body))
 
     else:  # broadcast to all active tenants at the property
         prop = db.query(Property).filter(
@@ -168,7 +171,7 @@ async def send_communication(
             else:
                 context = _build_context(tenant, payload.template, payload, db)
                 subject, body = render_template(payload.template, context)
-            logs.append(_send_and_log(db, current_user.organization, tenant, prop, payload.channel, payload.template, subject, body))
+            logs.append(await _send_and_log(db, current_user.organization, tenant, prop, payload.channel, payload.template, subject, body))
 
     db.commit()
     for log in logs:

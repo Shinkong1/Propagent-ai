@@ -8,6 +8,7 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from database.session import get_db
@@ -74,7 +75,7 @@ async def invite_member(
         f"Temporary password: {temp_password}\n\n"
         f"Sign in and change your password from Settings > Security."
     )
-    email_status, _ = send_email(payload.email, f"You've been added to {org_name} on PropAgent AI", email_body)
+    email_status, _ = await run_in_threadpool(send_email, payload.email, f"You've been added to {org_name} on PropAgent AI", email_body)
 
     return TeamInviteResponse(
         member=TeamMemberResponse(

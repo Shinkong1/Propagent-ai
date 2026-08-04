@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from database.session import get_db
@@ -127,7 +128,9 @@ async def ai_chat(
     )
 
     try:
-        notify_owner(
+        # blocking SMTP call under the hood — keep it off the event loop.
+        await run_in_threadpool(
+            notify_owner,
             db=db,
             source=OwnerMessageSource.chat,
             subject=f"Chat message from {current_user.full_name}" + (f" ({org.name})" if org else ""),

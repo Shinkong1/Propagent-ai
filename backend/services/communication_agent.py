@@ -90,7 +90,11 @@ def send_email(to_email: str, subject: str, body: str) -> tuple:
         msg["To"] = to_email
         msg.attach(MIMEText(body, "plain"))
 
-        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+        # timeout is critical here: this runs synchronously inside async route
+        # handlers on a single-worker server, so a hung connection to the SMTP
+        # host would otherwise block every other request on the process, not
+        # just this one.
+        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as server:
             server.starttls()
             server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
             server.sendmail(settings.FROM_EMAIL, to_email, msg.as_string())

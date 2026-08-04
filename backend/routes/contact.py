@@ -1,6 +1,7 @@
 """Contact Us — sends a message directly to the platform owner."""
 import logging
 from fastapi import APIRouter, Depends
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -25,7 +26,11 @@ async def send_contact_message(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    result = notify_owner(
+    # notify_owner does a blocking SMTP call under the hood — run it off the
+    # event loop so a slow/hung mail server doesn't stall every other request
+    # on this process (see services/communication_agent.py send_email).
+    result = await run_in_threadpool(
+        notify_owner,
         db=db,
         source=OwnerMessageSource.contact_form,
         subject=payload.subject,
