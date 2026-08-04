@@ -103,12 +103,27 @@ class LeadIn(BaseModel):
     source: str = "manual"
 
 
+class MeOut(BaseModel):
+    id: UUID
+    name: str
+
+    class Config:
+        from_attributes = True
+
+
 def _enum_or_400(enum_cls, value: str, field_name: str):
     try:
         return enum_cls(value)
     except ValueError:
         valid = ", ".join(e.value for e in enum_cls)
         raise HTTPException(status_code=422, detail=f"Invalid {field_name} '{value}'. Valid values: {valid}")
+
+
+# ── Identity (used by Zapier/Make to verify a key and label the connection) ──
+
+@router.get("/me", response_model=MeOut)
+async def get_me(org: Organization = Depends(get_org_from_api_key)):
+    return org
 
 
 # ── Properties (read-only — used to populate dropdowns in Zapier actions) ──

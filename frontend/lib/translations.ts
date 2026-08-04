@@ -175,6 +175,7 @@ export const translations: Record<Language, Dict> = {
     'settings.tab.api': 'API',
     'settings.apiTitle': 'API Access',
     'settings.apiSubtitle': 'Connect PropAgent to Zapier, Make, or your own scripts using a per-organization API key.',
+    'settings.apiZapierNote': 'This key also connects the official PropAgent AI app on Zapier — trigger Zaps on new leads, tenants, or maintenance tickets, or create them from 5,000+ other apps.',
     'settings.apiKeyLabel': 'API Key',
     'settings.apiKeyReveal': 'Show key',
     'settings.apiKeyHide': 'Hide key',

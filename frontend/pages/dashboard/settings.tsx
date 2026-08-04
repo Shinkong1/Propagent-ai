@@ -642,7 +642,8 @@ export default function SettingsPage() {
         {tab === 'api' && (
           <div style={{ maxWidth: 560 }}>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.apiTitle')}</h2>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18, lineHeight: 1.6 }}>{t('settings.apiSubtitle')}</p>
+            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 10, lineHeight: 1.6 }}>{t('settings.apiSubtitle')}</p>
+            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18, lineHeight: 1.6 }}>{t('settings.apiZapierNote')}</p>
 
             {loadingApiKey ? (
               <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('nav.loading')}</p>
