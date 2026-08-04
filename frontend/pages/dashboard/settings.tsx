@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Settings as SettingsIcon, Check, Sun, Moon, Building2, Bell, Lock, Globe, DollarSign, HelpCircle, Users, Mail, UserPlus } from 'lucide-react';
+import { Settings as SettingsIcon, Check, Sun, Moon, Building2, Bell, Lock, Globe, DollarSign, HelpCircle, Users, Mail, UserPlus, Code, Eye, EyeOff, Copy, RefreshCw } from 'lucide-react';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { useLanguage } from '../../lib/LanguageContext';
 import { useTheme } from '../../lib/ThemeContext';
 import { useCurrency } from '../../lib/CurrencyContext';
@@ -18,9 +19,9 @@ const TIMEZONES = [
   'Europe/Berlin', 'Asia/Shanghai', 'Asia/Seoul', 'Asia/Tokyo', 'Australia/Sydney',
 ];
 
-const TABS = ['appearance', 'language', 'currency', 'organization', 'team', 'notifications', 'security'] as const;
+const TABS = ['appearance', 'language', 'currency', 'organization', 'team', 'notifications', 'security', 'api'] as const;
 type Tab = typeof TABS[number];
-const TAB_ICON: Record<Tab, any> = { appearance: Sun, language: Globe, currency: DollarSign, organization: Building2, team: Users, notifications: Bell, security: Lock };
+const TAB_ICON: Record<Tab, any> = { appearance: Sun, language: Globe, currency: DollarSign, organization: Building2, team: Users, notifications: Bell, security: Lock, api: Code };
 
 interface TeamMember {
   id: string;
@@ -97,9 +98,48 @@ export default function SettingsPage() {
     }
   };
 
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [apiKeyRevealed, setApiKeyRevealed] = useState(false);
+  const [loadingApiKey, setLoadingApiKey] = useState(false);
+  const [regeneratingApiKey, setRegeneratingApiKey] = useState(false);
+  const [confirmRegenerate, setConfirmRegenerate] = useState(false);
+
+  const loadApiKey = async () => {
+    setLoadingApiKey(true);
+    try {
+      const res = await authApi.getApiKey();
+      setApiKey(res.data.api_key);
+    } catch {
+      // silent — tab still usable to generate a first key
+    } finally {
+      setLoadingApiKey(false);
+    }
+  };
+
+  const regenerateApiKey = async () => {
+    setRegeneratingApiKey(true);
+    try {
+      const res = await authApi.regenerateApiKey();
+      setApiKey(res.data.api_key);
+      setApiKeyRevealed(true);
+      toast.success(t('settings.apiKeyRegenerated'));
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || t('settings.saveFailed'));
+    } finally {
+      setRegeneratingApiKey(false);
+    }
+  };
+
+  const copyApiKey = () => {
+    if (!apiKey) return;
+    navigator.clipboard.writeText(apiKey);
+    toast.success(t('settings.apiKeyCopied'));
+  };
+
   useEffect(() => {
     if (tab === 'team') loadMembers();
     if (tab === 'security') loadMfaStatus();
+    if (tab === 'api') loadApiKey();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
@@ -598,7 +638,64 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
+
+        {tab === 'api' && (
+          <div style={{ maxWidth: 560 }}>
+            <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.apiTitle')}</h2>
+            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18, lineHeight: 1.6 }}>{t('settings.apiSubtitle')}</p>
+
+            {loadingApiKey ? (
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('nav.loading')}</p>
+            ) : apiKey ? (
+              <div>
+                <label style={lbl}>{t('settings.apiKeyLabel')}</label>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ ...inp, fontFamily: 'IBM Plex Mono', fontSize: 12.5, flex: 1, letterSpacing: 0.3 } as any}>
+                    {apiKeyRevealed ? apiKey : `${apiKey.slice(0, 11)}${'•'.repeat(28)}`}
+                  </div>
+                  <button onClick={() => setApiKeyRevealed(r => !r)} title={apiKeyRevealed ? t('settings.apiKeyHide') : t('settings.apiKeyReveal')} style={{ background: 'var(--bg-app)', border: '1px solid var(--border-strong)', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0 }}>
+                    {apiKeyRevealed ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                  <button onClick={copyApiKey} title={t('settings.apiKeyCopy')} style={{ background: 'var(--bg-app)', border: '1px solid var(--border-strong)', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0 }}>
+                    <Copy size={15} />
+                  </button>
+                </div>
+                <button onClick={() => setConfirmRegenerate(true)} disabled={regeneratingApiKey} style={{ ...btn, marginTop: 18, background: 'var(--bg-app)', color: 'var(--text-secondary)', border: '1px solid var(--border-strong)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <RefreshCw size={14} /> {regeneratingApiKey ? t('settings.saving') : t('settings.apiKeyRegenerate')}
+                </button>
+                <p style={{ fontSize: 11, color: '#475569', marginTop: 10, lineHeight: 1.6 }}>{t('settings.apiKeyWarning')}</p>
+              </div>
+            ) : (
+              <div>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14 }}>{t('settings.apiKeyNone')}</p>
+                <button onClick={regenerateApiKey} disabled={regeneratingApiKey} style={btn}>
+                  {regeneratingApiKey ? t('settings.saving') : t('settings.apiKeyGenerate')}
+                </button>
+              </div>
+            )}
+
+            <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--border-strong)' }}>
+              <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 8 }}>{t('settings.apiDocsTitle')}</h3>
+              <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.6, marginBottom: 10 }}>{t('settings.apiDocsSubtitle')}</p>
+              <p style={{ fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>
+                {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/docs
+              </p>
+              <p style={{ fontSize: 11, color: '#475569', marginTop: 10, fontFamily: 'IBM Plex Mono' }}>
+                X-API-Key: {'{'}your_key{'}'}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
+
+      <ConfirmDialog
+        open={confirmRegenerate}
+        message={t('settings.apiKeyRegenerateConfirm')}
+        confirmLabel={t('settings.apiKeyRegenerate')}
+        cancelLabel={t('common.cancel')}
+        onCancel={() => setConfirmRegenerate(false)}
+        onConfirm={() => { setConfirmRegenerate(false); regenerateApiKey(); }}
+      />
     </DashboardLayout>
   );
 }

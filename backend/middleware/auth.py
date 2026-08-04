@@ -4,14 +4,14 @@ from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from database.session import get_db
-from models.user import User
+from models.user import Organization, User
 from config import settings
 
 logger = logging.getLogger(__name__)
@@ -86,3 +86,24 @@ async def get_current_user(
             )
 
     return user
+
+
+async def get_org_from_api_key(
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    db: Session = Depends(get_db),
+) -> Organization:
+    """Authenticate external integrations (Zapier, Make, custom scripts) via a
+    per-org API key instead of a user JWT. Scoped to the org, not a specific user."""
+    if not x_api_key:
+        raise HTTPException(status_code=401, detail="Missing X-API-Key header")
+    org = db.query(Organization).filter(Organization.api_key == x_api_key).first()
+    if org is None:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+    if not org.is_active:
+        raise HTTPException(status_code=401, detail="Organization is inactive")
+    if not _org_has_access(org):
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="This organization's trial has ended. Subscribe to a plan to keep using the API.",
+        )
+    return org

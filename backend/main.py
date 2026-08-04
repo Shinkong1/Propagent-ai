@@ -88,12 +88,13 @@ from routes.oauth import router as oauth_router
 from routes.workflows import router as workflows_router
 from routes.predictive import router as predictive_router
 from routes.fraud import router as fraud_router
+from routes.public_api import router as public_api_router
 
 for r in [auth_router, properties_router, tenants_router, maintenance_router,
           leads_router, voice_router, billing_router, screening_router, accounting_router,
           executive_router, portfolio_router, compliance_router, collections_router, investment_router,
           documents_router, pricing_router, inspections_router, communications_router, admin_router, contact_router,
-          team_router, mfa_router, oauth_router, workflows_router, predictive_router, fraud_router]:
+          team_router, mfa_router, oauth_router, workflows_router, predictive_router, fraud_router, public_api_router]:
     app.include_router(r)
 
 

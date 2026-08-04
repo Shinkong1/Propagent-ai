@@ -209,6 +209,32 @@ async def update_organization(
     }
 
 
+@router.get("/organization/api-key")
+async def get_organization_api_key(
+    current_user: User = Depends(get_current_user),
+    _=Depends(require_role(UserRole.owner)),
+):
+    org = current_user.organization
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    return {"api_key": org.api_key}
+
+
+@router.post("/organization/api-key")
+async def regenerate_organization_api_key(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _=Depends(require_role(UserRole.owner)),
+):
+    import secrets
+    org = current_user.organization
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    org.api_key = f"pa_live_{secrets.token_urlsafe(32)}"
+    db.commit()
+    return {"api_key": org.api_key}
+
+
 @router.post("/change-password")
 async def change_password(
     payload: PasswordChangeRequest,

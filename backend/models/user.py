@@ -71,6 +71,11 @@ class Organization(Base):
     doc_template_rent_increase_notice = Column(Text, nullable=True)
     doc_template_move_out_notice = Column(Text, nullable=True)
 
+    # External API access (Zapier/Make/custom integrations) — a per-org secret
+    # sent as the X-API-Key header, distinct from user JWTs. Null until the
+    # owner first generates one from Settings > API.
+    api_key = Column(String(64), unique=True, nullable=True, index=True)
+
     users = relationship("User", back_populates="organization")
     properties = relationship("Property", back_populates="organization")
     leads = relationship("Lead", back_populates="organization")

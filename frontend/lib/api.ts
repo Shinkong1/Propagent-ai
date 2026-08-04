@@ -40,6 +40,8 @@ export const auth = {
   updateOrganization: (data: any) => api.patch('/auth/organization', data),
   changePassword: (currentPassword: string, newPassword: string) =>
     api.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword }),
+  getApiKey: () => api.get('/auth/organization/api-key'),
+  regenerateApiKey: () => api.post('/auth/organization/api-key'),
 };
 
 export const properties = {

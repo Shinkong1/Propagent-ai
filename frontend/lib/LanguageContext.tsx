@@ -17,6 +17,19 @@ const LanguageContext = createContext<LanguageContextValue>({
 
 const STORAGE_KEY = 'propagent_language';
 
+// Match the browser's preferred languages (e.g. "es-MX", "fr-CA") against our
+// supported set by primary subtag, falling back to English if none match.
+function detectBrowserLanguage(): Language {
+  if (typeof navigator === 'undefined') return 'en';
+  const candidates = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const primary = candidate.split('-')[0].toLowerCase();
+    if (primary in translations) return primary as Language;
+  }
+  return 'en';
+}
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>('en');
 
@@ -24,13 +37,21 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const stored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
     if (stored && stored in translations) {
       setLanguageState(stored as Language);
-    } else {
-      // No local override yet — fall back to the org's saved preference, if logged in.
-      const orgLanguage = getUser()?.language;
-      if (orgLanguage && orgLanguage in translations) {
-        setLanguageState(orgLanguage as Language);
-      }
+      return;
     }
+    // No local override yet — fall back to the org's saved preference, if logged in.
+    const orgLanguage = getUser()?.language;
+    if (orgLanguage && orgLanguage in translations) {
+      setLanguageState(orgLanguage as Language);
+      return;
+    }
+    // First-ever visit, no account yet — auto-detect from the browser/region so
+    // the site opens in the visitor's own language instead of always defaulting
+    // to English. Persisted immediately so it behaves like a deliberate choice
+    // from then on (the user can still override it via Settings > Language).
+    const detected = detectBrowserLanguage();
+    setLanguageState(detected);
+    if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, detected);
   }, []);
 
   const setLanguage = (lang: Language) => {
