@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     STRIPE_STARTER_PRICE_ID: str = "price_starter"
     STRIPE_PRO_PRICE_ID: str = "price_pro"
     STRIPE_ENTERPRISE_PRICE_ID: str = "price_enterprise"
+    # Stripe Connect — separate webhook endpoint/secret from the platform
+    # subscription webhook above, since these events describe *tenants'* rent
+    # payments into a connected org's own account, not PropAgent's own billing.
+    STRIPE_CONNECT_WEBHOOK_SECRET: str = ""
+    # Optional platform fee taken out of each rent payment, as a percent
+    # (e.g. 1.0 = 1%). 0 by default — never silently take a cut.
+    RENT_PLATFORM_FEE_PERCENT: float = 0.0
 
     TWILIO_SID: str = ""
     TWILIO_TOKEN: str = ""

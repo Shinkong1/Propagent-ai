@@ -81,6 +81,7 @@ export const tenants = {
     if (propertyId) form.append('property_id', propertyId);
     return api.post('/tenants/import', form, { headers: { 'Content-Type': 'multipart/form-data' } });
   },
+  invite: (id: string) => api.post(`/tenant-portal/invite/${id}`),
 };
 
 export const maintenance = {
@@ -102,6 +103,8 @@ export const leads = {
 export const billing = {
   plans: () => api.get('/billing/plans'),
   checkout: (plan: string) => api.post('/billing/checkout', { plan }),
+  connectOnboard: () => api.post('/billing/connect/onboard'),
+  connectStatus: () => api.get('/billing/connect/status'),
 };
 
 export const portfolio = {

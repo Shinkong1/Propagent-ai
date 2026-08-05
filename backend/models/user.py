@@ -29,6 +29,12 @@ class Organization(Base):
     language = Column(String(5), default="en", nullable=False)
     stripe_customer_id = Column(String(255), nullable=True)
     stripe_subscription_id = Column(String(255), nullable=True)
+    # Stripe Connect (Express) account this org's tenants pay rent into directly —
+    # separate from stripe_customer_id above, which is for *this org's own*
+    # subscription to PropAgent AI. Rent money never passes through a PropAgent-
+    # controlled account.
+    stripe_connect_account_id = Column(String(255), nullable=True)
+    stripe_connect_onboarded = Column(Boolean, default=False, nullable=False)
     # Real Stripe subscription status (trialing/active/past_due/canceled/unpaid), kept in
     # sync via billing webhook events — null when no Stripe subscription exists yet (e.g.
     # manually created orgs), never fabricated.

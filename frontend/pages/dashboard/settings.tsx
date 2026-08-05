@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Settings as SettingsIcon, Check, Sun, Moon, Building2, Bell, Lock, Globe, DollarSign, HelpCircle, Users, Mail, UserPlus, Code, Eye, EyeOff, Copy, RefreshCw } from 'lucide-react';
+import { Settings as SettingsIcon, Check, Sun, Moon, Building2, Bell, Lock, Globe, DollarSign, HelpCircle, Users, Mail, UserPlus, Code, Eye, EyeOff, Copy, RefreshCw, CreditCard, ExternalLink, CheckCircle } from 'lucide-react';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { useLanguage } from '../../lib/LanguageContext';
 import { useTheme } from '../../lib/ThemeContext';
@@ -10,7 +10,7 @@ import { useTutorial } from '../../lib/TutorialContext';
 import { CURRENCIES } from '../../lib/currency';
 import { LANGUAGES } from '../../lib/translations';
 import { getUser, setUser } from '../../lib/auth';
-import { auth as authApi, team as teamApi, mfa as mfaApi } from '../../lib/api';
+import { auth as authApi, team as teamApi, mfa as mfaApi, billing as billingApi } from '../../lib/api';
 import toast from 'react-hot-toast';
 
 const TIMEZONES = [
@@ -19,9 +19,9 @@ const TIMEZONES = [
   'Europe/Berlin', 'Asia/Shanghai', 'Asia/Seoul', 'Asia/Tokyo', 'Australia/Sydney',
 ];
 
-const TABS = ['appearance', 'language', 'currency', 'organization', 'team', 'notifications', 'security', 'api'] as const;
+const TABS = ['appearance', 'language', 'currency', 'organization', 'team', 'payments', 'notifications', 'security', 'api'] as const;
 type Tab = typeof TABS[number];
-const TAB_ICON: Record<Tab, any> = { appearance: Sun, language: Globe, currency: DollarSign, organization: Building2, team: Users, notifications: Bell, security: Lock, api: Code };
+const TAB_ICON: Record<Tab, any> = { appearance: Sun, language: Globe, currency: DollarSign, organization: Building2, team: Users, payments: CreditCard, notifications: Bell, security: Lock, api: Code };
 
 interface TeamMember {
   id: string;
@@ -104,6 +104,33 @@ export default function SettingsPage() {
   const [regeneratingApiKey, setRegeneratingApiKey] = useState(false);
   const [confirmRegenerate, setConfirmRegenerate] = useState(false);
 
+  const [connectStatus, setConnectStatus] = useState<{ connected: boolean; onboarded: boolean } | null>(null);
+  const [loadingConnect, setLoadingConnect] = useState(false);
+  const [startingOnboard, setStartingOnboard] = useState(false);
+
+  const loadConnectStatus = async () => {
+    setLoadingConnect(true);
+    try {
+      const res = await billingApi.connectStatus();
+      setConnectStatus(res.data);
+    } catch {
+      // leave null — the tab shows a generic "not set up" state either way
+    } finally {
+      setLoadingConnect(false);
+    }
+  };
+
+  const startConnectOnboarding = async () => {
+    setStartingOnboard(true);
+    try {
+      const res = await billingApi.connectOnboard();
+      window.location.href = res.data.url;
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Could not start Stripe onboarding');
+      setStartingOnboard(false);
+    }
+  };
+
   const loadApiKey = async () => {
     setLoadingApiKey(true);
     try {
@@ -140,8 +167,14 @@ export default function SettingsPage() {
     if (tab === 'team') loadMembers();
     if (tab === 'security') loadMfaStatus();
     if (tab === 'api') loadApiKey();
+    if (tab === 'payments') loadConnectStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
+
+  useEffect(() => {
+    if (router.query.connect) loadConnectStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.query.connect]);
 
   const startMfaSetup = async () => {
     try {
@@ -635,6 +668,51 @@ export default function SettingsPage() {
               ) : (
                 <button onClick={startMfaSetup} style={btn}>{t('settings.mfaSetupButton')}</button>
               )}
+            </div>
+          </div>
+        )}
+
+        {tab === 'payments' && (
+          <div style={{ maxWidth: 560 }}>
+            <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>Online Rent Payments</h2>
+            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18, lineHeight: 1.6 }}>
+              Connect a Stripe account so your tenants can pay rent online, directly into your own bank account — PropAgent never holds or touches the money.
+            </p>
+
+            {loadingConnect ? (
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('nav.loading')}</p>
+            ) : connectStatus?.onboarded ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 10 }}>
+                <CheckCircle size={18} color="#10B981" />
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Connected and ready</div>
+                  <div style={{ fontSize: 12, color: '#64748B' }}>Tenants you invite to the portal can now pay rent online.</div>
+                </div>
+              </div>
+            ) : (
+              <div>
+                {connectStatus?.connected && (
+                  <p style={{ fontSize: 12, color: '#FBC02D', marginBottom: 12 }}>
+                    You started Stripe onboarding but haven't finished it yet — pick up where you left off below.
+                  </p>
+                )}
+                <button onClick={startConnectOnboarding} disabled={startingOnboard} style={{ ...btn, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <ExternalLink size={14} /> {startingOnboard ? 'Starting...' : connectStatus?.connected ? 'Finish Stripe Setup' : 'Connect Stripe Account'}
+                </button>
+                <p style={{ fontSize: 11, color: '#475569', marginTop: 10, lineHeight: 1.6 }}>
+                  You'll be redirected to Stripe to verify your business/bank details. Takes a few minutes; you can finish it later if you need to step away.
+                </p>
+              </div>
+            )}
+
+            <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--border-strong)' }}>
+              <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 8 }}>How it works</h3>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#64748B', lineHeight: 1.9 }}>
+                <li>Connect your Stripe account here (one-time setup).</li>
+                <li>Invite tenants to the portal from the Tenants page.</li>
+                <li>Tenants pay by card or bank transfer — funds go straight to your account.</li>
+                <li>Payments are marked paid here automatically once they clear.</li>
+              </ul>
             </div>
           </div>
         )}

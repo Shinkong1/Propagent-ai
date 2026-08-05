@@ -35,6 +35,7 @@ export default function Tenants() {
   const [downloadingLease, setDownloadingLease] = useState<string | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importPropertyId, setImportPropertyId] = useState('');
+  const [invitingId, setInvitingId] = useState<string | null>(null);
 
   const [editingTenant, setEditingTenant] = useState<any | null>(null);
   const [editForm, setEditForm] = useState<any>({});
@@ -196,6 +197,27 @@ export default function Tenants() {
     finally { setSaving(false); }
   };
 
+  const inviteToPortal = async (t: any) => {
+    if (!t.email) {
+      toast.error('This tenant has no email on file — add one first');
+      return;
+    }
+    setInvitingId(t.id);
+    try {
+      const res = await tenantsApi.invite(t.id);
+      if (res.data.email_status === 'sent') {
+        toast.success('Portal invite sent');
+      } else {
+        toast.error(`Invite created, but the email didn't send (${res.data.email_status})`);
+      }
+      load(propertyFilter);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to send invite');
+    } finally {
+      setInvitingId(null);
+    }
+  };
+
   const deleteTenant = async (t: any) => {
     setDeletingId(t.id);
     try {
@@ -273,14 +295,14 @@ export default function Tenants() {
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
-                {['Tenant', 'Property', 'Contact', 'Employment', 'Income', 'Screening', 'Status', 'Contract', 'Actions'].map(h => (
+                {['Tenant', 'Property', 'Contact', 'Employment', 'Income', 'Screening', 'Status', 'Contract', 'Portal', 'Actions'].map(h => (
                   <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', fontWeight: 500 }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {tenantList.length === 0 ? (
-                <tr><td colSpan={9} style={{ textAlign: 'center', padding: '60px', color: '#475569', fontFamily: 'IBM Plex Sans' }}>
+                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '60px', color: '#475569', fontFamily: 'IBM Plex Sans' }}>
                   No tenants yet. Add your first tenant above.
                 </td></tr>
               ) : tenantList.map((t: any) => (
@@ -341,6 +363,18 @@ export default function Tenants() {
                       )
                     ) : (
                       <span style={{ fontSize: 11, color: '#334155' }}>No lease</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '14px 16px' }}>
+                    {t.portal_status === 'active' ? (
+                      <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: 'rgba(16,185,129,0.12)', color: '#10B981', fontFamily: 'IBM Plex Mono' }}>Active</span>
+                    ) : t.portal_status === 'invited' ? (
+                      <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: 'rgba(251,192,45,0.12)', color: '#FBC02D', fontFamily: 'IBM Plex Mono' }}>Invited</span>
+                    ) : (
+                      <button onClick={() => inviteToPortal(t)} disabled={invitingId === t.id} title={t.email ? 'Invite to tenant portal' : 'Add an email first'}
+                        style={{ padding: '4px 10px', borderRadius: 6, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: '#3B82F6', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+                        {invitingId === t.id ? '...' : 'Invite'}
+                      </button>
                     )}
                   </td>
                   <td style={{ padding: '14px 16px' }}>

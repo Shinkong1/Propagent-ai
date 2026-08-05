@@ -118,6 +118,115 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     return {"status": "ok"}
 
 
+@router.post("/connect/onboard")
+async def connect_onboard(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _=Depends(require_role(UserRole.owner)),
+):
+    """Start (or resume) Stripe Connect Express onboarding for this org, so
+    its tenants can pay rent directly into the org's own bank account —
+    never a PropAgent-controlled one. Returns a one-time onboarding URL."""
+    from models.user import Organization
+    org = db.query(Organization).filter(Organization.id == current_user.organization_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    try:
+        if not org.stripe_connect_account_id:
+            account = stripe.Account.create(
+                type="express",
+                email=current_user.email,
+                capabilities={"card_payments": {"requested": True}, "transfers": {"requested": True}},
+                business_profile={"name": org.name},
+            )
+            org.stripe_connect_account_id = account.id
+            db.commit()
+
+        account_link = stripe.AccountLink.create(
+            account=org.stripe_connect_account_id,
+            refresh_url=f"{settings.FRONTEND_URL}/dashboard/settings?connect=refresh",
+            return_url=f"{settings.FRONTEND_URL}/dashboard/settings?connect=return",
+            type="account_onboarding",
+        )
+        return {"url": account_link.url}
+    except Exception as e:
+        logger.error(f"Stripe Connect onboarding error for org {org.id}: {e}")
+        raise HTTPException(status_code=502, detail="Couldn't start Stripe onboarding — please try again in a moment.")
+
+
+@router.get("/connect/status")
+async def connect_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from models.user import Organization
+    org = db.query(Organization).filter(Organization.id == current_user.organization_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    return {
+        "connected": bool(org.stripe_connect_account_id),
+        "onboarded": org.stripe_connect_onboarded,
+    }
+
+
+@router.post("/webhook/connect")
+async def stripe_connect_webhook(request: Request, db: Session = Depends(get_db)):
+    """Separate endpoint/signing secret from /billing/webhook above — this
+    one only ever describes events on *connected* accounts (a tenant's rent
+    payment, an org finishing onboarding), never PropAgent's own billing."""
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, settings.STRIPE_CONNECT_WEBHOOK_SECRET)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid webhook signature")
+
+    from models.user import Organization
+
+    if event["type"] == "account.updated":
+        account = event["data"]["object"]
+        org = db.query(Organization).filter(Organization.stripe_connect_account_id == account["id"]).first()
+        if org:
+            newly_onboarded = bool(account.get("charges_enabled") and account.get("payouts_enabled"))
+            if newly_onboarded != org.stripe_connect_onboarded:
+                org.stripe_connect_onboarded = newly_onboarded
+                db.commit()
+                logger.info(f"Org {org.id} Stripe Connect onboarded={newly_onboarded}")
+
+    elif event["type"] in ("checkout.session.completed", "payment_intent.succeeded"):
+        _handle_rent_payment_succeeded(db, event["data"]["object"])
+
+    return {"status": "ok"}
+
+
+def _handle_rent_payment_succeeded(db: Session, obj: dict):
+    """Shared by both checkout.session.completed and payment_intent.succeeded
+    (Stripe sends both for a Checkout-created payment) — idempotent since it
+    only ever transitions a payment into 'paid', never re-processes one
+    that's already marked paid."""
+    from models.accounting import RentPayment, PaymentStatus, PaymentMethod
+    from datetime import date as _date
+
+    rent_payment_id = (obj.get("metadata") or {}).get("rent_payment_id")
+    if not rent_payment_id:
+        return
+    try:
+        payment = db.query(RentPayment).filter(RentPayment.id == rent_payment_id).first()
+    except Exception:
+        payment = None
+    if not payment or payment.status == PaymentStatus.paid:
+        return
+
+    payment.status = PaymentStatus.paid
+    payment.paid_date = _date.today()
+    payment_method_type = (obj.get("payment_method_types") or ["card"])[0]
+    payment.payment_method = PaymentMethod.ach if "bank_account" in payment_method_type else PaymentMethod.card
+    db.commit()
+    logger.info(f"Rent payment {rent_payment_id} marked paid via Stripe Connect webhook")
+
+
 @router.get("/plans")
 async def get_plans():
     return {

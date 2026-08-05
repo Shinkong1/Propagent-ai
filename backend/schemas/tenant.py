@@ -36,6 +36,7 @@ class TenantResponse(BaseModel):
     property_name: Optional[str] = None
     unit_number: Optional[str] = None
     active_lease_id: Optional[UUID] = None
+    portal_status: str = "not_invited"
     created_at: datetime
 
     class Config:

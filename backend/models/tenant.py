@@ -37,6 +37,22 @@ class Tenant(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Tenant portal login — separate from the staff User/JWT system entirely.
+    # A tenant only gets a password once invited and they activate it themselves.
+    hashed_password = Column(String(255), nullable=True)
+    portal_invite_token = Column(String(255), nullable=True, unique=True, index=True)
+    portal_invite_expires_at = Column(DateTime, nullable=True)
+    portal_invited_at = Column(DateTime, nullable=True)
+    portal_activated_at = Column(DateTime, nullable=True)
+
+    @property
+    def portal_status(self) -> str:
+        if self.portal_activated_at:
+            return "active"
+        if self.portal_invited_at:
+            return "invited"
+        return "not_invited"
+
     leases = relationship("Lease", back_populates="tenant")
     maintenance_tickets = relationship("MaintenanceTicket", back_populates="tenant")
     conversations = relationship("Conversation", back_populates="tenant")
