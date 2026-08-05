@@ -30,7 +30,11 @@ class Settings(BaseSettings):
     # Stripe Connect — separate webhook endpoint/secret from the platform
     # subscription webhook above, since these events describe *tenants'* rent
     # payments into a connected org's own account, not PropAgent's own billing.
+    # Stripe creates one destination per payload style (snapshot vs thin) even
+    # when they share a URL, and each gets its own signing secret — so this
+    # endpoint has to be able to verify against either one.
     STRIPE_CONNECT_WEBHOOK_SECRET: str = ""
+    STRIPE_CONNECT_WEBHOOK_SECRET_V2: str = ""
     # Optional platform fee taken out of each rent payment, as a percent
     # (e.g. 1.0 = 1%). 0 by default — never silently take a cut.
     RENT_PLATFORM_FEE_PERCENT: float = 0.0

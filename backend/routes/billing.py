@@ -175,13 +175,24 @@ async def connect_status(
 async def stripe_connect_webhook(request: Request, db: Session = Depends(get_db)):
     """Separate endpoint/signing secret from /billing/webhook above — this
     one only ever describes events on *connected* accounts (a tenant's rent
-    payment, an org finishing onboarding), never PropAgent's own billing."""
+    payment, an org finishing onboarding), never PropAgent's own billing.
+
+    Stripe creates one destination per payload style (snapshot vs thin) even
+    when both point at this same URL, and each has its own signing secret —
+    so try both rather than assume only one is in play."""
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
 
-    try:
-        event = stripe.Webhook.construct_event(payload, sig_header, settings.STRIPE_CONNECT_WEBHOOK_SECRET)
-    except Exception:
+    event = None
+    for secret in (settings.STRIPE_CONNECT_WEBHOOK_SECRET, settings.STRIPE_CONNECT_WEBHOOK_SECRET_V2):
+        if not secret:
+            continue
+        try:
+            event = stripe.Webhook.construct_event(payload, sig_header, secret)
+            break
+        except Exception:
+            continue
+    if event is None:
         raise HTTPException(status_code=400, detail="Invalid webhook signature")
 
     from models.user import Organization
