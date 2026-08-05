@@ -187,6 +187,31 @@ async def update_unit(
     return unit
 
 
+@router.delete("/{property_id}/units/{unit_id}", status_code=204)
+async def delete_unit(
+    property_id: UUID,
+    unit_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    prop = db.query(Property).filter(
+        Property.id == property_id,
+        Property.organization_id == current_user.organization_id
+    ).first()
+    if not prop:
+        raise HTTPException(status_code=404, detail="Property not found")
+
+    unit = db.query(Unit).filter(Unit.id == unit_id, Unit.property_id == property_id).first()
+    if not unit:
+        raise HTTPException(status_code=404, detail="Unit not found")
+    if unit.is_occupied:
+        raise HTTPException(status_code=400, detail="Cannot delete an occupied unit — end the tenant's lease first.")
+
+    db.delete(unit)
+    db.commit()
+    return Response(status_code=204)
+
+
 @router.get("/{property_id}/stats")
 async def property_detail_stats(
     property_id: UUID,

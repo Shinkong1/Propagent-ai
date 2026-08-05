@@ -56,6 +56,7 @@ export const properties = {
   listUnits: (id: string) => api.get(`/properties/${id}/units`),
   createUnit: (id: string, data: any) => api.post(`/properties/${id}/units`, data),
   updateUnit: (propertyId: string, unitId: string, data: any) => api.patch(`/properties/${propertyId}/units/${unitId}`, data),
+  deleteUnit: (propertyId: string, unitId: string) => api.delete(`/properties/${propertyId}/units/${unitId}`),
   revenueTrend: (months = 6) => api.get('/properties/stats/revenue-trend', { params: { months } }),
   unitsDetail: () => api.get('/properties/stats/units-detail'),
   aiActivity: (days = 30) => api.get('/properties/stats/ai-activity', { params: { days } }),

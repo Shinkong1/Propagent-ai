@@ -4,13 +4,16 @@ import Link from 'next/link';
 import DashboardLayout from '../../../components/DashboardLayout';
 import {
   ArrowLeft, Building2, MapPin, DollarSign, Home, Wrench, Users,
-  CheckCircle, XCircle, Star, Phone, Mail, ChevronDown, ChevronUp, FileText, Lock, Pencil, X,
+  CheckCircle, XCircle, Star, Phone, Mail, ChevronDown, ChevronUp, FileText, Lock, Pencil, X, Plus, Trash2,
 } from 'lucide-react';
 import { properties as propertiesApi, tenants as tenantsApi, maintenance as maintenanceApi, accounting as accountingApi } from '../../../lib/api';
 import { getUser } from '../../../lib/auth';
 import { useCurrency } from '../../../lib/CurrencyContext';
 import { useSidebar } from '../../../lib/SidebarContext';
+import ConfirmDialog from '../../../components/ConfirmDialog';
 import toast from 'react-hot-toast';
+
+const EMPTY_NEW_UNIT = { unit_number: '', monthly_rent: '', bedrooms: 1, bathrooms: 1, square_feet: '', description: '' };
 
 const TYPE_COLOR: any = { apartment: '#3B82F6', single_family: '#10B981', multi_family: '#8B5CF6', condo: '#F97316', commercial: '#EF4444' };
 const STATUS_COLOR: any = { open: '#EF4444', in_progress: '#3B82F6', waiting_vendor: '#F97316', scheduled: '#8B5CF6', completed: '#10B981' };
@@ -44,6 +47,12 @@ export default function PropertyDetail() {
   const [editingUnit, setEditingUnit] = useState<any | null>(null);
   const [unitForm, setUnitForm] = useState<any>({});
   const [savingUnit, setSavingUnit] = useState(false);
+
+  const [showAddUnit, setShowAddUnit] = useState(false);
+  const [newUnit, setNewUnit] = useState<any>({ ...EMPTY_NEW_UNIT });
+  const [addingUnit, setAddingUnit] = useState(false);
+  const [confirmDeleteUnit, setConfirmDeleteUnit] = useState<any | null>(null);
+  const [deletingUnitId, setDeletingUnitId] = useState<string | null>(null);
 
   const userPlan = getUser()?.plan;
   const canGenerateContracts = userPlan === 'professional' || userPlan === 'enterprise';
@@ -100,7 +109,7 @@ export default function PropertyDetail() {
   const openEditUnit = (u: any) => {
     setUnitForm({
       unit_number: u.unit_number, bedrooms: u.bedrooms, bathrooms: u.bathrooms,
-      square_feet: u.square_feet ?? '', monthly_rent: u.monthly_rent,
+      square_feet: u.square_feet ?? '', monthly_rent: u.monthly_rent, description: u.description ?? '',
       is_occupied: u.is_occupied, is_available: u.is_available,
     });
     setEditingUnit(u);
@@ -124,6 +133,49 @@ export default function PropertyDetail() {
       toast.error(err?.response?.data?.detail || 'Failed to update unit');
     } finally {
       setSavingUnit(false);
+    }
+  };
+
+  const addUnit = async () => {
+    if (!newUnit.unit_number.trim()) {
+      toast.error('Unit number is required');
+      return;
+    }
+    if (!newUnit.monthly_rent || Number(newUnit.monthly_rent) < 0) {
+      toast.error('Enter a monthly rent for this unit');
+      return;
+    }
+    setAddingUnit(true);
+    try {
+      const res = await propertiesApi.createUnit(id as string, {
+        unit_number: newUnit.unit_number.trim(),
+        monthly_rent: Number(newUnit.monthly_rent),
+        bedrooms: Number(newUnit.bedrooms) || 1,
+        bathrooms: Number(newUnit.bathrooms) || 1,
+        square_feet: newUnit.square_feet === '' ? null : Number(newUnit.square_feet),
+        description: newUnit.description?.trim() || undefined,
+      });
+      setUnits(prev => [...prev, res.data]);
+      toast.success('Unit added');
+      setShowAddUnit(false);
+      setNewUnit({ ...EMPTY_NEW_UNIT });
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to add unit');
+    } finally {
+      setAddingUnit(false);
+    }
+  };
+
+  const deleteUnit = async (unit: any) => {
+    setDeletingUnitId(unit.id);
+    try {
+      await propertiesApi.deleteUnit(id as string, unit.id);
+      setUnits(prev => prev.filter(u => u.id !== unit.id));
+      toast.success('Unit deleted');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to delete unit');
+    } finally {
+      setDeletingUnitId(null);
     }
   };
 
@@ -255,10 +307,14 @@ export default function PropertyDetail() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginTop: 20 }}>
           {/* Units & occupancy */}
-          <Section title="Units & Occupancy">
+          <Section title="Units & Occupancy" action={
+            <button onClick={() => { setNewUnit({ ...EMPTY_NEW_UNIT }); setShowAddUnit(true); }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', borderRadius: 6, color: '#FBC02D', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+              <Plus size={11} /> Add Unit
+            </button>
+          }>
             {units.length === 0 ? <Empty text="No units yet." /> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {units.map((u: any) => (
+                {[...units].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()).map((u: any) => (
                   <div key={u.id} style={{ padding: '10px 14px', background: 'var(--bg-app)', borderRadius: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -275,8 +331,16 @@ export default function PropertyDetail() {
                         <button onClick={() => openEditUnit(u)} title="Edit unit" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: 5, background: 'transparent', border: '1px solid var(--border-strong)', color: '#64748B', cursor: 'pointer' }}>
                           <Pencil size={11} />
                         </button>
+                        {!u.is_occupied && (
+                          <button onClick={() => setConfirmDeleteUnit(u)} disabled={deletingUnitId === u.id} title="Delete unit" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: 5, background: 'transparent', border: '1px solid rgba(239,68,68,0.3)', color: '#EF4444', cursor: 'pointer' }}>
+                            <Trash2 size={11} />
+                          </button>
+                        )}
                       </div>
                     </div>
+                    {u.description && (
+                      <div style={{ marginTop: 6, fontSize: 12, color: '#64748B' }}>{u.description}</div>
+                    )}
                     {u.is_occupied && (
                       <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#8B5CF6' }}>
                         <Users size={11} /> {u.tenant_name || 'Tenant on file'}
@@ -492,6 +556,9 @@ export default function PropertyDetail() {
                 </div>
               </div>
 
+              <label style={{ ...mlbl, marginTop: 12 }}>Description</label>
+              <textarea value={unitForm.description || ''} onChange={e => setUnitForm((u: any) => ({ ...u, description: e.target.value }))} spellCheck autoCorrect="on" autoCapitalize="sentences" style={{ ...minp, height: 60, resize: 'none' } as any} />
+
               <div style={{ display: 'flex', gap: 20, marginTop: 16 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer' }}>
                   <input type="checkbox" checked={!!unitForm.is_occupied} onChange={e => setUnitForm((u: any) => ({ ...u, is_occupied: e.target.checked }))} />
@@ -509,6 +576,59 @@ export default function PropertyDetail() {
             </div>
           </div>
         )}
+
+        {showAddUnit && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: 420 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Add Unit</h2>
+                <button onClick={() => setShowAddUnit(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+                <div>
+                  <label style={mlbl}>Unit Number <span style={{ color: '#EF4444' }}>*</span></label>
+                  <input value={newUnit.unit_number} onChange={e => setNewUnit((u: any) => ({ ...u, unit_number: e.target.value }))} placeholder="101" style={minp} />
+                </div>
+                <div>
+                  <label style={mlbl}>Monthly Rent <span style={{ color: '#EF4444' }}>*</span></label>
+                  <input type="number" value={newUnit.monthly_rent} onChange={e => setNewUnit((u: any) => ({ ...u, monthly_rent: e.target.value }))} placeholder="1500" style={minp} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginTop: 12 }}>
+                <div>
+                  <label style={mlbl}>Bedrooms</label>
+                  <input type="number" value={newUnit.bedrooms} onChange={e => setNewUnit((u: any) => ({ ...u, bedrooms: e.target.value }))} style={minp} />
+                </div>
+                <div>
+                  <label style={mlbl}>Bathrooms</label>
+                  <input type="number" step="0.5" value={newUnit.bathrooms} onChange={e => setNewUnit((u: any) => ({ ...u, bathrooms: e.target.value }))} style={minp} />
+                </div>
+                <div>
+                  <label style={mlbl}>Sq Ft</label>
+                  <input type="number" value={newUnit.square_feet} onChange={e => setNewUnit((u: any) => ({ ...u, square_feet: e.target.value }))} style={minp} />
+                </div>
+              </div>
+
+              <label style={{ ...mlbl, marginTop: 12 }}>Description</label>
+              <textarea value={newUnit.description} onChange={e => setNewUnit((u: any) => ({ ...u, description: e.target.value }))} spellCheck autoCorrect="on" autoCapitalize="sentences" style={{ ...minp, height: 60, resize: 'none' } as any} />
+
+              <button onClick={addUnit} disabled={addingUnit} style={{ width: '100%', marginTop: 18, padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+                {addingUnit ? 'Adding...' : 'Add Unit'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <ConfirmDialog
+          open={!!confirmDeleteUnit}
+          message={`Delete Unit ${confirmDeleteUnit?.unit_number || ''}? This can't be undone.`}
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          onCancel={() => setConfirmDeleteUnit(null)}
+          onConfirm={() => { const u = confirmDeleteUnit; setConfirmDeleteUnit(null); deleteUnit(u); }}
+        />
       </div>
     </DashboardLayout>
   );

@@ -58,6 +58,7 @@ class UnitCreate(BaseModel):
     square_feet: Optional[int] = None
     monthly_rent: float
     floor: Optional[int] = None
+    description: Optional[str] = None
 
 
 class UnitUpdate(BaseModel):
@@ -67,6 +68,7 @@ class UnitUpdate(BaseModel):
     square_feet: Optional[int] = None
     monthly_rent: Optional[float] = None
     floor: Optional[int] = None
+    description: Optional[str] = None
     is_occupied: Optional[bool] = None
     is_available: Optional[bool] = None
 
@@ -78,9 +80,11 @@ class UnitResponse(BaseModel):
     bathrooms: float
     square_feet: Optional[int]
     monthly_rent: float
+    description: Optional[str] = None
     is_occupied: bool
     is_available: bool
     tenant_name: Optional[str] = None
+    created_at: datetime
 
     class Config:
         from_attributes = True

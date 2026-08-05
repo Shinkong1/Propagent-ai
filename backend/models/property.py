@@ -66,6 +66,7 @@ class Unit(Base):
     is_occupied = Column(Boolean, default=False)
     is_available = Column(Boolean, default=True)
     floor = Column(Integer, nullable=True)
+    description = Column(Text, nullable=True)
     features = Column(Text, nullable=True)  # JSON string
     created_at = Column(DateTime, default=datetime.utcnow)
 

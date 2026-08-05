@@ -10,6 +10,16 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 const EMPTY_FORM = { first_name: '', last_name: '', email: '', phone: '', annual_income: '', employment_status: 'employed', employer: '', property_id: '', unit_id: '' };
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const FIELD_INPUT_TYPE: Record<string, string> = { email: 'email', phone: 'tel', annual_income: 'number' };
+
+function validateTenantForm(f: { first_name: string; last_name: string; email: string; phone: string }): string | null {
+  if (!f.first_name.trim() || !f.last_name.trim()) return 'First and last name are required';
+  if (f.email.trim() && !EMAIL_RE.test(f.email.trim())) return 'Enter a valid email address';
+  if (f.phone.trim() && f.phone.replace(/\D/g, '').length < 7) return 'Enter a valid phone number';
+  return null;
+}
 
 export default function Tenants() {
   const router = useRouter();
@@ -104,6 +114,9 @@ export default function Tenants() {
   };
 
   const create = async () => {
+    const validationError = validateTenantForm(form);
+    if (validationError) { toast.error(validationError); return; }
+
     setLoading(true);
     try {
       const { unit_id, property_id, ...tenantFields } = form;
@@ -126,7 +139,9 @@ export default function Tenants() {
       setShowModal(false);
       toast.success(unit_id ? 'Tenant added and assigned to unit!' : 'Tenant added!');
       load(propertyFilter);
-    } catch { toast.error('Failed to add tenant'); }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to add tenant');
+    }
     finally { setLoading(false); }
   };
 
@@ -147,6 +162,9 @@ export default function Tenants() {
 
   const saveEdit = async () => {
     if (!editingTenant) return;
+    const validationError = validateTenantForm(editForm);
+    if (validationError) { toast.error(validationError); return; }
+
     setSaving(true);
     try {
       const { property_id, unit_id, ...fields } = editForm;
@@ -169,7 +187,9 @@ export default function Tenants() {
       toast.success('Tenant updated');
       setEditingTenant(null);
       load(propertyFilter);
-    } catch { toast.error('Failed to update tenant'); }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to update tenant');
+    }
     finally { setSaving(false); }
   };
 
@@ -346,12 +366,12 @@ export default function Tenants() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
-                  <label style={lbl}>First Name</label>
-                  <input value={form.first_name} onChange={e => setForm(p => ({ ...p, first_name: e.target.value }))} style={inp} {...textFieldAttrs('first_name')} />
+                  <label style={lbl}>First Name <span style={{ color: '#EF4444' }}>*</span></label>
+                  <input value={form.first_name} onChange={e => setForm(p => ({ ...p, first_name: e.target.value }))} required style={inp} {...textFieldAttrs('first_name')} />
                 </div>
                 <div>
-                  <label style={lbl}>Last Name</label>
-                  <input value={form.last_name} onChange={e => setForm(p => ({ ...p, last_name: e.target.value }))} style={inp} {...textFieldAttrs('last_name')} />
+                  <label style={lbl}>Last Name <span style={{ color: '#EF4444' }}>*</span></label>
+                  <input value={form.last_name} onChange={e => setForm(p => ({ ...p, last_name: e.target.value }))} required style={inp} {...textFieldAttrs('last_name')} />
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
@@ -376,13 +396,13 @@ export default function Tenants() {
               {[['email', 'Email'], ['phone', 'Phone'], ['employer', 'Employer'], ['annual_income', `Annual Income (${symbol})`]].map(([k, l]) => (
                 <div key={k} style={{ marginBottom: 14 }}>
                   <label style={lbl}>{l}</label>
-                  <input value={(form as any)[k]} onChange={e => setForm(p => ({ ...p, [k]: e.target.value }))} style={inp} {...textFieldAttrs(k)} />
+                  <input type={FIELD_INPUT_TYPE[k] || 'text'} value={(form as any)[k]} onChange={e => setForm(p => ({ ...p, [k]: e.target.value }))} style={inp} {...textFieldAttrs(k)} />
                 </div>
               ))}
               <div style={{ marginBottom: 20 }}>
                 <label style={lbl}>Employment Status</label>
                 <select value={form.employment_status} onChange={e => setForm(p => ({ ...p, employment_status: e.target.value }))} style={{ ...inp } as any}>
-                  {['employed','self-employed','unemployed','student','retired'].map(s => <option key={s} value={s}>{s}</option>)}
+                  {['employed','self-employed','unemployed','student','retired'].map(s => <option key={s} value={s}>{s.replace('-', ' ')}</option>)}
                 </select>
               </div>
               <button onClick={create} disabled={loading} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
@@ -402,12 +422,12 @@ export default function Tenants() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
-                  <label style={lbl}>First Name</label>
-                  <input value={editForm.first_name} onChange={e => setEditForm((p: any) => ({ ...p, first_name: e.target.value }))} style={inp} {...textFieldAttrs('first_name')} />
+                  <label style={lbl}>First Name <span style={{ color: '#EF4444' }}>*</span></label>
+                  <input value={editForm.first_name} onChange={e => setEditForm((p: any) => ({ ...p, first_name: e.target.value }))} required style={inp} {...textFieldAttrs('first_name')} />
                 </div>
                 <div>
-                  <label style={lbl}>Last Name</label>
-                  <input value={editForm.last_name} onChange={e => setEditForm((p: any) => ({ ...p, last_name: e.target.value }))} style={inp} {...textFieldAttrs('last_name')} />
+                  <label style={lbl}>Last Name <span style={{ color: '#EF4444' }}>*</span></label>
+                  <input value={editForm.last_name} onChange={e => setEditForm((p: any) => ({ ...p, last_name: e.target.value }))} required style={inp} {...textFieldAttrs('last_name')} />
                 </div>
               </div>
 
@@ -438,13 +458,13 @@ export default function Tenants() {
               {[['email', 'Email'], ['phone', 'Phone'], ['employer', 'Employer'], ['annual_income', `Annual Income (${symbol})`]].map(([k, l]) => (
                 <div key={k} style={{ marginBottom: 14 }}>
                   <label style={lbl}>{l}</label>
-                  <input value={editForm[k] ?? ''} onChange={e => setEditForm((p: any) => ({ ...p, [k]: e.target.value }))} style={inp} {...textFieldAttrs(k)} />
+                  <input type={FIELD_INPUT_TYPE[k] || 'text'} value={editForm[k] ?? ''} onChange={e => setEditForm((p: any) => ({ ...p, [k]: e.target.value }))} style={inp} {...textFieldAttrs(k)} />
                 </div>
               ))}
               <div style={{ marginBottom: 20 }}>
                 <label style={lbl}>Employment Status</label>
                 <select value={editForm.employment_status} onChange={e => setEditForm((p: any) => ({ ...p, employment_status: e.target.value }))} style={{ ...inp } as any}>
-                  {['employed','self-employed','unemployed','student','retired'].map(s => <option key={s} value={s}>{s}</option>)}
+                  {['employed','self-employed','unemployed','student','retired'].map(s => <option key={s} value={s}>{s.replace('-', ' ')}</option>)}
                 </select>
               </div>
               <button onClick={saveEdit} disabled={saving} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8, cursor: 'pointer' }}>

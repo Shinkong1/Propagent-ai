@@ -6,23 +6,62 @@ import { properties as propertiesApi } from '../../lib/api';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import toast from 'react-hot-toast';
 
+const EMPTY_UNIT = { unit_number: '', monthly_rent: '', bedrooms: 1, bathrooms: 1, description: '' };
+const REQUIRED_FIELDS: [string, string][] = [['name', 'Property Name'], ['address', 'Street Address'], ['city', 'City'], ['state', 'State'], ['zip_code', 'ZIP Code']];
+
 export default function Properties() {
   const [props, setProps] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', address: '', city: '', state: '', zip_code: '', property_type: 'apartment', total_units: 1, description: '' });
+  const [form, setForm] = useState({ name: '', address: '', city: '', state: '', zip_code: '', property_type: 'apartment', description: '' });
+  const [unitRows, setUnitRows] = useState<any[]>([{ ...EMPTY_UNIT }]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<any | null>(null);
 
   useEffect(() => { propertiesApi.list().then(r => setProps(r.data)).catch(() => {}); }, []);
 
+  const addUnitRow = () => setUnitRows(rows => [...rows, { ...EMPTY_UNIT }]);
+  const removeUnitRow = (i: number) => setUnitRows(rows => rows.filter((_, idx) => idx !== i));
+  const updateUnitRow = (i: number, field: string, value: any) => setUnitRows(rows => rows.map((r, idx) => idx === i ? { ...r, [field]: value } : r));
+
   const create = async () => {
+    const missing = REQUIRED_FIELDS.filter(([k]) => !(form as any)[k]?.trim());
+    if (missing.length > 0) {
+      toast.error(`${missing.map(([, label]) => label).join(', ')} required`);
+      return;
+    }
+    const validUnits = unitRows.filter(u => u.unit_number.trim());
+    for (const u of validUnits) {
+      if (!u.monthly_rent || Number(u.monthly_rent) < 0) {
+        toast.error(`Enter a monthly rent for unit "${u.unit_number}"`);
+        return;
+      }
+    }
+
     setLoading(true);
     try {
-      const res = await propertiesApi.create(form);
-      setProps(p => [...p, res.data]);
+      const res = await propertiesApi.create({ ...form, total_units: validUnits.length || 1 });
+      const property = res.data;
+
+      for (const u of validUnits) {
+        try {
+          await propertiesApi.createUnit(property.id, {
+            unit_number: u.unit_number.trim(),
+            monthly_rent: Number(u.monthly_rent),
+            bedrooms: Number(u.bedrooms) || 1,
+            bathrooms: Number(u.bathrooms) || 1,
+            description: u.description?.trim() || undefined,
+          });
+        } catch (unitErr: any) {
+          toast.error(`Property created, but unit "${u.unit_number}" failed: ${unitErr?.response?.data?.detail || 'unknown error'}`);
+        }
+      }
+
+      setProps(p => [...p, property]);
       setShowModal(false);
-      toast.success('Property added!');
+      setForm({ name: '', address: '', city: '', state: '', zip_code: '', property_type: 'apartment', description: '' });
+      setUnitRows([{ ...EMPTY_UNIT }]);
+      toast.success(validUnits.length > 0 ? `Property added with ${validUnits.length} unit(s)!` : 'Property added!');
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || 'Failed to create property');
     }
@@ -121,29 +160,59 @@ export default function Properties() {
                 const noSpellcheck = k === 'state' || k === 'zip_code';
                 return (
                   <div key={k} style={{ marginBottom: 14 }}>
-                    <label style={{ display: 'block', marginBottom: 5, fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>{label}</label>
-                    <input value={(form as any)[k]} onChange={e => setForm(p => ({ ...p, [k]: e.target.value }))} placeholder={ph}
+                    <label style={{ display: 'block', marginBottom: 5, fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>{label} <span style={{ color: '#EF4444' }}>*</span></label>
+                    <input value={(form as any)[k]} onChange={e => setForm(p => ({ ...p, [k]: e.target.value }))} placeholder={ph} required
                       spellCheck={!noSpellcheck} autoCorrect={noSpellcheck ? 'off' : 'on'} autoCapitalize={noSpellcheck ? 'off' : 'words'}
                       style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                 );
               })}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 20 }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: 5, fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>Type</label>
-                  <select value={form.property_type} onChange={e => setForm(p => ({ ...p, property_type: e.target.value }))}
-                    style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, outline: 'none' }}>
-                    {['apartment','single_family','multi_family','condo','commercial'].map(t => <option key={t} value={t}>{t.replace('_',' ')}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: 5, fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>Total Units</label>
-                  <input type="number" value={form.total_units} onChange={e => setForm(p => ({ ...p, total_units: parseInt(e.target.value) || 1 }))}
-                    spellCheck={false} autoCorrect="off"
-                    style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
-                </div>
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', marginBottom: 5, fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>Property Type</label>
+                <select value={form.property_type} onChange={e => setForm(p => ({ ...p, property_type: e.target.value }))}
+                  style={{ width: '100%', padding: '9px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, outline: 'none' }}>
+                  {['apartment','single_family','multi_family','condo','commercial'].map(t => <option key={t} value={t}>{t.replace('_',' ')}</option>)}
+                </select>
               </div>
-              <button onClick={create} disabled={loading} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', fontSize: 14, border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+
+              <div style={{ marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <label style={{ fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>Units</label>
+                  <button type="button" onClick={addUnitRow} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', borderRadius: 6, color: '#FBC02D', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+                    <Plus size={11} /> Add Unit
+                  </button>
+                </div>
+                {unitRows.map((u, i) => (
+                  <div key={i} style={{ background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                      <input value={u.unit_number} onChange={e => updateUnitRow(i, 'unit_number', e.target.value)} placeholder="Unit # (e.g. 101)"
+                        spellCheck={false} autoCorrect="off"
+                        style={{ flex: 1, padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                      <input type="number" value={u.monthly_rent} onChange={e => updateUnitRow(i, 'monthly_rent', e.target.value)} placeholder="Monthly rent"
+                        spellCheck={false} autoCorrect="off"
+                        style={{ flex: 1, padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                      {unitRows.length > 1 && (
+                        <button type="button" onClick={() => removeUnitRow(i)} title="Remove unit"
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 6, color: '#EF4444', cursor: 'pointer', flexShrink: 0 }}>
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                      <input type="number" value={u.bedrooms} onChange={e => updateUnitRow(i, 'bedrooms', e.target.value)} placeholder="Beds"
+                        style={{ width: 70, padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                      <input type="number" step="0.5" value={u.bathrooms} onChange={e => updateUnitRow(i, 'bathrooms', e.target.value)} placeholder="Baths"
+                        style={{ width: 70, padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                      <input value={u.description} onChange={e => updateUnitRow(i, 'description', e.target.value)} placeholder="Description (optional)"
+                        spellCheck autoCorrect="on"
+                        style={{ flex: 1, padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
+                  </div>
+                ))}
+                <p style={{ fontSize: 11, color: '#475569', marginTop: 4 }}>Leave the unit number blank on a row to skip it. You can also add units later from the property page.</p>
+              </div>
+
+              <button onClick={create} disabled={loading} style={{ width: '100%', marginTop: 12, padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', fontSize: 14, border: 'none', borderRadius: 8, cursor: 'pointer' }}>
                 {loading ? 'Creating...' : 'Add Property'}
               </button>
             </div>
