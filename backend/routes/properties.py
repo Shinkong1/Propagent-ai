@@ -3,7 +3,7 @@ import json
 import logging
 from typing import List
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, File
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,8 @@ from database.session import get_db
 from models.user import User, UserRole
 from models.property import Property, Unit, PropertyType
 from schemas.property import PropertyCreate, PropertyResponse, PropertyUpdate, UnitCreate, UnitResponse, UnitUpdate
+from schemas.import_schemas import ImportResult, ImportRowError
+from services.import_service import parse_uploaded_table, row_get
 from middleware.auth import get_current_user
 from middleware.plan_gate import get_plan_limits, enforce_count_limit, require_role
 
@@ -143,6 +145,76 @@ async def create_unit(
     db.commit()
     db.refresh(unit)
     return unit
+
+
+@router.post("/{property_id}/units/import", response_model=ImportResult, status_code=201)
+async def import_units(
+    property_id: UUID,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Bulk-create units from an uploaded CSV/XLSX — e.g. an export from
+    a spreadsheet or a previous property management system. Accepts
+    column headers named any of: unit_number/unit/number, monthly_rent/
+    rent, bedrooms/beds, bathrooms/baths, square_feet/sqft, description/
+    notes. Bad rows are skipped and reported, not fatal to the batch."""
+    prop = db.query(Property).filter(
+        Property.id == property_id,
+        Property.organization_id == current_user.organization_id
+    ).first()
+    if not prop:
+        raise HTTPException(status_code=404, detail="Property not found")
+
+    rows = await parse_uploaded_table(file)
+
+    existing_units = db.query(Unit).join(Property).filter(
+        Property.organization_id == current_user.organization_id
+    ).count()
+    limit = get_plan_limits(current_user.organization)["units"]
+
+    created = 0
+    skipped = 0
+    errors: List[ImportRowError] = []
+
+    for i, row in enumerate(rows):
+        row_num = i + 2  # header is row 1 in the uploaded file, so first data row is row 2
+        unit_number = row_get(row, "unit_number", "unit", "unit_#", "number")
+        if not unit_number:
+            skipped += 1
+            errors.append(ImportRowError(row=row_num, reason="Missing unit number"))
+            continue
+
+        if limit != -1 and existing_units + created >= limit:
+            skipped += 1
+            errors.append(ImportRowError(row=row_num, reason=f"Skipped — plan limit of {limit} units reached"))
+            continue
+
+        rent_raw = row_get(row, "monthly_rent", "rent", "rent_amount")
+        bedrooms_raw = row_get(row, "bedrooms", "beds", default="1")
+        bathrooms_raw = row_get(row, "bathrooms", "baths", default="1")
+        sqft_raw = row_get(row, "square_feet", "sqft", "sq_ft")
+        description = row_get(row, "description", "notes")
+
+        try:
+            monthly_rent = float(rent_raw) if rent_raw else 0.0
+            bedrooms = int(float(bedrooms_raw)) if bedrooms_raw else 1
+            bathrooms = float(bathrooms_raw) if bathrooms_raw else 1.0
+            square_feet = int(float(sqft_raw)) if sqft_raw else None
+        except ValueError:
+            skipped += 1
+            errors.append(ImportRowError(row=row_num, reason="Invalid number in rent/bedrooms/bathrooms/square_feet"))
+            continue
+
+        db.add(Unit(
+            property_id=property_id, unit_number=unit_number, monthly_rent=monthly_rent,
+            bedrooms=bedrooms, bathrooms=bathrooms, square_feet=square_feet,
+            description=description or None,
+        ))
+        created += 1
+
+    db.commit()
+    return ImportResult(created=created, skipped=skipped, errors=errors)
 
 
 @router.get("/{property_id}/units", response_model=List[UnitResponse])

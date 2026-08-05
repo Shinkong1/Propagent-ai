@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Users, Plus, X, CheckCircle, XCircle, Building2, FileText, Lock, Pencil, Trash2, ShieldAlert, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, Plus, X, CheckCircle, XCircle, Building2, FileText, Lock, Pencil, Trash2, ShieldAlert, ChevronDown, ChevronUp, Upload } from 'lucide-react';
 import { tenants as tenantsApi, properties as propertiesApi, fraud as fraudApi } from '../../lib/api';
 import { getUser } from '../../lib/auth';
 import { useCurrency } from '../../lib/CurrencyContext';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import ImportModal from '../../components/ImportModal';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
@@ -32,6 +33,8 @@ export default function Tenants() {
   const [unitsForProperty, setUnitsForProperty] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [downloadingLease, setDownloadingLease] = useState<string | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importPropertyId, setImportPropertyId] = useState('');
 
   const [editingTenant, setEditingTenant] = useState<any | null>(null);
   const [editForm, setEditForm] = useState<any>({});
@@ -217,6 +220,9 @@ export default function Tenants() {
               <option value="all">All Properties</option>
               {propertyList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
+            <button onClick={() => { setImportPropertyId(propertyFilter !== 'all' ? propertyFilter : ''); setShowImportModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontWeight: 600, fontFamily: 'Syne', fontSize: 14, cursor: 'pointer' }}>
+              <Upload size={16} /> Import
+            </button>
             <button onClick={openAddModal} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', border: 'none', borderRadius: 8, fontWeight: 700, fontFamily: 'Syne', fontSize: 14, cursor: 'pointer' }}>
               <Plus size={16} /> Add Tenant
             </button>
@@ -481,6 +487,30 @@ export default function Tenants() {
           cancelLabel="Cancel"
           onCancel={() => setConfirmTarget(null)}
           onConfirm={() => { const tn = confirmTarget; setConfirmTarget(null); deleteTenant(tn); }}
+        />
+
+        <ImportModal
+          open={showImportModal}
+          title="Import Tenants"
+          description="Upload a CSV or Excel file exported from a spreadsheet or your previous system. If you pick a property and your file has a unit_number column, matching tenants are automatically assigned to that vacant unit — same as picking one in the Add Tenant form."
+          templateHeaders={['first_name', 'last_name', 'email', 'phone', 'employer', 'annual_income', 'employment_status', 'unit_number']}
+          templateExampleRow={['Jane', 'Doe', 'jane@example.com', '555-123-4567', 'Acme Inc', '65000', 'employed', '101']}
+          templateFilename="tenants_template.csv"
+          extraFields={
+            <div style={{ marginBottom: 14 }}>
+              <label style={lbl}>Property (optional — needed to auto-assign units by number)</label>
+              <select value={importPropertyId} onChange={e => setImportPropertyId(e.target.value)} style={{ ...inp } as any}>
+                <option value="">No property — create tenants unassigned</option>
+                {propertyList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+          }
+          onClose={() => setShowImportModal(false)}
+          onImport={async (file) => {
+            const res = await tenantsApi.importTenants(file, importPropertyId || undefined);
+            return res.data;
+          }}
+          onDone={() => load(propertyFilter)}
         />
       </div>
     </DashboardLayout>

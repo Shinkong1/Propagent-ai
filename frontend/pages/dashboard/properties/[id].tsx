@@ -4,13 +4,14 @@ import Link from 'next/link';
 import DashboardLayout from '../../../components/DashboardLayout';
 import {
   ArrowLeft, Building2, MapPin, DollarSign, Home, Wrench, Users,
-  CheckCircle, XCircle, Star, Phone, Mail, ChevronDown, ChevronUp, FileText, Lock, Pencil, X, Plus, Trash2,
+  CheckCircle, XCircle, Star, Phone, Mail, ChevronDown, ChevronUp, FileText, Lock, Pencil, X, Plus, Trash2, Upload,
 } from 'lucide-react';
 import { properties as propertiesApi, tenants as tenantsApi, maintenance as maintenanceApi, accounting as accountingApi } from '../../../lib/api';
 import { getUser } from '../../../lib/auth';
 import { useCurrency } from '../../../lib/CurrencyContext';
 import { useSidebar } from '../../../lib/SidebarContext';
 import ConfirmDialog from '../../../components/ConfirmDialog';
+import ImportModal from '../../../components/ImportModal';
 import toast from 'react-hot-toast';
 
 const EMPTY_NEW_UNIT = { unit_number: '', monthly_rent: '', bedrooms: 1, bathrooms: 1, square_feet: '', description: '' };
@@ -53,6 +54,7 @@ export default function PropertyDetail() {
   const [addingUnit, setAddingUnit] = useState(false);
   const [confirmDeleteUnit, setConfirmDeleteUnit] = useState<any | null>(null);
   const [deletingUnitId, setDeletingUnitId] = useState<string | null>(null);
+  const [showImportUnits, setShowImportUnits] = useState(false);
 
   const userPlan = getUser()?.plan;
   const canGenerateContracts = userPlan === 'professional' || userPlan === 'enterprise';
@@ -308,9 +310,14 @@ export default function PropertyDetail() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginTop: 20 }}>
           {/* Units & occupancy */}
           <Section title="Units & Occupancy" action={
-            <button onClick={() => { setNewUnit({ ...EMPTY_NEW_UNIT }); setShowAddUnit(true); }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', borderRadius: 6, color: '#FBC02D', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
-              <Plus size={11} /> Add Unit
-            </button>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setShowImportUnits(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 6, color: '#3B82F6', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+                <Upload size={11} /> Import
+              </button>
+              <button onClick={() => { setNewUnit({ ...EMPTY_NEW_UNIT }); setShowAddUnit(true); }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', borderRadius: 6, color: '#FBC02D', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+                <Plus size={11} /> Add Unit
+              </button>
+            </div>
           }>
             {units.length === 0 ? <Empty text="No units yet." /> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -628,6 +635,21 @@ export default function PropertyDetail() {
           cancelLabel="Cancel"
           onCancel={() => setConfirmDeleteUnit(null)}
           onConfirm={() => { const u = confirmDeleteUnit; setConfirmDeleteUnit(null); deleteUnit(u); }}
+        />
+
+        <ImportModal
+          open={showImportUnits}
+          title="Import Units"
+          description="Upload a CSV or Excel file exported from a spreadsheet or your previous system. Column names are matched loosely (e.g. 'Unit #' or 'unit_number' both work)."
+          templateHeaders={['unit_number', 'monthly_rent', 'bedrooms', 'bathrooms', 'square_feet', 'description']}
+          templateExampleRow={['101', '1500', '2', '1', '850', 'Corner unit with balcony']}
+          templateFilename="units_template.csv"
+          onClose={() => setShowImportUnits(false)}
+          onImport={async (file) => {
+            const res = await propertiesApi.importUnits(id as string, file);
+            return res.data;
+          }}
+          onDone={() => propertiesApi.listUnits(id as string).then(r => setUnits(r.data || []))}
         />
       </div>
     </DashboardLayout>

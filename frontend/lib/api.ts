@@ -57,6 +57,11 @@ export const properties = {
   createUnit: (id: string, data: any) => api.post(`/properties/${id}/units`, data),
   updateUnit: (propertyId: string, unitId: string, data: any) => api.patch(`/properties/${propertyId}/units/${unitId}`, data),
   deleteUnit: (propertyId: string, unitId: string) => api.delete(`/properties/${propertyId}/units/${unitId}`),
+  importUnits: (propertyId: string, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post(`/properties/${propertyId}/units/import`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
   revenueTrend: (months = 6) => api.get('/properties/stats/revenue-trend', { params: { months } }),
   unitsDetail: () => api.get('/properties/stats/units-detail'),
   aiActivity: (days = 30) => api.get('/properties/stats/ai-activity', { params: { days } }),
@@ -70,6 +75,12 @@ export const tenants = {
   delete: (id: string) => api.delete(`/tenants/${id}`),
   createLease: (data: any) => api.post('/tenants/leases', data),
   downloadContract: (leaseId: string) => api.get(`/tenants/leases/${leaseId}/contract`, { responseType: 'blob' }),
+  importTenants: (file: File, propertyId?: string) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (propertyId) form.append('property_id', propertyId);
+    return api.post('/tenants/import', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
 };
 
 export const maintenance = {
