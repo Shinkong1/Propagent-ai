@@ -1,5 +1,6 @@
 """Stripe billing routes"""
 import logging
+from typing import Optional
 import stripe
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -185,18 +186,58 @@ async def stripe_connect_webhook(request: Request, db: Session = Depends(get_db)
 
     from models.user import Organization
 
-    if event["type"] == "account.updated":
-        account = event["data"]["object"]
-        org = db.query(Organization).filter(Organization.stripe_connect_account_id == account["id"]).first()
-        if org:
-            newly_onboarded = bool(account.get("charges_enabled") and account.get("payouts_enabled"))
-            if newly_onboarded != org.stripe_connect_onboarded:
-                org.stripe_connect_onboarded = newly_onboarded
-                db.commit()
-                logger.info(f"Org {org.id} Stripe Connect onboarded={newly_onboarded}")
+    if event["type"] in ("account.updated", "v2.core.account.updated"):
+        _handle_account_updated(db, event)
 
     elif event["type"] in ("checkout.session.completed", "payment_intent.succeeded"):
         _handle_rent_payment_succeeded(db, event["data"]["object"])
+
+
+def _extract_account_id(event: dict) -> Optional[str]:
+    """Account update events come in two shapes depending on whether Stripe
+    delivered the classic v1 'account.updated' or the newer 'v2.core.
+    account.updated' — rather than assume either payload's exact nesting,
+    just find the account id wherever it is and re-fetch fresh from the API
+    below, which is correct regardless of what shape the payload turns out
+    to be."""
+    data = event.get("data") or {}
+    obj = data.get("object") if isinstance(data, dict) else None
+    for candidate in (
+        (obj or {}).get("id") if isinstance(obj, dict) else None,
+        data.get("id") if isinstance(data, dict) else None,
+        (event.get("related_object") or {}).get("id"),
+    ):
+        if candidate and str(candidate).startswith("acct_"):
+            return candidate
+    return None
+
+
+def _handle_account_updated(db: Session, event: dict):
+    from models.user import Organization
+
+    account_id = _extract_account_id(event)
+    if not account_id:
+        logger.warning(f"Couldn't find an account id on a {event.get('type')} event — skipping")
+        return
+
+    org = db.query(Organization).filter(Organization.stripe_connect_account_id == account_id).first()
+    if not org:
+        return
+
+    try:
+        # Re-fetch fresh rather than trust whatever's embedded in the webhook
+        # payload — sidesteps needing to know the exact v1-vs-v2 shape, and
+        # is guaranteed to be the account's current real status either way.
+        account = stripe.Account.retrieve(account_id)
+    except Exception as e:
+        logger.warning(f"Couldn't re-fetch Stripe account {account_id} after {event.get('type')}: {e}")
+        return
+
+    newly_onboarded = bool(account.get("charges_enabled") and account.get("payouts_enabled"))
+    if newly_onboarded != org.stripe_connect_onboarded:
+        org.stripe_connect_onboarded = newly_onboarded
+        db.commit()
+        logger.info(f"Org {org.id} Stripe Connect onboarded={newly_onboarded}")
 
     return {"status": "ok"}
 
