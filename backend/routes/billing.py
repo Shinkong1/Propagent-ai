@@ -182,20 +182,25 @@ async def stripe_connect_webhook(request: Request, db: Session = Depends(get_db)
     so try both rather than assume only one is in play."""
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
+    logger.info(f"Connect webhook received: {len(payload)} bytes, sig header present={bool(sig_header)}")
 
     event = None
-    for secret in (settings.STRIPE_CONNECT_WEBHOOK_SECRET, settings.STRIPE_CONNECT_WEBHOOK_SECRET_V2):
+    errors = []
+    for label, secret in (("v1", settings.STRIPE_CONNECT_WEBHOOK_SECRET), ("v2", settings.STRIPE_CONNECT_WEBHOOK_SECRET_V2)):
         if not secret:
+            errors.append(f"{label} secret not configured")
             continue
         try:
             event = stripe.Webhook.construct_event(payload, sig_header, secret)
+            logger.info(f"Connect webhook verified against {label} secret")
             break
-        except Exception:
-            continue
+        except Exception as e:
+            errors.append(f"{label} secret: {e}")
     if event is None:
+        logger.warning(f"Connect webhook signature verification failed against all configured secrets: {errors}")
         raise HTTPException(status_code=400, detail="Invalid webhook signature")
 
-    from models.user import Organization
+    logger.info(f"Connect webhook event type={event['type']}")
 
     if event["type"] in ("account.updated", "v2.core.account.updated"):
         _handle_account_updated(db, event)
