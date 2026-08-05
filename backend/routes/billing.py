@@ -234,6 +234,22 @@ def _extract_account_id(event: dict) -> Optional[str]:
     return None
 
 
+def _has_active_capability(node) -> bool:
+    """v2 Core Accounts nest capability status arbitrarily deep under
+    configuration.merchant/recipient.capabilities.<name>.status, and which
+    branch a given event touches varies per event. Rather than hard-code
+    that path, recursively scan whatever the event gives us for any
+    {"status": "active"} — good enough signal that at least one relevant
+    capability just turned on."""
+    if isinstance(node, dict):
+        if node.get("status") == "active" and "status_details" in node:
+            return True
+        return any(_has_active_capability(v) for v in node.values())
+    if isinstance(node, list):
+        return any(_has_active_capability(v) for v in node)
+    return False
+
+
 def _handle_account_updated(db: Session, event: dict):
     from models.user import Organization
 
@@ -246,16 +262,23 @@ def _handle_account_updated(db: Session, event: dict):
     if not org:
         return
 
-    try:
-        # Re-fetch fresh rather than trust whatever's embedded in the webhook
-        # payload — sidesteps needing to know the exact v1-vs-v2 shape, and
-        # is guaranteed to be the account's current real status either way.
-        account = stripe.Account.retrieve(account_id)
-    except Exception as e:
-        logger.warning(f"Couldn't re-fetch Stripe account {account_id} after {event.get('type')}: {e}")
-        return
+    # Once onboarded, stay onboarded from this handler's perspective — a
+    # single event only ever tells us about *one* capability changing, so
+    # its absence of evidence must never flip an already-onboarded org back
+    # to false. Two independent ways to detect the positive transition,
+    # since it's unclear whether v1's Account.retrieve returns meaningful
+    # charges_enabled/payouts_enabled for an account actually managed
+    # through the newer v2 configuration model:
+    # 1) a capability visibly went "active" in this event's own before/after diff
+    # 2) the classic v1 re-fetch says so
+    newly_onboarded = org.stripe_connect_onboarded or _has_active_capability(event.get("data", {}).get("changes", {}))
 
-    newly_onboarded = bool(account.get("charges_enabled") and account.get("payouts_enabled"))
+    try:
+        account = stripe.Account.retrieve(account_id)
+        newly_onboarded = newly_onboarded or bool(account.get("charges_enabled") and account.get("payouts_enabled"))
+    except Exception as e:
+        logger.warning(f"Couldn't re-fetch Stripe account {account_id} after {event.get('type')}: {e} (continuing with event-embedded signal only)")
+
     if newly_onboarded != org.stripe_connect_onboarded:
         org.stripe_connect_onboarded = newly_onboarded
         db.commit()
