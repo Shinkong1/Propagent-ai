@@ -3,6 +3,7 @@ import logging
 from typing import Optional
 import stripe
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from database.session import get_db
@@ -161,10 +162,36 @@ async def connect_status(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Self-healing: if we haven't marked this org onboarded yet, check
+    Stripe's current live state directly rather than only ever waiting on
+    a webhook — covers the (real, observed) case where the relevant event
+    fired before the webhook destination was configured to catch it, so it
+    was never going to be delivered no matter how long we waited."""
     from models.user import Organization
     org = db.query(Organization).filter(Organization.id == current_user.organization_id).first()
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
+
+    if org.stripe_connect_account_id and not org.stripe_connect_onboarded:
+        try:
+            import requests
+            resp = await run_in_threadpool(
+                requests.get,
+                f"https://api.stripe.com/v2/core/accounts/{org.stripe_connect_account_id}",
+                params={"include": ["configuration.merchant", "configuration.recipient"]},
+                headers={"Authorization": f"Bearer {settings.STRIPE_SECRET}"},
+                timeout=10,
+            )
+            if resp.ok:
+                if _has_active_capability(resp.json()):
+                    org.stripe_connect_onboarded = True
+                    db.commit()
+                    logger.info(f"Org {org.id} Stripe Connect onboarded=True (live status check)")
+            else:
+                logger.warning(f"Live Connect status check for org {org.id} got HTTP {resp.status_code}: {resp.text[:300]}")
+        except Exception as e:
+            logger.warning(f"Live Connect status check failed for org {org.id}: {e}")
+
     return {
         "connected": bool(org.stripe_connect_account_id),
         "onboarded": org.stripe_connect_onboarded,
@@ -209,10 +236,10 @@ async def stripe_connect_webhook(request: Request, db: Session = Depends(get_db)
     # any of them as "go re-check this account's status" rather than trying
     # to enumerate every possible sub-event Stripe might ever add.
     if event["type"] == "account.updated" or event["type"].startswith("v2.core.account[") or event["type"] == "v2.core.account.updated":
-        _handle_account_updated(db, event)
+        await run_in_threadpool(_handle_account_updated, db, event)
 
     elif event["type"] in ("checkout.session.completed", "payment_intent.succeeded"):
-        _handle_rent_payment_succeeded(db, event["data"]["object"])
+        await run_in_threadpool(_handle_rent_payment_succeeded, db, event["data"]["object"])
 
 
 def _extract_account_id(event: dict) -> Optional[str]:
