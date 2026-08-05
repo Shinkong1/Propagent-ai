@@ -202,7 +202,13 @@ async def stripe_connect_webhook(request: Request, db: Session = Depends(get_db)
 
     logger.info(f"Connect webhook event type={event['type']}")
 
-    if event["type"] in ("account.updated", "v2.core.account.updated"):
+    # Stripe's v2 Core Accounts API doesn't fire a single generic "updated"
+    # event — it fires granular ones per configuration/capability instead,
+    # e.g. v2.core.account[configuration.merchant].capability_status_updated
+    # (charges-equivalent) and .../recipient/... (payouts-equivalent). Treat
+    # any of them as "go re-check this account's status" rather than trying
+    # to enumerate every possible sub-event Stripe might ever add.
+    if event["type"] == "account.updated" or event["type"].startswith("v2.core.account[") or event["type"] == "v2.core.account.updated":
         _handle_account_updated(db, event)
 
     elif event["type"] in ("checkout.session.completed", "payment_intent.succeeded"):
