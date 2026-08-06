@@ -31,6 +31,22 @@ class PublicListingOut(BaseModel):
     units: List[PublicUnitOut]
 
 
+class PublicListingSummary(BaseModel):
+    """One card in the public /listings directory — deliberately lighter
+    than PublicListingOut (no address, no per-unit breakdown) since this
+    is shown to anonymous browsers before they've clicked into a listing."""
+    id: UUID
+    name: str
+    city: str
+    state: str
+    property_type: str
+    unit_count: int
+    min_rent: float
+    max_rent: float
+    min_bedrooms: int
+    max_bedrooms: int
+
+
 class InquiryCreate(BaseModel):
     first_name: str
     last_name: str

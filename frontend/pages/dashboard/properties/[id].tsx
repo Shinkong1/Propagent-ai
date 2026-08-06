@@ -88,6 +88,16 @@ export default function PropertyDetail() {
     setShowEditProperty(true);
   };
 
+  const togglePublicListing = async () => {
+    try {
+      const res = await propertiesApi.update(id as string, { is_public_listing: !property.is_public_listing });
+      setProperty(res.data);
+      toast.success(res.data.is_public_listing ? 'Listed on propagent.app/listings' : 'Removed from public directory');
+    } catch {
+      toast.error('Failed to update');
+    }
+  };
+
   const saveProperty = async () => {
     setSavingProperty(true);
     try {
@@ -252,6 +262,17 @@ export default function PropertyDetail() {
             <span style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6, background: `${TYPE_COLOR[property.property_type] || '#3B82F6'}20`, color: TYPE_COLOR[property.property_type] || '#3B82F6', fontFamily: 'IBM Plex Mono', textTransform: 'capitalize' }}>
               {property.property_type?.replace('_', ' ')}
             </span>
+            <button onClick={togglePublicListing}
+              title={property.is_public_listing ? 'Visible on propagent.app/listings — click to remove' : 'List on propagent.app/listings so renters can find it by browsing/search'}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8,
+                background: property.is_public_listing ? 'rgba(16,185,129,0.1)' : 'var(--bg-surface)',
+                border: `1px solid ${property.is_public_listing ? 'rgba(16,185,129,0.35)' : 'var(--border-strong)'}`,
+                color: property.is_public_listing ? '#10B981' : 'var(--text-secondary)',
+                fontSize: 12, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer',
+              }}>
+              <Building2 size={12} /> {property.is_public_listing ? 'Public in Directory' : 'List in Directory'}
+            </button>
             <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/listings/${id}`); toast.success('Listing link copied!'); }}
               title="Copy public listing link for prospective renters"
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer' }}>

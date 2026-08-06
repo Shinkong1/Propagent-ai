@@ -6,6 +6,8 @@ import { getUser } from '../../lib/auth';
 import toast from 'react-hot-toast';
 
 const STATUS_COLOR: any = { new: '#64748B', contacted: '#3B82F6', interested: '#8B5CF6', demo_scheduled: '#FBC02D', negotiating: '#F97316', closed_won: '#10B981', closed_lost: '#EF4444' };
+const OUTREACH_COLOR: any = { queued: '#FBC02D', sent: '#10B981', failed: '#EF4444', logged_only: '#64748B' };
+const OUTREACH_LABEL: any = { queued: 'Queued', sent: 'Sent', failed: 'Failed', logged_only: 'Logged only (SMTP off)' };
 
 const EMPTY_LEAD_FORM = { first_name: '', last_name: '', company: '', email: '', phone: '', city: '', state: '' };
 
@@ -58,7 +60,10 @@ export default function Leads() {
   const sendOutreach = async (id: string) => {
     try {
       await leadsApi.sendOutreach(id);
-      toast.success('Outreach email queued!');
+      toast.success('Outreach email queued — sends on the next hourly cycle');
+      // Background send happens later (hourly cron), but reflect the new
+      // "queued" state right away instead of leaving the badge blank.
+      setTimeout(() => { leadsApi.list().then(r => setLeadList(r.data || [])).catch(() => {}); }, 1000);
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || 'Failed to queue email');
     }
@@ -139,14 +144,14 @@ export default function Leads() {
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
-                {['Name', 'Company', 'Contact', 'Properties', 'Score', 'Status', 'Actions'].map(h => (
+                {['Name', 'Company', 'Contact', 'Properties', 'Score', 'Status', 'Outreach', 'Actions'].map(h => (
                   <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', fontWeight: 500 }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '48px', color: '#475569', fontFamily: 'IBM Plex Sans', fontSize: 14 }}>
+                <tr><td colSpan={8} style={{ textAlign: 'center', padding: '48px', color: '#475569', fontFamily: 'IBM Plex Sans', fontSize: 14 }}>
                   No leads yet. Click a scrape button to find landlords.
                 </td></tr>
               ) : filtered.map((l: any) => (
@@ -176,6 +181,16 @@ export default function Leads() {
                       style={{ padding: '4px 8px', background: `${STATUS_COLOR[l.status]}15`, border: `1px solid ${STATUS_COLOR[l.status]}40`, borderRadius: 6, color: STATUS_COLOR[l.status], fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer', outline: 'none' }}>
                       {Object.keys(STATUS_COLOR).map(s => <option key={s} value={s} style={{ background: 'var(--bg-surface)', color: '#E2E8F0' }}>{s.replace('_',' ')}</option>)}
                     </select>
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    {l.outreach_status ? (
+                      <span title={l.outreach_sent_at ? `Sent ${new Date(l.outreach_sent_at).toLocaleString()}` : 'Waiting for the next send cycle (runs hourly)'}
+                        style={{ padding: '4px 8px', borderRadius: 6, background: `${OUTREACH_COLOR[l.outreach_status] || '#64748B'}15`, border: `1px solid ${OUTREACH_COLOR[l.outreach_status] || '#64748B'}40`, color: OUTREACH_COLOR[l.outreach_status] || '#64748B', fontSize: 11, fontFamily: 'IBM Plex Mono' }}>
+                        {OUTREACH_LABEL[l.outreach_status] || l.outreach_status}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 11, color: '#475569' }}>—</span>
+                    )}
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     <button onClick={() => sendOutreach(l.id)} title="Send AI outreach" style={{ padding: '6px 10px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 6, color: '#3B82F6', cursor: 'pointer', fontSize: 12 }}>

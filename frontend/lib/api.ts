@@ -68,6 +68,7 @@ export const properties = {
 };
 
 export const publicListings = {
+  browse: (params?: { city?: string; state?: string }) => api.get('/public/listings', { params }),
   get: (propertyId: string) => api.get(`/public/listings/${propertyId}`),
   inquire: (propertyId: string, data: any) => api.post(`/public/listings/${propertyId}/inquire`, data),
 };

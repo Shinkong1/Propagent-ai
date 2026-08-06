@@ -33,6 +33,7 @@ class Property(Base):
     purchase_price = Column(Float, nullable=True)
     mortgage_payment = Column(Float, nullable=True)  # monthly debt service
     is_active = Column(Boolean, default=True)
+    is_public_listing = Column(Boolean, default=False, nullable=False)  # opt-in: shown on propagent.app/listings directory
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

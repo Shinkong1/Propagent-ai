@@ -106,6 +106,7 @@ export default function Home() {
             {!isMobile && <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>PropAgent AI</span>}
           </div>
           <div style={{ display: 'flex', gap: isMobile ? 8 : 12, alignItems: 'center' }}>
+            {!isMobile && <Link href="/listings" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>Browse Rentals</Link>}
             {!isMobile && <Link href="/pricing" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>{t('landing.pricing')}</Link>}
             {!isMobile && <Link href="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>{t('landing.signIn')}</Link>}
             {isMobile && <Link href="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>{t('landing.signIn')}</Link>}

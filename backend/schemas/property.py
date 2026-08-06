@@ -32,6 +32,7 @@ class PropertyResponse(BaseModel):
     purchase_price: Optional[float] = None
     mortgage_payment: Optional[float] = None
     is_active: bool
+    is_public_listing: bool = False
     created_at: datetime
 
     class Config:
@@ -49,6 +50,7 @@ class PropertyUpdate(BaseModel):
     description: Optional[str] = None
     purchase_price: Optional[float] = None
     mortgage_payment: Optional[float] = None
+    is_public_listing: Optional[bool] = None
 
 
 class UnitCreate(BaseModel):

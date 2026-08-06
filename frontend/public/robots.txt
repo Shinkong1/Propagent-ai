@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /dashboard
 Disallow: /oauth
+Disallow: /portal
 
 Sitemap: https://propagent.app/sitemap.xml

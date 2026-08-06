@@ -21,7 +21,7 @@ from models.inquiry import RentalInquiry, InquiryStatus
 from middleware.auth import get_current_user
 from services.communication_agent import send_email
 from schemas.inquiry import (
-    PublicListingOut, PublicUnitOut, InquiryCreate,
+    PublicListingOut, PublicUnitOut, PublicListingSummary, InquiryCreate,
     InquiryOut, InquiryUpdate,
 )
 
@@ -60,6 +60,39 @@ def _notify_new_inquiry(org_id, property_name: str, inquiry: RentalInquiry):
 
 
 # ── Public — no auth, meant to be embedded/linked from anywhere ──
+
+@router.get("/public/listings", response_model=List[PublicListingSummary])
+async def browse_public_listings(
+    city: Optional[str] = None,
+    state: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """The public /listings directory — every property whose manager has
+    opted in (is_public_listing=True) and that currently has at least one
+    vacant unit. This is what gives renters a reason to land on
+    propagent.app organically instead of only ever reaching a listing via
+    a link someone sent them directly."""
+    q = db.query(Property).filter(Property.is_active == True, Property.is_public_listing == True)
+    if city:
+        q = q.filter(Property.city.ilike(f"%{city.strip()}%"))
+    if state:
+        q = q.filter(Property.state.ilike(f"%{state.strip()}%"))
+
+    results: List[PublicListingSummary] = []
+    for prop in q.order_by(Property.city).all():
+        units = [u for u in prop.units if u.is_available and not u.is_occupied]
+        if not units:
+            continue
+        rents = [u.monthly_rent for u in units]
+        beds = [u.bedrooms for u in units]
+        results.append(PublicListingSummary(
+            id=prop.id, name=prop.name, city=prop.city, state=prop.state,
+            property_type=prop.property_type.value, unit_count=len(units),
+            min_rent=min(rents), max_rent=max(rents),
+            min_bedrooms=min(beds), max_bedrooms=max(beds),
+        ))
+    return results
+
 
 @router.get("/public/listings/{property_id}", response_model=PublicListingOut)
 async def get_public_listing(property_id: UUID, db: Session = Depends(get_db)):

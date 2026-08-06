@@ -33,6 +33,16 @@ async def list_leads(
     if status:
         query = query.filter(Lead.status == status)
     leads = query.order_by(Lead.score.desc(), Lead.created_at.desc()).all()
+
+    def _outreach_info(lead: Lead) -> dict:
+        if not lead.outreach_emails:
+            return {"outreach_status": None, "outreach_sent_at": None}
+        latest = max(lead.outreach_emails, key=lambda e: e.created_at)
+        return {
+            "outreach_status": latest.status,
+            "outreach_sent_at": str(latest.sent_at) if latest.sent_at else None,
+        }
+
     return [
         {
             "id": str(l.id), "first_name": l.first_name, "last_name": l.last_name,
@@ -41,6 +51,7 @@ async def list_leads(
             "score": l.score, "num_properties": l.num_properties,
             "city": l.city, "state": l.state, "created_at": str(l.created_at),
             "last_contacted": str(l.last_contacted) if l.last_contacted else None,
+            **_outreach_info(l),
         }
         for l in leads
     ]
