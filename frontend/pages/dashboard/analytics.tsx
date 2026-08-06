@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { portfolio as portfolioApi, accounting, maintenance as maintenanceApi, leads as leadsApi } from '../../lib/api';
+import { getUser } from '../../lib/auth';
 import { useLanguage } from '../../lib/LanguageContext';
 import { useCurrency } from '../../lib/CurrencyContext';
 import { useSidebar } from '../../lib/SidebarContext';
@@ -83,13 +84,20 @@ export default function Analytics() {
   const { formatMoney: fmtMoney, symbol } = useCurrency();
   const [data, setData] = useState<ReturnType<typeof buildAnalytics> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMaster, setIsMaster] = useState(false);
+
+  useEffect(() => { setIsMaster(!!getUser()?.is_master); }, []);
 
   useEffect(() => {
+    // Lead CRM (and its conversion-rate stat below) is PropAgent AI's own
+    // sales pipeline — owner-only. Don't even request it for a regular
+    // subscriber, and don't let its absence break the rest of this page.
+    const isMaster = !!getUser()?.is_master;
     Promise.all([
       portfolioApi.dashboard(),
       accounting.listPayments(),
       maintenanceApi.list(),
-      leadsApi.list(),
+      isMaster ? leadsApi.list() : Promise.resolve({ data: [] }),
     ])
       .then(([portfolioRes, paymentsRes, ticketsRes, leadsRes]) => {
         setData(buildAnalytics(portfolioRes.data, paymentsRes.data, ticketsRes.data, leadsRes.data));
@@ -120,7 +128,8 @@ export default function Analytics() {
     { label: t('analytics.avgOccupancy'), value: `${stats.occupancyPct}%`, sub: `${stats.occupiedUnits}/${stats.totalUnits} ${t('portfolio.units').toLowerCase()}` },
     { label: t('analytics.collectionRate'), value: `${stats.collectionRate}%`, sub: `${fmtMoney(stats.collected30d)} ${t('analytics.of')} ${fmtMoney(stats.revenueMrr)}/mo` },
     { label: t('analytics.avgOpenTicketAge'), value: `${stats.avgOpenAgeDays}d`, sub: `${stats.openTicketsCount} ${t('analytics.openTickets')}` },
-    { label: t('analytics.leadConversionRate'), value: `${stats.leadConversionRate}%`, sub: `${stats.closedWon}/${stats.totalLeads} ${t('analytics.leads')}` },
+    // Lead conversion is PropAgent's own sales pipeline — owner-only, see above.
+    ...(isMaster ? [{ label: t('analytics.leadConversionRate'), value: `${stats.leadConversionRate}%`, sub: `${stats.closedWon}/${stats.totalLeads} ${t('analytics.leads')}` }] : []),
   ];
 
   return (

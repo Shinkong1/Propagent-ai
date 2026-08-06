@@ -4,6 +4,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import MetricCard from '../../components/MetricCard';
 import { Building2, Users, Wrench, DollarSign, TrendingUp, MessageSquare, Send, X } from 'lucide-react';
 import { properties, maintenance, leads as leadsApi } from '../../lib/api';
+import { getUser } from '../../lib/auth';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../../lib/LanguageContext';
 import { useCurrency } from '../../lib/CurrencyContext';
@@ -18,6 +19,7 @@ export default function Dashboard() {
   const { t } = useLanguage();
   const { formatMoney } = useCurrency();
   const router = useRouter();
+  const [isMaster, setIsMaster] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [tickets, setTickets] = useState<any[]>([]);
   const [leadsList, setLeadsList] = useState<any[]>([]);
@@ -29,15 +31,22 @@ export default function Dashboard() {
   const [aiData, setAiData] = useState<any>(null);
   const [modalLoading, setModalLoading] = useState(false);
 
+  useEffect(() => { setIsMaster(!!getUser()?.is_master); }, []);
+
   useEffect(() => {
     properties.stats().then(r => setStats(r.data)).catch(() => setStats({
       total_properties: 0, total_units: 0, occupied_units: 0,
       vacancy_rate: 0, open_tickets: 0, monthly_revenue: 0
     }));
     maintenance.list().then(r => setTickets(r.data?.slice(0, 5) || [])).catch(() => {});
-    leadsApi.list().then(r => setLeadsList(r.data || [])).catch(() => {});
     properties.aiActivity().then(r => setAiData(r.data)).catch(() => {});
   }, []);
+
+  // Lead CRM is PropAgent AI's own sales pipeline (owner-only) — only fetch
+  // it, and only show the widget, for the master account.
+  useEffect(() => {
+    if (isMaster) leadsApi.list().then(r => setLeadsList(r.data || [])).catch(() => {});
+  }, [isMaster]);
 
   const activeLeadsCount = leadsList.filter(l => l.status !== 'closed_won' && l.status !== 'closed_lost').length;
 
@@ -96,7 +105,9 @@ export default function Dashboard() {
           <MetricCard label={t('dashboard.monthlyRevenue')} value={stats ? formatMoney(stats.monthly_revenue) : '—'} subtext="from active leases" color="#10B981" icon={<DollarSign size={18} />} onClick={() => openModal('revenue')} />
           <MetricCard label={t('dashboard.openTickets')} value={stats?.open_tickets ?? '—'} subtext="maintenance" color="#F97316" icon={<Wrench size={18} />} onClick={() => router.push('/dashboard/maintenance')} />
           <MetricCard label="AI Responses" value={aiData?.total ?? '—'} subtext="last 30 days" color="#8B5CF6" icon={<MessageSquare size={18} />} onClick={() => openModal('ai')} />
-          <MetricCard label="Leads Pipeline" value={activeLeadsCount} subtext="active prospects" color="#EC4899" icon={<TrendingUp size={18} />} onClick={() => setActiveModal('leads')} />
+          {isMaster && (
+            <MetricCard label="Leads Pipeline" value={activeLeadsCount} subtext="active prospects" color="#EC4899" icon={<TrendingUp size={18} />} onClick={() => setActiveModal('leads')} />
+          )}
         </div>
 
         {/* Bottom: Recent Tickets + AI Chat */}
@@ -294,7 +305,7 @@ export default function Dashboard() {
         )}
 
         {/* Leads Pipeline drill-down */}
-        {activeModal === 'leads' && (
+        {isMaster && activeModal === 'leads' && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }} onClick={closeModal}>
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 500, maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
