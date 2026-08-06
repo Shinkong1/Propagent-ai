@@ -172,7 +172,6 @@ async def connect_status(
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
 
-    debug = None
     if org.stripe_connect_account_id and not org.stripe_connect_onboarded:
         try:
             import requests
@@ -189,24 +188,18 @@ async def connect_status(
                 timeout=10,
             )
             if resp.ok:
-                body = resp.json()
-                found = _has_active_capability(body)
-                debug = {"http_status": resp.status_code, "capability_found": found, "body_keys": list(body.keys())}
-                if found:
+                if _has_active_capability(resp.json()):
                     org.stripe_connect_onboarded = True
                     db.commit()
                     logger.info(f"Org {org.id} Stripe Connect onboarded=True (live status check)")
             else:
-                debug = {"http_status": resp.status_code, "error_body": resp.text[:500]}
                 logger.warning(f"Live Connect status check for org {org.id} got HTTP {resp.status_code}: {resp.text[:300]}")
         except Exception as e:
-            debug = {"exception": str(e)}
             logger.warning(f"Live Connect status check failed for org {org.id}: {e}")
 
     return {
         "connected": bool(org.stripe_connect_account_id),
         "onboarded": org.stripe_connect_onboarded,
-        "_debug": debug,  # temporary, for live troubleshooting — remove once Connect onboarding is confirmed working
     }
 
 
