@@ -108,6 +108,7 @@ export default function Home() {
           <div style={{ display: 'flex', gap: isMobile ? 8 : 12, alignItems: 'center' }}>
             {!isMobile && <Link href="/listings" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>Browse Rentals</Link>}
             {!isMobile && <Link href="/pricing" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>{t('landing.pricing')}</Link>}
+            {!isMobile && <Link href="/contact" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>Contact</Link>}
             {!isMobile && <Link href="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>{t('landing.signIn')}</Link>}
             {isMobile && <Link href="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>{t('landing.signIn')}</Link>}
             <Link href="/signup" style={{

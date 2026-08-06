@@ -94,7 +94,7 @@ export default function Terms() {
           </Section>
 
           <Section title="15. Governing Law">
-            These Terms are governed by the laws of <Placeholder>[State/Country]</Placeholder>, without regard to conflict-of-law principles, except that the Federal Arbitration Act governs the interpretation and enforcement of the arbitration agreement in Section 13. Subject to Section 13, any dispute not subject to arbitration shall be resolved exclusively in the courts located in <Placeholder>[Jurisdiction]</Placeholder>, and you consent to personal jurisdiction there.
+            These Terms are governed by the laws of the United States, without regard to conflict-of-law principles, except that the Federal Arbitration Act governs the interpretation and enforcement of the arbitration agreement in Section 13. Subject to Section 13, any dispute not subject to arbitration shall be resolved exclusively in the courts located in Washington, D.C., and you consent to personal jurisdiction there.
           </Section>
 
           <Section title="16. General Provisions">

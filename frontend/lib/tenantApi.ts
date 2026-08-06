@@ -34,7 +34,10 @@ tenantApi.interceptors.response.use(
 export const tenantPortal = {
   login: (email: string, password: string) => tenantApi.post('/tenant-portal/login', { email, password }),
   activate: (token: string, password: string) => tenantApi.post('/tenant-portal/activate', { token, password }),
+  forgotPassword: (email: string) => tenantApi.post('/tenant-portal/forgot-password', { email }),
+  resetPassword: (token: string, new_password: string) => tenantApi.post('/tenant-portal/reset-password', { token, new_password }),
   me: () => tenantApi.get('/tenant-portal/me'),
+  signLease: (leaseId: string, full_name: string) => tenantApi.post(`/tenant-portal/leases/${leaseId}/sign`, { full_name }),
   payments: () => tenantApi.get('/tenant-portal/payments'),
   payNow: (paymentId: string) => tenantApi.post(`/tenant-portal/payments/${paymentId}/checkout`),
   maintenanceList: () => tenantApi.get('/tenant-portal/maintenance'),

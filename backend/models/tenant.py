@@ -102,6 +102,13 @@ class Lease(Base):
     status = Column(SAEnum(LeaseStatus), default=LeaseStatus.pending)
     lease_document_url = Column(String(500), nullable=True)
     notes = Column(Text, nullable=True)
+    # Lightweight e-signature: a typed full name + timestamp + IP, captured
+    # by the tenant in their portal. Not a DocuSign-grade signature service,
+    # but a real, timestamped acceptance record under the US ESIGN Act's
+    # "intent to sign" standard -- enough for most residential leases.
+    signed_at = Column(DateTime, nullable=True)
+    signature_name = Column(String(200), nullable=True)
+    signature_ip = Column(String(64), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

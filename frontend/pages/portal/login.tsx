@@ -58,10 +58,13 @@ export default function TenantLogin() {
             </div>
 
             <label style={lbl}>Password</label>
-            <div style={{ position: 'relative', marginBottom: 20 }}>
+            <div style={{ position: 'relative', marginBottom: 8 }}>
               <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()}
                 style={{ ...inp, paddingLeft: 34 }} />
+            </div>
+            <div style={{ textAlign: 'right', marginBottom: 20 }}>
+              <Link href="/portal/forgot-password" style={{ fontSize: 12, color: '#64748B', textDecoration: 'none' }}>Forgot password?</Link>
             </div>
 
             <button onClick={submit} disabled={loading} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', fontSize: 14, border: 'none', borderRadius: 8, cursor: 'pointer' }}>

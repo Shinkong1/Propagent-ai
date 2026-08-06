@@ -4,7 +4,9 @@ import DashboardLayout from '../../components/DashboardLayout';
 import {
   ShieldAlert, Crown, Building2, Users, DollarSign, Sparkles, MessageSquare,
   TrendingUp, Activity, BarChart3, Search, Database, Server, Cpu, Plug, AlertOctagon, Repeat, Gift, X, Send,
+  Link2, ExternalLink, Copy, Github, CreditCard, Phone, Mail, Timer, Cloud, KeyRound, Megaphone,
 } from 'lucide-react';
+import Link from 'next/link';
 import { admin as adminApi } from '../../lib/api';
 import { getUser, setUser } from '../../lib/auth';
 import { useLanguage } from '../../lib/LanguageContext';
@@ -13,9 +15,38 @@ import toast from 'react-hot-toast';
 
 const PLANS = ['starter', 'professional', 'enterprise'];
 const PLAN_COLOR: Record<string, string> = { starter: '#64748B', professional: '#FBC02D', enterprise: '#8B5CF6' };
-const TABS = ['subscribers', 'revenue', 'growth', 'platform', 'analytics'] as const;
+const TABS = ['subscribers', 'revenue', 'growth', 'platform', 'links', 'analytics'] as const;
 type Tab = typeof TABS[number];
-const TAB_ICON: Record<Tab, any> = { subscribers: Users, revenue: DollarSign, growth: TrendingUp, platform: Activity, analytics: BarChart3 };
+const TAB_ICON: Record<Tab, any> = { subscribers: Users, revenue: DollarSign, growth: TrendingUp, platform: Activity, links: Link2, analytics: BarChart3 };
+
+const SITE_URL = 'https://propagent.app';
+const API_URL = 'https://propagent-api.onrender.com';
+
+const EXTERNAL_SERVICES = [
+  { name: 'Render', role: 'Backend hosting, deploy logs, env vars', url: 'https://dashboard.render.com', icon: Server },
+  { name: 'Vercel', role: 'Frontend hosting, deploy logs, env vars', url: 'https://vercel.com/dashboard', icon: Cloud },
+  { name: 'Stripe', role: 'Payments, subscriptions, Connect accounts', url: 'https://dashboard.stripe.com', icon: CreditCard },
+  { name: 'Neon', role: 'Postgres database', url: 'https://console.neon.tech', icon: Database },
+  { name: 'Twilio', role: 'Voice AI + SMS', url: 'https://console.twilio.com', icon: Phone },
+  { name: 'cron-job.org', role: 'Hourly outreach queue trigger', url: 'https://console.cron-job.org', icon: Timer },
+  { name: 'Google Cloud Console', role: 'Google Sign-In OAuth credentials', url: 'https://console.cloud.google.com', icon: KeyRound },
+  { name: 'Gmail', role: 'The SMTP account emails are sent from', url: 'https://mail.google.com', icon: Mail },
+  { name: 'GitHub', role: 'Source code', url: 'https://github.com/Shinkong1/Propagent-ai', icon: Github },
+  { name: 'API Docs', role: 'Live interactive backend API reference', url: `${API_URL}/docs`, icon: Plug },
+];
+
+const SHARE_LINKS = [
+  { label: 'Homepage', url: SITE_URL },
+  { label: 'Pricing', url: `${SITE_URL}/pricing` },
+  { label: 'Browse Rentals directory', url: `${SITE_URL}/listings` },
+  { label: 'Sign up', url: `${SITE_URL}/signup` },
+  { label: 'Sitemap (for Google Search Console)', url: `${SITE_URL}/sitemap.xml` },
+];
+
+function copyLink(url: string) {
+  navigator.clipboard.writeText(url);
+  toast.success('Copied');
+}
 
 function KpiCard({ label, value, sub, icon: Icon }: { label: string; value: any; sub?: string; icon: any }) {
   return (
@@ -52,6 +83,11 @@ function MiniBarChart({ data, valueKey, labelKey }: { data: any[]; valueKey: str
 const badge = (bg: string, color: string): React.CSSProperties => ({
   fontSize: 10, padding: '3px 8px', borderRadius: 4, fontFamily: 'IBM Plex Mono', background: bg, color,
 });
+
+const sectionTitle: React.CSSProperties = {
+  fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)',
+  marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8,
+};
 
 export default function OwnerAdmin() {
   const router = useRouter();
@@ -516,6 +552,79 @@ export default function OwnerAdmin() {
                   <div style={{ fontSize: 12, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono' }}>{e.method} {e.path}</div>
                   <div style={{ fontSize: 11, color: '#EF4444' }}>{e.error_message}</div>
                   <div style={{ fontSize: 10, color: '#64748B' }}>{new Date(e.created_at).toLocaleString()}</div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {tab === 'links' && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+              <div>
+                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 2 }}>Everything you need to run this platform</h2>
+                <p style={{ fontSize: 12.5, color: '#64748B' }}>Every dashboard you'll actually log into, plus the links worth sharing.</p>
+              </div>
+              <Link href="/dashboard/marketing" style={{ textDecoration: 'none' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 8, background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', color: '#FBC02D', fontSize: 12.5, fontFamily: 'Syne', fontWeight: 700 }}>
+                  <Megaphone size={14} /> Open Marketing Hub
+                </span>
+              </Link>
+            </div>
+
+            <h3 style={sectionTitle}>Service dashboards</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10, marginBottom: 28 }}>
+              {EXTERNAL_SERVICES.map(svc => (
+                <a key={svc.name} href={svc.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 14, height: '100%' }}>
+                    <svc.icon size={16} color="#FBC02D" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'Syne' }}>{svc.name}</span>
+                        <ExternalLink size={11} color="#64748B" />
+                      </div>
+                      <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>{svc.role}</div>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+
+            <h3 style={sectionTitle}>
+              <AlertOctagon size={14} color="#FBC02D" /> Fix errors fast
+            </h3>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden', marginBottom: 28 }}>
+              {!platform ? (
+                <div style={{ padding: 20, textAlign: 'center', color: '#64748B', fontSize: 13 }}>Loading...</div>
+              ) : platform.recent_errors.length === 0 ? (
+                <div style={{ padding: 20, textAlign: 'center', color: '#64748B', fontSize: 13 }}>No recent errors — nothing to fix right now.</div>
+              ) : (
+                <>
+                  {platform.recent_errors.slice(0, 3).map((e: any) => (
+                    <div key={e.id} style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
+                      <div style={{ fontSize: 12, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono' }}>{e.method} {e.path}</div>
+                      <div style={{ fontSize: 11, color: '#EF4444' }}>{e.error_message}</div>
+                      <div style={{ fontSize: 10, color: '#64748B' }}>{new Date(e.created_at).toLocaleString()}</div>
+                    </div>
+                  ))}
+                  <button onClick={() => goTab('platform')} style={{ width: '100%', padding: '10px', background: 'none', border: 'none', borderTop: '1px solid var(--border-subtle)', color: '#FBC02D', fontSize: 12, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer' }}>
+                    View all {platform.recent_errors.length} in Platform &amp; AI Ops →
+                  </button>
+                </>
+              )}
+            </div>
+
+            <h3 style={sectionTitle}>Links worth sharing</h3>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden' }}>
+              {SHARE_LINKS.map(l => (
+                <div key={l.url} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)' }}>{l.label}</div>
+                    <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.url}</div>
+                  </div>
+                  <button onClick={() => copyLink(l.url)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 6, background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', color: '#FBC02D', fontSize: 11.5, fontFamily: 'IBM Plex Mono', cursor: 'pointer', flexShrink: 0 }}>
+                    <Copy size={11} /> Copy
+                  </button>
                 </div>
               ))}
             </div>

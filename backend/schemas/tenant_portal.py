@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from uuid import UUID
 from datetime import date, datetime
@@ -11,7 +11,16 @@ class TenantLoginRequest(BaseModel):
 
 class TenantActivateRequest(BaseModel):
     token: str
-    password: str
+    password: str = Field(min_length=8)
+
+
+class TenantForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class TenantResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(min_length=8)
 
 
 class TenantAuthResponse(BaseModel):
@@ -65,9 +74,15 @@ class TenantLeaseOut(BaseModel):
     property_name: Optional[str] = None
     property_address: Optional[str] = None
     unit_number: Optional[str] = None
+    signed_at: Optional[datetime] = None
+    signature_name: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class LeaseSignRequest(BaseModel):
+    full_name: str
 
 
 class TenantMeOut(BaseModel):

@@ -1,1 +1,0 @@
-def transcribe(): pass

@@ -10,7 +10,8 @@ from database.base import Base
 
 class OwnerMessageSource(enum.Enum):
     chat = "chat"  # tenant/staff AI assistant chat box
-    contact_form = "contact_form"  # Contact Us page
+    contact_form = "contact_form"  # Contact Us page (existing, logged-in subscribers)
+    sales_inquiry = "sales_inquiry"  # public marketing-site contact form (prospective customers, no account)
 
 
 class OwnerMessage(Base):

@@ -42,6 +42,10 @@ export const auth = {
     api.post('/auth/change-password', { current_password: currentPassword, new_password: newPassword }),
   getApiKey: () => api.get('/auth/organization/api-key'),
   regenerateApiKey: () => api.post('/auth/organization/api-key'),
+  forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (token: string, new_password: string) => api.post('/auth/reset-password', { token, new_password }),
+  verifyEmail: (token: string) => api.post('/auth/verify-email', { token }),
+  resendVerification: () => api.post('/auth/resend-verification'),
 };
 
 export const properties = {
@@ -65,6 +69,10 @@ export const properties = {
   revenueTrend: (months = 6) => api.get('/properties/stats/revenue-trend', { params: { months } }),
   unitsDetail: () => api.get('/properties/stats/units-detail'),
   aiActivity: (days = 30) => api.get('/properties/stats/ai-activity', { params: { days } }),
+};
+
+export const publicContact = {
+  sendSales: (data: { name: string; email: string; company?: string; message: string }) => api.post('/contact/sales', data),
 };
 
 export const publicListings = {

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { Home, MapPin, DollarSign, Calendar, CreditCard, Wrench, ArrowRight } from 'lucide-react';
+import { Home, MapPin, DollarSign, Calendar, CreditCard, Wrench, ArrowRight, PenLine, CheckCircle2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import PortalLayout from '../../components/PortalLayout';
 import { tenantPortal } from '../../lib/tenantApi';
 import { useCurrency } from '../../lib/CurrencyContext';
@@ -11,8 +12,10 @@ export default function TenantDashboard() {
   const [me, setMe] = useState<any>(null);
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [signName, setSignName] = useState('');
+  const [signing, setSigning] = useState(false);
 
-  useEffect(() => {
+  const load = () => {
     Promise.all([tenantPortal.me(), tenantPortal.payments()])
       .then(([meRes, paymentsRes]) => {
         setMe(meRes.data);
@@ -20,7 +23,23 @@ export default function TenantDashboard() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const submitSignature = async () => {
+    if (!signName.trim() || !me?.active_lease) { toast.error('Type your full legal name to sign'); return; }
+    setSigning(true);
+    try {
+      await tenantPortal.signLease(me.active_lease.id, signName.trim());
+      toast.success('Lease signed');
+      load();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to sign — please try again.');
+    } finally {
+      setSigning(false);
+    }
+  };
 
   const unpaid = payments.filter(p => p.status !== 'paid');
   const balanceDue = unpaid.reduce((sum, p) => sum + p.amount, 0);
@@ -55,6 +74,33 @@ export default function TenantDashboard() {
           ) : (
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 24, marginBottom: 20, textAlign: 'center', color: '#64748B', fontSize: 13 }}>
               No active lease on file. Contact your property manager if this looks wrong.
+            </div>
+          )}
+
+          {me?.active_lease && !me.active_lease.signed_at && (
+            <div style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 12, padding: 18, marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <PenLine size={15} color="#3B82F6" />
+                <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>Your lease needs a signature</span>
+              </div>
+              <p style={{ fontSize: 12.5, color: '#64748B', marginBottom: 12 }}>
+                Type your full legal name below to sign — this records your name, the time, and your IP address as your acceptance.
+              </p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <input value={signName} onChange={e => setSignName(e.target.value)} placeholder="Full legal name"
+                  style={{ flex: '1 1 200px', padding: '9px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none' }} />
+                <button onClick={submitSignature} disabled={signing} style={{
+                  padding: '9px 18px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)',
+                  fontWeight: 700, fontFamily: 'Syne', fontSize: 13, border: 'none', borderRadius: 8, cursor: 'pointer',
+                }}>
+                  {signing ? 'Signing...' : 'Sign lease'}
+                </button>
+              </div>
+            </div>
+          )}
+          {me?.active_lease?.signed_at && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: '#10B981', marginBottom: 20, marginTop: -10 }}>
+              <CheckCircle2 size={13} /> Signed by {me.active_lease.signature_name} on {new Date(me.active_lease.signed_at).toLocaleDateString()}
             </div>
           )}
 

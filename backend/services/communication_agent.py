@@ -70,7 +70,11 @@ def send_sms(to_phone: str, body: str) -> tuple:
         return "logged_only", None
     try:
         from twilio.rest import Client
-        client = Client(settings.TWILIO_SID, settings.TWILIO_TOKEN)
+        from twilio.http.http_client import TwilioHttpClient
+        # Twilio's client has no timeout by default -- a hung connection
+        # would tie up a threadpool worker indefinitely rather than fail
+        # fast, unlike the SMTP path (which explicitly sets timeout=10).
+        client = Client(settings.TWILIO_SID, settings.TWILIO_TOKEN, http_client=TwilioHttpClient(timeout=10))
         client.messages.create(to=to_phone, from_=settings.TWILIO_PHONE, body=body)
         return "sent", None
     except Exception as e:

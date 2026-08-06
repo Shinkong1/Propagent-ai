@@ -31,6 +31,7 @@ from schemas.tenant_portal import (
     TenantLoginRequest, TenantActivateRequest, TenantAuthResponse,
     TenantMeOut, TenantLeaseOut, TenantPaymentOut, TenantPaymentSessionOut,
     TenantMaintenanceCreate, TenantMaintenanceOut,
+    TenantForgotPasswordRequest, TenantResetPasswordRequest, LeaseSignRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -52,6 +53,7 @@ def _lease_out(lease: Lease) -> Optional[TenantLeaseOut]:
         property_name=prop.name if prop else None,
         property_address=f"{prop.address}, {prop.city}, {prop.state}" if prop else None,
         unit_number=unit.unit_number if unit else None,
+        signed_at=lease.signed_at, signature_name=lease.signature_name,
     )
 
 
@@ -99,12 +101,11 @@ async def invite_tenant(
 # ── Tenant-side: activate / login ──
 
 @router.post("/activate", response_model=TenantAuthResponse)
-async def activate_tenant(payload: TenantActivateRequest, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+async def activate_tenant(request: Request, payload: TenantActivateRequest, db: Session = Depends(get_db)):
     tenant = db.query(Tenant).filter(Tenant.portal_invite_token == payload.token).first()
     if not tenant or not tenant.portal_invite_expires_at or tenant.portal_invite_expires_at < datetime.utcnow():
         raise HTTPException(status_code=400, detail="This invite link is invalid or has expired. Ask your property manager to resend it.")
-    if len(payload.password) < 8:
-        raise HTTPException(status_code=422, detail="Password must be at least 8 characters")
 
     tenant.hashed_password = hash_password(payload.password)
     tenant.portal_invite_token = None
@@ -136,6 +137,60 @@ async def tenant_login(request: Request, payload: TenantLoginRequest, db: Sessio
     )
 
 
+@router.post("/forgot-password")
+@limiter.limit("5/minute")
+async def tenant_forgot_password(request: Request, payload: TenantForgotPasswordRequest, db: Session = Depends(get_db)):
+    email = payload.email.strip().lower()
+    # Only activated accounts (hashed_password set) -- an invite-not-yet-
+    # activated tenant should use their activation link, not a reset one.
+    tenants = db.query(Tenant).filter(func.lower(Tenant.email) == email, Tenant.hashed_password.isnot(None)).all()
+    if tenants:
+        # Reuses the same invite-token fields the activation flow uses --
+        # it's the identical mechanism (prove account ownership via an
+        # emailed token, then set a credential), just a shorter window.
+        # The same email can legitimately belong to more than one Tenant
+        # row (e.g. renting from two different organizations), so the same
+        # token is set on all of them and reset-password below applies to
+        # whichever rows it matches.
+        token = secrets.token_urlsafe(32)
+        expires = datetime.utcnow() + timedelta(hours=1)
+        for t in tenants:
+            t.portal_invite_token = token
+            t.portal_invite_expires_at = expires
+        db.commit()
+
+        reset_url = f"{settings.FRONTEND_URL}/portal/reset-password?token={token}"
+        body = (
+            f"Hi {tenants[0].first_name},\n\n"
+            f"Reset your tenant portal password:\n\n{reset_url}\n\n"
+            f"This link expires in 1 hour. If you didn't request this, you can ignore this email — your password hasn't changed."
+        )
+        await run_in_threadpool(send_email, tenants[0].email, "Reset your password — tenant portal", body)
+    return {"message": "If that email has a tenant portal account, a reset link is on its way."}
+
+
+@router.post("/reset-password", response_model=TenantAuthResponse)
+@limiter.limit("10/minute")
+async def tenant_reset_password(request: Request, payload: TenantResetPasswordRequest, db: Session = Depends(get_db)):
+    candidates = db.query(Tenant).filter(Tenant.portal_invite_token == payload.token).all()
+    valid = [t for t in candidates if t.portal_invite_expires_at and t.portal_invite_expires_at > datetime.utcnow()]
+    if not valid:
+        raise HTTPException(status_code=400, detail="This reset link is invalid or has expired. Request a new one.")
+
+    for t in valid:
+        t.hashed_password = hash_password(payload.new_password)
+        t.portal_invite_token = None
+        t.portal_invite_expires_at = None
+    db.commit()
+
+    primary = valid[0]
+    return TenantAuthResponse(
+        access_token=create_tenant_access_token(str(primary.id)),
+        tenant_id=str(primary.id),
+        full_name=primary.full_name,
+    )
+
+
 # ── Tenant-side: portal data ──
 
 @router.get("/me", response_model=TenantMeOut)
@@ -149,6 +204,33 @@ async def tenant_me(tenant: Tenant = Depends(get_current_tenant)):
         organization_name=org.name if org else None,
         rent_payments_enabled=bool(org and org.stripe_connect_onboarded),
     )
+
+
+@router.post("/leases/{lease_id}/sign", response_model=TenantLeaseOut)
+async def sign_lease(
+    lease_id: UUID,
+    payload: LeaseSignRequest,
+    request: Request,
+    tenant: Tenant = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """Lightweight e-signature -- typed full name + timestamp + IP, not a
+    DocuSign-grade signature service. Doesn't block anything else in the
+    portal if left unsigned; the frontend just prompts prominently."""
+    lease = db.query(Lease).filter(Lease.id == lease_id, Lease.tenant_id == tenant.id).first()
+    if not lease:
+        raise HTTPException(status_code=404, detail="Lease not found")
+    if lease.signed_at:
+        raise HTTPException(status_code=400, detail="This lease has already been signed.")
+    if not payload.full_name.strip():
+        raise HTTPException(status_code=422, detail="Type your full name to sign.")
+
+    lease.signed_at = datetime.utcnow()
+    lease.signature_name = payload.full_name.strip()
+    lease.signature_ip = request.client.host if request.client else None
+    db.commit()
+    db.refresh(lease)
+    return _lease_out(lease)
 
 
 @router.get("/payments", response_model=List[TenantPaymentOut])

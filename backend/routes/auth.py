@@ -1,7 +1,9 @@
 """Authentication routes — signup, login, token refresh"""
 import logging
 import re
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from uuid import UUID
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
+from jose import JWTError
 from sqlalchemy.orm import Session
 
 from database.session import get_db
@@ -9,18 +11,23 @@ from models.user import User, Organization, UserRole
 from schemas.auth import (
     SignupRequest, LoginRequest, TokenResponse, LanguageUpdate,
     ThemeUpdate, OrganizationUpdate, PasswordChangeRequest,
+    ForgotPasswordRequest, ResetPasswordRequest, VerifyEmailRequest,
 )
-from middleware.auth import hash_password, verify_password, create_access_token, get_current_user
+from middleware.auth import hash_password, verify_password, create_access_token, decode_token, get_current_user
 from middleware.plan_gate import require_role
 from middleware.rate_limit import limiter
 from datetime import datetime, timedelta
+from config import settings
 from models.platform import OrgEventType
 from services.platform_service import generate_referral_code, log_org_event
+from services.communication_agent import send_email
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 SUPPORTED_CURRENCIES = {"USD", "EUR", "GBP", "CAD", "AUD", "JPY", "MXN", "INR"}
+PASSWORD_RESET_EXPIRY = timedelta(minutes=30)
+EMAIL_VERIFY_EXPIRY = timedelta(hours=48)
 
 
 def slugify(text: str) -> str:
@@ -28,11 +35,35 @@ def slugify(text: str) -> str:
     return slug[:50]
 
 
+def _send_verification_email(user_id: str, email: str, first_name: str):
+    """Plain def, not async -- run via BackgroundTasks.add_task so Starlette
+    auto-threadpools the blocking SMTP call rather than stalling the
+    request (or, since these are only ever invoked from a background task,
+    the response) on this single-worker server."""
+    token = create_access_token({"sub": user_id, "purpose": "verify_email"}, expires_delta=EMAIL_VERIFY_EXPIRY)
+    link = f"{settings.FRONTEND_URL.rstrip('/')}/verify-email?token={token}"
+    body = (
+        f"Hi {first_name or 'there'},\n\n"
+        f"Confirm your email address for PropAgent AI:\n\n{link}\n\n"
+        f"This link expires in 48 hours. If you didn't create a PropAgent AI account, you can ignore this email."
+    )
+    send_email(email, "Confirm your email — PropAgent AI", body)
+
+
+def _send_password_reset_email(user_id: str, email: str, first_name: str):
+    token = create_access_token({"sub": user_id, "purpose": "password_reset"}, expires_delta=PASSWORD_RESET_EXPIRY)
+    link = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password?token={token}"
+    body = (
+        f"Hi {first_name or 'there'},\n\n"
+        f"Reset your PropAgent AI password:\n\n{link}\n\n"
+        f"This link expires in 30 minutes. If you didn't request this, you can ignore this email — your password hasn't changed."
+    )
+    send_email(email, "Reset your password — PropAgent AI", body)
+
+
 @router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
-async def signup(request: Request, payload: SignupRequest, db: Session = Depends(get_db)):
-    if len(payload.password) < 8:
-        raise HTTPException(status_code=422, detail="Password must be at least 8 characters")
+async def signup(request: Request, payload: SignupRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
@@ -67,7 +98,7 @@ async def signup(request: Request, payload: SignupRequest, db: Session = Depends
         last_name=payload.last_name,
         role=UserRole.owner,
         is_active=True,
-        is_verified=True,
+        is_verified=False,
         last_login_at=datetime.utcnow(),
     )
     db.add(user)
@@ -75,6 +106,8 @@ async def signup(request: Request, payload: SignupRequest, db: Session = Depends
     db.refresh(user)
 
     log_org_event(db, org.id, OrgEventType.signup)
+    # Don't block signup on an SMTP round trip -- send after the response.
+    background_tasks.add_task(_send_verification_email, str(user.id), user.email, user.first_name)
 
     token = create_access_token({"sub": str(user.id)})
     return TokenResponse(
@@ -93,6 +126,7 @@ async def signup(request: Request, payload: SignupRequest, db: Session = Depends
         notify_sms_enabled=org.notify_sms_enabled,
         is_master=user.is_master,
         role=user.role.value,
+        is_verified=user.is_verified,
     )
 
 
@@ -130,6 +164,7 @@ async def login(request: Request, payload: LoginRequest, db: Session = Depends(g
         notify_sms_enabled=org.notify_sms_enabled if org else True,
         is_master=user.is_master,
         role=user.role.value,
+        is_verified=user.is_verified,
     )
 
 
@@ -151,7 +186,67 @@ async def me(current_user: User = Depends(get_current_user)):
         "currency": org.currency if org else "USD",
         "notify_email_enabled": org.notify_email_enabled if org else True,
         "notify_sms_enabled": org.notify_sms_enabled if org else True,
+        "is_verified": current_user.is_verified,
     }
+
+
+@router.post("/forgot-password")
+@limiter.limit("5/minute")
+async def forgot_password(request: Request, payload: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == payload.email).first()
+    if user and user.is_active:
+        background_tasks.add_task(_send_password_reset_email, str(user.id), user.email, user.first_name)
+    # Same response either way -- confirming/denying a registered email to an
+    # unauthenticated caller is an account-enumeration leak.
+    return {"message": "If that email is registered, a reset link is on its way."}
+
+
+@router.post("/reset-password")
+@limiter.limit("10/minute")
+async def reset_password(request: Request, payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    try:
+        claims = decode_token(payload.token)
+        if claims.get("purpose") != "password_reset":
+            raise ValueError("wrong purpose")
+        user_id = claims["sub"]
+    except (JWTError, ValueError, KeyError):
+        raise HTTPException(status_code=400, detail="This reset link is invalid or has expired. Request a new one.")
+
+    user = db.query(User).filter(User.id == UUID(user_id)).first()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=400, detail="This reset link is invalid or has expired. Request a new one.")
+
+    user.hashed_password = hash_password(payload.new_password)
+    db.commit()
+    return {"message": "Password updated — you can now log in."}
+
+
+@router.post("/verify-email")
+async def verify_email(payload: VerifyEmailRequest, db: Session = Depends(get_db)):
+    try:
+        claims = decode_token(payload.token)
+        if claims.get("purpose") != "verify_email":
+            raise ValueError("wrong purpose")
+        user_id = claims["sub"]
+    except (JWTError, ValueError, KeyError):
+        raise HTTPException(status_code=400, detail="This verification link is invalid or has expired.")
+
+    user = db.query(User).filter(User.id == UUID(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="This verification link is invalid or has expired.")
+
+    user.is_verified = True
+    db.commit()
+    return {"message": "Email verified."}
+
+
+@router.post("/resend-verification")
+@limiter.limit("3/minute")
+async def resend_verification(request: Request, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user)):
+    if current_user.is_verified:
+        return {"message": "Already verified."}
+    background_tasks.add_task(_send_verification_email, str(current_user.id), current_user.email, current_user.first_name)
+    return {"message": "Verification email sent."}
 
 
 @router.patch("/organization/language")

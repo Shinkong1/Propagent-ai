@@ -136,6 +136,9 @@ export default function Login() {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+            <div style={{ textAlign: 'right', marginTop: 8 }}>
+              <Link href="/forgot-password" style={{ fontSize: 12.5, color: '#64748B', textDecoration: 'none' }}>Forgot password?</Link>
+            </div>
           </div>
           <button type="submit" disabled={loading} style={btnStyle}>
             {loading ? 'Signing in...' : t('login.submit')}

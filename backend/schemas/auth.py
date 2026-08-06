@@ -1,11 +1,11 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from uuid import UUID
 
 
 class SignupRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8)
     first_name: str
     last_name: str
     organization_name: str
@@ -34,6 +34,7 @@ class TokenResponse(BaseModel):
     notify_sms_enabled: bool = True
     is_master: bool = False
     role: str = "owner"
+    is_verified: bool = True
 
 
 class LanguageUpdate(BaseModel):
@@ -54,7 +55,20 @@ class OrganizationUpdate(BaseModel):
 
 class PasswordChangeRequest(BaseModel):
     current_password: str
-    new_password: str
+    new_password: str = Field(min_length=8)
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(min_length=8)
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str
 
 
 class UserResponse(BaseModel):

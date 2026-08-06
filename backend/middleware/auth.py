@@ -69,7 +69,11 @@ async def get_current_user(
     try:
         payload = decode_token(token)
         user_id: str = payload.get("sub")
-        if user_id is None:
+        # Purpose-scoped tokens (password reset, email verification, OAuth
+        # state) are short-lived and single-purpose by design -- a real
+        # session token never carries a "purpose" claim, so reject any that
+        # do rather than let a leaked reset/verify link double as a login.
+        if user_id is None or payload.get("purpose") is not None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception

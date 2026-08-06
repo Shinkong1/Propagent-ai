@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
   LayoutDashboard, Building2, Users, Wrench, UserSearch, Home,
-  BarChart3, Phone, CreditCard, LogOut, Zap, User, Landmark, Sparkles, Boxes, ShieldCheck, AlertTriangle, TrendingUp, FileText, LineChart, ClipboardCheck, MessageSquare, MessageCircle, Settings, Lock, Crown, ChevronLeft, ChevronRight, Workflow, Radar, ChevronRight as CaretRight, X
+  BarChart3, Phone, CreditCard, LogOut, Zap, User, Landmark, Sparkles, Boxes, ShieldCheck, AlertTriangle, TrendingUp, FileText, LineChart, ClipboardCheck, MessageSquare, MessageCircle, Settings, Lock, Crown, ChevronLeft, ChevronRight, Workflow, Radar, ChevronRight as CaretRight, X, Megaphone
 } from 'lucide-react';
 import { clearToken, getUser } from '../lib/auth';
 import { useLanguage } from '../lib/LanguageContext';
@@ -27,6 +27,7 @@ const NAV: NavEntry[] = [
   // only, and deliberately outside property_ops since that group's item
   // rendering doesn't filter by masterOnly, only this top-level list does.
   { href: '/dashboard/leads', key: 'nav.leads', icon: UserSearch, masterOnly: true },
+  { href: '/dashboard/marketing', key: 'nav.marketing', icon: Megaphone, masterOnly: true },
   {
     group: true, groupKey: 'property_ops', labelKey: 'nav.groupPropertyOps', icon: Building2,
     items: [
