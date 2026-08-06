@@ -9,6 +9,7 @@ import logging
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from database.session import get_db
@@ -81,7 +82,11 @@ async def create_lead(
     db.refresh(lead)
 
     try:
-        run_workflows(db, current_user.organization, WorkflowTrigger.lead_created, {
+        # A matching workflow rule can send email/SMS synchronously (blocking
+        # SMTP/HTTP calls) -- this server runs a single worker/event loop, so
+        # that would otherwise freeze every request for every user, not just
+        # this one, until the send times out.
+        await run_in_threadpool(run_workflows, db, current_user.organization, WorkflowTrigger.lead_created, {
             "name": f"{lead.first_name} {lead.last_name}".strip(),
             "source": lead.source.value if lead.source else None,
             "status": lead.status.value if lead.status else None,

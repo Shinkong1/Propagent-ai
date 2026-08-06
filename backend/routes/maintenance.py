@@ -66,7 +66,10 @@ async def create_ticket(
     try:
         from models.tenant import Tenant
         tenant = db.query(Tenant).filter(Tenant.id == ticket.tenant_id).first() if ticket.tenant_id else None
-        run_workflows(db, current_user.organization, WorkflowTrigger.maintenance_created, {
+        # See leads.py's create_lead for why this needs the threadpool: a
+        # matching rule can send email/SMS synchronously, and this is a
+        # single-worker server.
+        await run_in_threadpool(run_workflows, db, current_user.organization, WorkflowTrigger.maintenance_created, {
             "title": ticket.title,
             "category": ticket.category.value if ticket.category else None,
             "priority": ticket.priority.value if ticket.priority else None,
