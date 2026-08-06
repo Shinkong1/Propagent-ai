@@ -52,6 +52,10 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [savingPassword, setSavingPassword] = useState(false);
 
+  const [newEmail, setNewEmail] = useState('');
+  const [emailPassword, setEmailPassword] = useState('');
+  const [savingEmail, setSavingEmail] = useState(false);
+
   const [mfaEnabled, setMfaEnabled] = useState(false);
   const [mfaSetup, setMfaSetup] = useState<{ secret: string; qr_code_base64: string } | null>(null);
   const [mfaEnrollCode, setMfaEnrollCode] = useState('');
@@ -329,6 +333,25 @@ export default function SettingsPage() {
     }
   };
 
+  const changeEmail = async () => {
+    if (!newEmail.trim() || !emailPassword) {
+      toast.error('Enter your new email and current password');
+      return;
+    }
+    setSavingEmail(true);
+    try {
+      const res = await authApi.updateProfile({ email: newEmail.trim(), current_password: emailPassword });
+      const user = getUser();
+      if (user) setUser({ ...user, email: res.data.email, is_verified: res.data.is_verified });
+      toast.success(res.data.detail || 'Email updated');
+      setNewEmail(''); setEmailPassword('');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to update email');
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div style={{ maxWidth: 820 }}>
@@ -601,6 +624,21 @@ export default function SettingsPage() {
           <div style={{ maxWidth: 420 }}>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.securityTitle')}</h2>
             <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('settings.securitySubtitle')}</p>
+
+            <div style={{ marginBottom: 28, paddingBottom: 28, borderBottom: '1px solid var(--border-strong)' }}>
+              <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 2 }}>Login email</h3>
+              <p style={{ fontSize: 11.5, color: '#64748B', marginBottom: 14 }}>
+                This is what you sign in with — currently <b style={{ color: 'var(--text-secondary)' }}>{getUser()?.email}</b>. Changing it requires your current password and re-verification.
+              </p>
+              <label style={lbl}>New email</label>
+              <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="you@company.com" style={inp} spellCheck={false} autoCorrect="off" autoCapitalize="off" />
+              <label style={{ ...lbl, marginTop: 14 }}>Current password</label>
+              <input type="password" value={emailPassword} onChange={e => setEmailPassword(e.target.value)} style={inp} />
+              <button onClick={changeEmail} disabled={savingEmail} style={{ ...btn, marginTop: 18 }}>
+                {savingEmail ? t('settings.saving') : 'Update email'}
+              </button>
+            </div>
+
             <label style={lbl}>{t('settings.currentPassword')}</label>
             <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} style={inp} />
             <label style={{ ...lbl, marginTop: 14 }}>{t('settings.newPassword')}</label>

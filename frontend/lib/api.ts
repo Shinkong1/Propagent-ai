@@ -46,6 +46,7 @@ export const auth = {
   resetPassword: (token: string, new_password: string) => api.post('/auth/reset-password', { token, new_password }),
   verifyEmail: (token: string) => api.post('/auth/verify-email', { token }),
   resendVerification: () => api.post('/auth/resend-verification'),
+  updateProfile: (data: { email?: string; first_name?: string; last_name?: string; current_password: string }) => api.patch('/auth/profile', data),
 };
 
 export const properties = {
@@ -231,6 +232,9 @@ export const admin = {
   growth: () => api.get('/admin/growth'),
   platformHealth: () => api.get('/admin/platform-health'),
   businessAnalytics: () => api.get('/admin/business-analytics'),
+  listVerificationFiles: () => api.get('/admin/verification-files'),
+  createVerificationFile: (filename: string, content: string) => api.post('/admin/verification-files', { filename, content }),
+  deleteVerificationFile: (id: string) => api.delete(`/admin/verification-files/${id}`),
 };
 
 export const contact = {

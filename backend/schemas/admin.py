@@ -81,3 +81,18 @@ class OwnerMessageResponse(BaseModel):
 
 class OwnerMessageReplyRequest(BaseModel):
     reply: str
+
+
+class VerificationFileCreate(BaseModel):
+    filename: str
+    content: str
+
+
+class VerificationFileOut(BaseModel):
+    id: UUID
+    filename: str
+    content: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

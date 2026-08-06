@@ -52,3 +52,17 @@ class AICallLog(Base):
     organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
     feature = Column(String(50), nullable=False)  # e.g. "maintenance_chat", "executive_query"
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class SiteVerificationFile(Base):
+    """Self-service domain-ownership verification files (Google Search
+    Console, Bing Webmaster Tools, Facebook Domain Verification, etc. all
+    use the same pattern: host a specific file at the site root). Served
+    dynamically by the frontend's catch-all route so the owner never needs
+    a code deploy to add or rotate one of these."""
+    __tablename__ = "site_verification_files"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    filename = Column(String(255), unique=True, nullable=False, index=True)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

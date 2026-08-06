@@ -12,6 +12,7 @@ from schemas.auth import (
     SignupRequest, LoginRequest, TokenResponse, LanguageUpdate,
     ThemeUpdate, OrganizationUpdate, PasswordChangeRequest,
     ForgotPasswordRequest, ResetPasswordRequest, VerifyEmailRequest,
+    ProfileUpdateRequest,
 )
 from middleware.auth import hash_password, verify_password, create_access_token, decode_token, get_current_user
 from middleware.plan_gate import require_role
@@ -338,8 +339,46 @@ async def change_password(
 ):
     if not verify_password(payload.current_password, current_user.hashed_password):
         raise HTTPException(status_code=401, detail="Current password is incorrect")
-    if len(payload.new_password) < 8:
-        raise HTTPException(status_code=422, detail="New password must be at least 8 characters")
     current_user.hashed_password = hash_password(payload.new_password)
     db.commit()
     return {"detail": "Password updated"}
+
+
+@router.patch("/profile")
+async def update_profile(
+    payload: ProfileUpdateRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update your own login email and/or name. Changing the email you log
+    in with is exactly the kind of thing that should require re-proving
+    you know the current password, same as changing the password itself."""
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=401, detail="Current password is incorrect")
+
+    email_changed = False
+    if payload.email and payload.email != current_user.email:
+        if db.query(User).filter(User.email == payload.email, User.id != current_user.id).first():
+            raise HTTPException(status_code=400, detail="That email is already in use.")
+        current_user.email = payload.email
+        current_user.is_verified = False
+        email_changed = True
+    if payload.first_name:
+        current_user.first_name = payload.first_name
+    if payload.last_name:
+        current_user.last_name = payload.last_name
+
+    db.commit()
+    db.refresh(current_user)
+
+    if email_changed:
+        background_tasks.add_task(_send_verification_email, str(current_user.id), current_user.email, current_user.first_name)
+
+    return {
+        "detail": "Profile updated" + (" — check your new email to verify it" if email_changed else ""),
+        "email": current_user.email,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "is_verified": current_user.is_verified,
+    }

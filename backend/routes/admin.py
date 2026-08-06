@@ -21,9 +21,10 @@ from models.owner_message import OwnerMessage
 from schemas.admin import (
     PlatformMetrics, OrganizationAdminResponse, OrganizationAdminUpdate,
     UserAdminResponse, UserAdminUpdate, OwnerMessageResponse, OwnerMessageReplyRequest,
+    VerificationFileCreate, VerificationFileOut,
 )
 from middleware.plan_gate import require_master
-from models.platform import OrgEventType
+from models.platform import OrgEventType, SiteVerificationFile
 from services.platform_service import log_org_event
 from services import platform_analytics_service as analytics
 from services.communication_agent import send_email
@@ -267,3 +268,36 @@ async def business_analytics(db: Session = Depends(get_db)):
             for plan in PlanType
         },
     }
+
+
+# ── Site verification files (Google Search Console, Bing Webmaster, Facebook
+# Domain Verification, etc.) — self-service so a future one never needs a
+# code deploy. Served publicly (no auth) from routes/verification.py. ──
+
+@router.get("/verification-files", response_model=List[VerificationFileOut])
+async def list_verification_files(db: Session = Depends(get_db)):
+    return db.query(SiteVerificationFile).order_by(SiteVerificationFile.created_at.desc()).all()
+
+
+@router.post("/verification-files", response_model=VerificationFileOut, status_code=201)
+async def create_verification_file(payload: VerificationFileCreate, db: Session = Depends(get_db)):
+    filename = payload.filename.strip().lstrip("/")
+    if not filename or "/" in filename or ".." in filename:
+        raise HTTPException(status_code=422, detail="Filename must be a single file name, no slashes.")
+    if db.query(SiteVerificationFile).filter(SiteVerificationFile.filename == filename).first():
+        raise HTTPException(status_code=400, detail="A verification file with that name already exists.")
+
+    record = SiteVerificationFile(filename=filename, content=payload.content)
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+    return record
+
+
+@router.delete("/verification-files/{file_id}", status_code=204)
+async def delete_verification_file(file_id: UUID, db: Session = Depends(get_db)):
+    record = db.query(SiteVerificationFile).filter(SiteVerificationFile.id == file_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Not found")
+    db.delete(record)
+    db.commit()

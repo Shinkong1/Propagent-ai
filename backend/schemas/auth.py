@@ -71,6 +71,13 @@ class VerifyEmailRequest(BaseModel):
     token: str
 
 
+class ProfileUpdateRequest(BaseModel):
+    email: Optional[EmailStr] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    current_password: str  # required whenever email changes -- this is your login credential
+
+
 class UserResponse(BaseModel):
     id: UUID
     email: str

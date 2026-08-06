@@ -5,6 +5,7 @@ import {
   ShieldAlert, Crown, Building2, Users, DollarSign, Sparkles, MessageSquare,
   TrendingUp, Activity, BarChart3, Search, Database, Server, Cpu, Plug, AlertOctagon, Repeat, Gift, X, Send,
   Link2, ExternalLink, Copy, Github, CreditCard, Phone, Mail, Timer, Cloud, KeyRound, Megaphone,
+  ShieldCheck, Trash2, Plus,
 } from 'lucide-react';
 import Link from 'next/link';
 import { admin as adminApi } from '../../lib/api';
@@ -628,6 +629,15 @@ export default function OwnerAdmin() {
                 </div>
               ))}
             </div>
+
+            <h3 style={{ ...sectionTitle, marginTop: 28 }}>
+              <ShieldCheck size={14} color="#FBC02D" /> Site verification files
+            </h3>
+            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 12, marginTop: -6 }}>
+              Google Search Console, Bing Webmaster Tools, and similar services confirm domain ownership by asking you to host a
+              specific file at your site's root. Add it here — it goes live immediately, no deploy needed.
+            </p>
+            <VerificationFilesPanel />
           </>
         )}
 
@@ -759,5 +769,93 @@ export default function OwnerAdmin() {
         </div>
       )}
     </DashboardLayout>
+  );
+}
+
+function VerificationFilesPanel() {
+  const [files, setFiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAdd, setShowAdd] = useState(false);
+  const [filename, setFilename] = useState('');
+  const [content, setContent] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const load = () => {
+    adminApi.listVerificationFiles().then(r => setFiles(r.data || [])).catch(() => {}).finally(() => setLoading(false));
+  };
+  useEffect(() => { load(); }, []);
+
+  const add = async () => {
+    if (!filename.trim() || !content.trim()) { toast.error('Filename and content are both required'); return; }
+    setSaving(true);
+    try {
+      await adminApi.createVerificationFile(filename.trim(), content);
+      toast.success('Verification file added — live now');
+      setFilename(''); setContent(''); setShowAdd(false);
+      load();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to add');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async (id: string) => {
+    try {
+      await adminApi.deleteVerificationFile(id);
+      setFiles(prev => prev.filter(f => f.id !== id));
+    } catch {
+      toast.error('Failed to delete');
+    }
+  };
+
+  return (
+    <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden' }}>
+      {loading ? (
+        <div style={{ padding: 20, textAlign: 'center', color: '#64748B', fontSize: 13 }}>Loading...</div>
+      ) : files.length === 0 && !showAdd ? (
+        <div style={{ padding: 20, textAlign: 'center', color: '#64748B', fontSize: 13 }}>No verification files yet.</div>
+      ) : (
+        files.map(f => (
+          <div key={f.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono' }}>{f.filename}</div>
+              <div style={{ fontSize: 11, color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{SITE_URL}/{f.filename}</div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+              <button onClick={() => copyLink(`${SITE_URL}/${f.filename}`)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 11.5, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+                <Copy size={11} /> Copy URL
+              </button>
+              <button onClick={() => remove(f.id)} title="Delete" style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#EF4444', cursor: 'pointer' }}>
+                <Trash2 size={12} />
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+
+      {showAdd ? (
+        <div style={{ padding: 16, borderTop: files.length > 0 ? '1px solid var(--border-subtle)' : 'none' }}>
+          <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B' }}>Filename (e.g. google1234567890.html)</label>
+          <input value={filename} onChange={e => setFilename(e.target.value)} placeholder="google1234567890.html"
+            style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Mono', outline: 'none', boxSizing: 'border-box', marginBottom: 12 }} />
+          <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B' }}>File contents (paste exactly what the service gave you)</label>
+          <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="google-site-verification: google1234567890.html"
+            style={{ width: '100%', height: 70, padding: '8px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 12.5, fontFamily: 'IBM Plex Mono', outline: 'none', boxSizing: 'border-box', resize: 'none', marginBottom: 12 }} />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={add} disabled={saving} style={{ padding: '8px 16px', borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', fontSize: 12.5, border: 'none', cursor: 'pointer' }}>
+              {saving ? 'Adding...' : 'Add file'}
+            </button>
+            <button onClick={() => setShowAdd(false)} style={{ padding: '8px 16px', borderRadius: 8, background: 'none', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 12.5, fontFamily: 'Syne', cursor: 'pointer' }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => setShowAdd(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px', background: 'none', border: 'none', borderTop: files.length > 0 ? '1px solid var(--border-subtle)' : 'none', color: '#FBC02D', fontSize: 12.5, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer' }}>
+          <Plus size={13} /> Add verification file
+        </button>
+      )}
+    </div>
   );
 }
