@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
-    FROM_EMAIL: str = "propagentapp@gmail.com"
+    FROM_EMAIL: str = "noreply@propagent.app"
 
     # HTTP-based email (port 443, never blocked by network-level SMTP port
     # restrictions) -- used instead of SMTP whenever configured. See
