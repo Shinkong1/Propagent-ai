@@ -47,7 +47,7 @@ async def send_contact_message(
         sender_name=current_user.full_name,
         sender_email=current_user.email,
     )
-    return {"status": result.email_status}
+    return {"status": result.email_status, "_debug_error": result.email_error}
 
 
 @router.post("/sales")
@@ -70,4 +70,4 @@ async def send_sales_inquiry(request: Request, payload: SalesContactRequest, db:
         sender_name=payload.name,
         sender_email=payload.email,
     )
-    return {"status": result.email_status}
+    return {"status": result.email_status, "_debug_error": result.email_error}
