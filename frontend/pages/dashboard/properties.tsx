@@ -86,7 +86,7 @@ export default function Properties() {
   return (
     <DashboardLayout>
       <div style={{ maxWidth: 1100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Properties</h1>
             <p style={{ color: '#64748B', fontSize: 14 }}>{props.length} properties in portfolio</p>

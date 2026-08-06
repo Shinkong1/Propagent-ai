@@ -137,7 +137,7 @@ export default function Maintenance() {
   return (
     <DashboardLayout>
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Maintenance</h1>
             <p style={{ color: '#64748B', fontSize: 14 }}>{tickets.filter(t => t.status !== 'completed').length} active tickets</p>

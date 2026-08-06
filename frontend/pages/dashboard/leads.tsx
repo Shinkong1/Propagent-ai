@@ -99,7 +99,7 @@ export default function Leads() {
   return (
     <DashboardLayout>
       <div style={{ maxWidth: 1200 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Lead CRM</h1>
             <p style={{ color: '#64748B', fontSize: 14 }}>{leadList.length} leads · AI-powered outreach</p>

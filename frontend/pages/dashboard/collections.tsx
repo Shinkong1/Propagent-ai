@@ -100,7 +100,7 @@ export default function Collections() {
   return (
     <DashboardLayout>
       <div style={{ maxWidth: 1200 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <AlertTriangle size={24} color="#FBC02D" />
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 26, color: 'var(--text-primary)' }}>{t('collections.title')}</h1>
