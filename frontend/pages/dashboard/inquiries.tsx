@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/DashboardLayout';
-import { UserSearch, Mail, Phone, Calendar, Building2, UserPlus, Users } from 'lucide-react';
+import { UserSearch, Mail, Phone, Calendar, Building2, UserPlus, Users, ShieldCheck, ShieldX, ShieldQuestion, X, Trash2 } from 'lucide-react';
 import { inquiries as inquiriesApi, properties as propertiesApi } from '../../lib/api';
 import toast from 'react-hot-toast';
 
@@ -11,6 +11,8 @@ const STATUS_COLOR: Record<string, string> = {
 };
 const STATUSES = ['new', 'contacted', 'tour_scheduled', 'applied', 'converted', 'closed'];
 
+const EMPTY_SCREEN_FORM = { annual_income: '', monthly_rent: '', credit_score: '', employment_status: '', employer: '' };
+
 export default function Inquiries() {
   const router = useRouter();
   const [inquiryList, setInquiryList] = useState<any[]>([]);
@@ -18,6 +20,9 @@ export default function Inquiries() {
   const [propertyFilter, setPropertyFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [convertingId, setConvertingId] = useState<string | null>(null);
+  const [screeningInquiry, setScreeningInquiry] = useState<any>(null);
+  const [screenForm, setScreenForm] = useState(EMPTY_SCREEN_FORM);
+  const [submittingScreen, setSubmittingScreen] = useState(false);
 
   const load = (propertyId?: string) => {
     inquiriesApi.list(propertyId === 'all' ? undefined : propertyId).then(r => setInquiryList(r.data || [])).catch(() => {}).finally(() => setLoading(false));
@@ -56,15 +61,61 @@ export default function Inquiries() {
     }
   };
 
+  const deleteInquiry = async (inquiry: any) => {
+    if (!confirm(`Delete the inquiry from ${inquiry.first_name} ${inquiry.last_name}? This can't be undone.`)) return;
+    try {
+      await inquiriesApi.delete(inquiry.id);
+      setInquiryList(prev => prev.filter(i => i.id !== inquiry.id));
+      toast.success('Inquiry deleted');
+    } catch {
+      toast.error('Failed to delete');
+    }
+  };
+
   const copyListingLink = (propertyId: string) => {
     const url = `${window.location.origin}/listings/${propertyId}`;
     navigator.clipboard.writeText(url);
     toast.success('Listing link copied!');
   };
 
+  const openScreen = (inquiry: any) => {
+    setScreeningInquiry(inquiry);
+    setScreenForm({
+      annual_income: inquiry.annual_income ? String(inquiry.annual_income) : '',
+      monthly_rent: '',
+      credit_score: inquiry.credit_score ? String(inquiry.credit_score) : '',
+      employment_status: inquiry.employment_status || '',
+      employer: inquiry.employer || '',
+    });
+  };
+
+  const submitScreen = async () => {
+    if (!screenForm.annual_income || !screenForm.monthly_rent || !screenForm.employment_status) {
+      toast.error('Annual income, monthly rent, and employment status are required');
+      return;
+    }
+    setSubmittingScreen(true);
+    try {
+      const res = await inquiriesApi.screen(screeningInquiry.id, {
+        annual_income: Number(screenForm.annual_income),
+        monthly_rent: Number(screenForm.monthly_rent),
+        credit_score: screenForm.credit_score ? Number(screenForm.credit_score) : undefined,
+        employment_status: screenForm.employment_status,
+        employer: screenForm.employer || undefined,
+      });
+      setInquiryList(prev => prev.map(i => i.id === screeningInquiry.id ? res.data : i));
+      toast.success(res.data.screening_approved ? 'Screening complete — approved' : 'Screening complete — declined');
+      setScreeningInquiry(null);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Screening failed');
+    } finally {
+      setSubmittingScreen(false);
+    }
+  };
+
   return (
     <DashboardLayout>
-      <div style={{ maxWidth: 1100 }}>
+      <div style={{ maxWidth: 1200 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Rental Inquiries</h1>
@@ -96,17 +147,17 @@ export default function Inquiries() {
         ) : (
           <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 800 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 940 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
-                    {['Prospect', 'Property / Unit', 'Contact', 'Move-in', 'Status', 'Actions'].map(h => (
+                    {['Prospect', 'Property / Unit', 'Contact', 'Move-in', 'Status', 'Screening', 'Actions'].map(h => (
                       <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', fontWeight: 500 }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {inquiryList.length === 0 ? (
-                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: '60px', color: '#475569', fontFamily: 'IBM Plex Sans' }}>
+                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: '60px', color: '#475569', fontFamily: 'IBM Plex Sans' }}>
                       <UserSearch size={32} style={{ margin: '0 auto 12px', opacity: 0.3, display: 'block' }} />
                       No inquiries yet. Share a listing link above to start collecting them.
                     </td></tr>
@@ -137,14 +188,38 @@ export default function Inquiries() {
                         </select>
                       </td>
                       <td style={{ padding: '14px 16px' }}>
-                        {i.status !== 'converted' ? (
-                          <button onClick={() => convertToTenant(i)} disabled={convertingId === i.id} title="Convert to tenant"
-                            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 6, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#10B981', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
-                            <UserPlus size={11} /> {convertingId === i.id ? '...' : 'Convert'}
+                        {i.screened_at ? (
+                          <button onClick={() => openScreen(i)} title={i.screening_notes || 'No issues found'}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 6, cursor: 'pointer', border: 'none',
+                              background: i.screening_approved ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                              color: i.screening_approved ? '#10B981' : '#EF4444', fontSize: 11, fontFamily: 'IBM Plex Mono',
+                            }}>
+                            {i.screening_approved ? <ShieldCheck size={12} /> : <ShieldX size={12} />}
+                            {i.screening_approved ? 'Approved' : 'Declined'} · {Math.round(i.screening_score)}
                           </button>
                         ) : (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#10B981' }}><Users size={11} /> Tenant</span>
+                          <button onClick={() => openScreen(i)}
+                            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: '#64748B', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+                            <ShieldQuestion size={12} /> Screen
+                          </button>
                         )}
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {i.status !== 'converted' ? (
+                            <button onClick={() => convertToTenant(i)} disabled={convertingId === i.id} title="Convert to tenant"
+                              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 6, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#10B981', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+                              <UserPlus size={11} /> {convertingId === i.id ? '...' : 'Convert'}
+                            </button>
+                          ) : (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#10B981' }}><Users size={11} /> Tenant</span>
+                          )}
+                          <button onClick={() => deleteInquiry(i)} title="Delete inquiry"
+                            style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: 6, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#EF4444', cursor: 'pointer' }}>
+                            <Trash2 size={11} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -154,6 +229,68 @@ export default function Inquiries() {
           </div>
         )}
       </div>
+
+      {screeningInquiry && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 20 }}
+          onClick={() => setScreeningInquiry(null)}>
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 24, width: '100%', maxWidth: 440 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>
+                Screen {screeningInquiry.first_name} {screeningInquiry.last_name}
+              </h2>
+              <button onClick={() => setScreeningInquiry(null)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={16} /></button>
+            </div>
+            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>Run before converting to a tenant — score is based on income-to-rent ratio and credit.</p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+              <ScreenField label="Annual income ($)" value={screenForm.annual_income} onChange={v => setScreenForm(p => ({ ...p, annual_income: v }))} />
+              <ScreenField label="Monthly rent ($)" value={screenForm.monthly_rent} onChange={v => setScreenForm(p => ({ ...p, monthly_rent: v }))} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+              <ScreenField label="Credit score (optional)" value={screenForm.credit_score} onChange={v => setScreenForm(p => ({ ...p, credit_score: v }))} />
+              <ScreenField label="Employer (optional)" value={screenForm.employer} onChange={v => setScreenForm(p => ({ ...p, employer: v }))} type="text" />
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label style={lbl}>Employment status</label>
+              <select value={screenForm.employment_status} onChange={e => setScreenForm(p => ({ ...p, employment_status: e.target.value }))} style={inp}>
+                <option value="">Select...</option>
+                <option value="employed">Employed</option>
+                <option value="self-employed">Self-employed</option>
+                <option value="unemployed">Unemployed</option>
+                <option value="retired">Retired</option>
+                <option value="student">Student</option>
+              </select>
+            </div>
+
+            {screeningInquiry.screened_at && (
+              <div style={{ marginBottom: 16, padding: '10px 12px', borderRadius: 8, background: screeningInquiry.screening_approved ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', fontSize: 12, color: 'var(--text-secondary)' }}>
+                Last screened {new Date(screeningInquiry.screened_at).toLocaleDateString()}: {screeningInquiry.screening_approved ? 'Approved' : 'Declined'} (score {Math.round(screeningInquiry.screening_score)})
+                {screeningInquiry.screening_notes && <div style={{ marginTop: 4 }}>{screeningInquiry.screening_notes}</div>}
+              </div>
+            )}
+
+            <button onClick={submitScreen} disabled={submittingScreen} style={{
+              width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)',
+              fontWeight: 700, fontFamily: 'Syne', fontSize: 14, border: 'none', borderRadius: 8, cursor: 'pointer',
+            }}>
+              {submittingScreen ? 'Screening...' : 'Run screening'}
+            </button>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
+
+function ScreenField({ label, value, onChange, type = 'number' }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+  return (
+    <div>
+      <label style={lbl}>{label}</label>
+      <input type={type} value={value} onChange={e => onChange(e.target.value)} style={inp} />
+    </div>
+  );
+}
+
+const lbl: React.CSSProperties = { display: 'block', marginBottom: 5, fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' };
+const inp: React.CSSProperties = { width: '100%', padding: '9px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none', boxSizing: 'border-box' };

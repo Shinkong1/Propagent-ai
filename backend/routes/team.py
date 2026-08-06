@@ -15,7 +15,7 @@ from database.session import get_db
 from models.user import User, UserRole
 from schemas.team import TeamMemberResponse, TeamMemberInvite, TeamMemberRoleUpdate, TeamInviteResponse
 from middleware.auth import get_current_user, hash_password
-from middleware.plan_gate import require_role
+from middleware.plan_gate import require_role, get_plan_limits, enforce_count_limit
 from services.communication_agent import send_email
 
 logger = logging.getLogger(__name__)
@@ -52,6 +52,13 @@ async def invite_member(
         raise HTTPException(status_code=403, detail="Only an owner can invite a manager.")
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
+
+    # Total seats on the org (owner included), not just invited members --
+    # otherwise a single subscription could be shared across an unlimited
+    # team by inviting everyone as "staff" to dodge per-seat pricing pressure.
+    current_seats = db.query(User).filter(User.organization_id == current_user.organization_id, User.is_active == True).count()
+    limit = get_plan_limits(current_user.organization)["team_members"]
+    enforce_count_limit(current_seats, limit, "team members")
 
     temp_password = secrets.token_urlsafe(9)
     member = User(

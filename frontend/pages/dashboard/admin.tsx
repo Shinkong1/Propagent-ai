@@ -28,10 +28,11 @@ const EXTERNAL_SERVICES = [
   { name: 'Vercel', role: 'Frontend hosting, deploy logs, env vars', url: 'https://vercel.com/dashboard', icon: Cloud },
   { name: 'Stripe', role: 'Payments, subscriptions, Connect accounts', url: 'https://dashboard.stripe.com', icon: CreditCard },
   { name: 'Neon', role: 'Postgres database', url: 'https://console.neon.tech', icon: Database },
+  { name: 'Resend', role: 'Email sending — password resets, invites, notifications', url: 'https://resend.com/emails', icon: Mail },
   { name: 'Twilio', role: 'Voice AI + SMS', url: 'https://console.twilio.com', icon: Phone },
   { name: 'cron-job.org', role: 'Hourly outreach queue trigger', url: 'https://console.cron-job.org', icon: Timer },
   { name: 'Google Cloud Console', role: 'Google Sign-In OAuth credentials', url: 'https://console.cloud.google.com', icon: KeyRound },
-  { name: 'Gmail', role: 'The SMTP account emails are sent from', url: 'https://mail.google.com', icon: Mail },
+  { name: 'Google Search Console', role: 'Search indexing, submitted sitemap status', url: 'https://search.google.com/search-console', icon: KeyRound },
   { name: 'GitHub', role: 'Source code', url: 'https://github.com/Shinkong1/Propagent-ai', icon: Github },
   { name: 'API Docs', role: 'Live interactive backend API reference', url: `${API_URL}/docs`, icon: Plug },
 ];
@@ -698,9 +699,24 @@ export default function OwnerAdmin() {
                 </div>
                 <div style={{ fontSize: 11, color: '#475569', marginTop: 2, fontFamily: 'IBM Plex Mono' }}>{new Date(selectedMessage.created_at).toLocaleString()}</div>
               </div>
-              <button onClick={() => setSelectedMessage(null)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
-                <X size={18} />
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <button onClick={async () => {
+                  if (!confirm('Delete this message? This can\'t be undone.')) return;
+                  try {
+                    await adminApi.deleteMessage(selectedMessage.id);
+                    setMessages(prev => prev.filter(m => m.id !== selectedMessage.id));
+                    setSelectedMessage(null);
+                    toast.success('Message deleted');
+                  } catch {
+                    toast.error('Failed to delete');
+                  }
+                }} title="Delete message" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#EF4444', cursor: 'pointer', padding: 6, borderRadius: 6, display: 'flex', alignItems: 'center' }}>
+                  <Trash2 size={14} />
+                </button>
+                <button onClick={() => setSelectedMessage(null)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 16, fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.6, whiteSpace: 'pre-wrap', marginBottom: 18 }}>

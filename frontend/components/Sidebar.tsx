@@ -29,24 +29,45 @@ const NAV: NavEntry[] = [
   { href: '/dashboard/leads', key: 'nav.leads', icon: UserSearch, masterOnly: true },
   { href: '/dashboard/marketing', key: 'nav.marketing', icon: Megaphone, masterOnly: true },
   {
-    group: true, groupKey: 'property_ops', labelKey: 'nav.groupPropertyOps', icon: Building2,
+    // Leasing: everything about finding, screening, and talking to tenants.
+    group: true, groupKey: 'leasing', labelKey: 'nav.groupLeasing', icon: Building2,
     items: [
       { href: '/dashboard/properties', key: 'nav.properties', icon: Building2 },
       { href: '/dashboard/inquiries', key: 'nav.inquiries', icon: Home },
       { href: '/dashboard/tenants', key: 'nav.tenants', icon: Users },
+      { href: '/dashboard/communications', key: 'nav.communications', icon: MessageSquare, minTier: 'professional' },
+      { href: '/dashboard/documents', key: 'nav.documents', icon: FileText },
+    ],
+  },
+  {
+    // Operations: upkeep of the physical property itself.
+    group: true, groupKey: 'operations', labelKey: 'nav.groupOperations', icon: Wrench,
+    items: [
       { href: '/dashboard/maintenance', key: 'nav.maintenance', icon: Wrench },
       { href: '/dashboard/inspections', key: 'nav.inspections', icon: ClipboardCheck, minTier: 'professional' },
+      { href: '/dashboard/compliance', key: 'nav.compliance', icon: ShieldCheck, minTier: 'professional' },
+    ],
+  },
+  {
+    // Financials: money in, money tracked.
+    group: true, groupKey: 'financials', labelKey: 'nav.groupFinancials', icon: Landmark,
+    items: [
       { href: '/dashboard/accounting', key: 'nav.accounting', icon: Landmark },
       { href: '/dashboard/collections', key: 'nav.collections', icon: AlertTriangle, minTier: 'professional' },
-      { href: '/dashboard/compliance', key: 'nav.compliance', icon: ShieldCheck, minTier: 'professional' },
-      { href: '/dashboard/documents', key: 'nav.documents', icon: FileText },
-      { href: '/dashboard/communications', key: 'nav.communications', icon: MessageSquare, minTier: 'professional' },
+    ],
+  },
+  {
+    // Insights: reporting, forecasting, and automation rules -- the
+    // "look at your portfolio from above" tools, grouped together
+    // (predictive insights sits with analytics, not buried in operations).
+    group: true, groupKey: 'insights', labelKey: 'nav.groupInsights', icon: BarChart3,
+    items: [
       { href: '/dashboard/analytics', key: 'nav.analytics', icon: BarChart3 },
+      { href: '/dashboard/predictive', key: 'nav.predictive', icon: Radar, minTier: 'enterprise' },
       { href: '/dashboard/portfolio', key: 'nav.portfolio', icon: Boxes, minTier: 'enterprise' },
       { href: '/dashboard/investment', key: 'nav.investment', icon: TrendingUp, minTier: 'enterprise' },
       { href: '/dashboard/pricing-intel', key: 'nav.pricingIntel', icon: LineChart, minTier: 'enterprise' },
       { href: '/dashboard/workflows', key: 'nav.workflows', icon: Workflow, minTier: 'enterprise' },
-      { href: '/dashboard/predictive', key: 'nav.predictive', icon: Radar, minTier: 'enterprise' },
     ],
   },
   {

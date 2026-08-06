@@ -86,6 +86,9 @@ export const inquiries = {
   list: (propertyId?: string, status?: string) => api.get('/inquiries', { params: { property_id: propertyId, status } }),
   update: (id: string, data: any) => api.patch(`/inquiries/${id}`, data),
   convertToTenant: (id: string) => api.post(`/inquiries/${id}/convert-to-tenant`),
+  screen: (id: string, data: { annual_income: number; monthly_rent: number; credit_score?: number; employment_status: string; employer?: string }) =>
+    api.post(`/inquiries/${id}/screen`, data),
+  delete: (id: string) => api.delete(`/inquiries/${id}`),
 };
 
 export const tenants = {
@@ -226,6 +229,7 @@ export const admin = {
   updateUser: (id: string, data: any) => api.patch(`/admin/users/${id}`, data),
   listMessages: () => api.get('/admin/messages'),
   replyToMessage: (id: string, reply: string) => api.post(`/admin/messages/${id}/reply`, { reply }),
+  deleteMessage: (id: string) => api.delete(`/admin/messages/${id}`),
   subscribers: (search?: string, status?: string) => api.get('/admin/subscribers', { params: { search, status } }),
   revenue: () => api.get('/admin/revenue'),
   invoicesForOrg: (orgId: string) => api.get(`/admin/revenue/invoices/${orgId}`),

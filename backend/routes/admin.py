@@ -212,6 +212,15 @@ async def reply_to_owner_message(message_id: UUID, payload: OwnerMessageReplyReq
     )
 
 
+@router.delete("/messages/{message_id}", status_code=204)
+async def delete_owner_message(message_id: UUID, db: Session = Depends(get_db)):
+    message = db.query(OwnerMessage).filter(OwnerMessage.id == message_id).first()
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    db.delete(message)
+    db.commit()
+
+
 # ============================================================
 # Business dashboard — Subscriber Management, Revenue, Marketing,
 # Platform & AI Ops, Business Analytics

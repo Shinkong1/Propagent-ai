@@ -6,6 +6,7 @@ tightly coupled: a public, unauthenticated listing/inquiry surface, and a
 staff-facing management surface behind normal auth.
 """
 import logging
+from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
@@ -22,7 +23,7 @@ from middleware.auth import get_current_user
 from services.communication_agent import send_email
 from schemas.inquiry import (
     PublicListingOut, PublicUnitOut, PublicListingSummary, InquiryCreate,
-    InquiryOut, InquiryUpdate,
+    InquiryOut, InquiryUpdate, InquiryScreenRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,10 @@ def _inquiry_out(i: RentalInquiry) -> InquiryOut:
         message=i.message, desired_move_in=i.desired_move_in, status=i.status.value, notes=i.notes,
         property_id=i.property_id, property_name=i.property_name,
         unit_id=i.unit_id, unit_number=i.unit_number, created_at=i.created_at,
+        annual_income=i.annual_income, credit_score=i.credit_score,
+        employment_status=i.employment_status, employer=i.employer,
+        screening_approved=i.screening_approved, screening_score=i.screening_score,
+        screening_notes=i.screening_notes, screened_at=i.screened_at,
     )
 
 
@@ -183,6 +188,63 @@ async def update_inquiry(
     return _inquiry_out(inquiry)
 
 
+@router.delete("/inquiries/{inquiry_id}", status_code=204)
+async def delete_inquiry(
+    inquiry_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    inquiry = db.query(RentalInquiry).filter(
+        RentalInquiry.id == inquiry_id, RentalInquiry.organization_id == current_user.organization_id
+    ).first()
+    if not inquiry:
+        raise HTTPException(status_code=404, detail="Inquiry not found")
+    db.delete(inquiry)
+    db.commit()
+
+
+@router.post("/inquiries/{inquiry_id}/screen", response_model=InquiryOut)
+async def screen_inquiry(
+    inquiry_id: UUID,
+    payload: InquiryScreenRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Run the same scoring logic as the standalone /screening/evaluate
+    endpoint, but against an inquiry directly -- no Tenant record needs to
+    exist yet. This is meant to run BEFORE convert-to-tenant, not after:
+    decide whether to approve someone before you create their account."""
+    from services.tenant_service import evaluate_screening
+
+    inquiry = db.query(RentalInquiry).filter(
+        RentalInquiry.id == inquiry_id, RentalInquiry.organization_id == current_user.organization_id
+    ).first()
+    if not inquiry:
+        raise HTTPException(status_code=404, detail="Inquiry not found")
+
+    result = await evaluate_screening(
+        annual_income=payload.annual_income,
+        monthly_rent=payload.monthly_rent,
+        credit_score=payload.credit_score or 0,
+        employment_status=payload.employment_status,
+    )
+
+    inquiry.annual_income = payload.annual_income
+    inquiry.credit_score = payload.credit_score
+    inquiry.employment_status = payload.employment_status
+    inquiry.employer = payload.employer
+    inquiry.screening_approved = result["approved"]
+    inquiry.screening_score = result["score"]
+    inquiry.screening_notes = "; ".join(result.get("issues", [])) or None
+    inquiry.screened_at = datetime.utcnow()
+    if inquiry.status == InquiryStatus.new:
+        inquiry.status = InquiryStatus.applied
+
+    db.commit()
+    db.refresh(inquiry)
+    return _inquiry_out(inquiry)
+
+
 @router.post("/inquiries/{inquiry_id}/convert-to-tenant", response_model=dict, status_code=201)
 async def convert_inquiry_to_tenant(
     inquiry_id: UUID,
@@ -190,7 +252,11 @@ async def convert_inquiry_to_tenant(
     current_user: User = Depends(get_current_user),
 ):
     """Create a real Tenant from this inquiry — and a Lease too, if the
-    inquiry was tied to a specific unit that's still vacant."""
+    inquiry was tied to a specific unit that's still vacant. Screening is
+    never hard-required here -- it's the property manager's call whether to
+    convert an unscreened or declined applicant anyway, same as it would be
+    in real life; screening data just carries over onto the Tenant record
+    if it exists."""
     inquiry = db.query(RentalInquiry).filter(
         RentalInquiry.id == inquiry_id, RentalInquiry.organization_id == current_user.organization_id
     ).first()
@@ -201,6 +267,9 @@ async def convert_inquiry_to_tenant(
         organization_id=current_user.organization_id,
         first_name=inquiry.first_name, last_name=inquiry.last_name,
         email=inquiry.email, phone=inquiry.phone,
+        annual_income=inquiry.annual_income, credit_score=inquiry.credit_score,
+        employment_status=inquiry.employment_status, employer=inquiry.employer,
+        screening_approved=inquiry.screening_approved,
     )
     db.add(tenant)
     db.flush()

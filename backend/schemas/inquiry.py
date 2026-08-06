@@ -74,6 +74,14 @@ class InquiryOut(BaseModel):
     unit_id: Optional[UUID] = None
     unit_number: Optional[str] = None
     created_at: datetime
+    annual_income: Optional[float] = None
+    credit_score: Optional[float] = None
+    employment_status: Optional[str] = None
+    employer: Optional[str] = None
+    screening_approved: Optional[bool] = None
+    screening_score: Optional[float] = None
+    screening_notes: Optional[str] = None
+    screened_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -82,3 +90,11 @@ class InquiryOut(BaseModel):
 class InquiryUpdate(BaseModel):
     status: Optional[str] = None
     notes: Optional[str] = None
+
+
+class InquiryScreenRequest(BaseModel):
+    annual_income: float
+    monthly_rent: float
+    credit_score: Optional[float] = None
+    employment_status: str
+    employer: Optional[str] = None

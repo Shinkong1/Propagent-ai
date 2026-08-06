@@ -1,7 +1,7 @@
 import builtins
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Date, ForeignKey, Text, Enum as SAEnum
+from sqlalchemy import Column, String, DateTime, Date, ForeignKey, Text, Boolean, Float, Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import enum
@@ -43,6 +43,18 @@ class RentalInquiry(Base):
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Screening -- run before converting to a tenant, not after. Nullable
+    # throughout: an un-screened inquiry (screened_at is None) is a normal,
+    # expected state, not a missing/broken one.
+    annual_income = Column(Float, nullable=True)
+    credit_score = Column(Float, nullable=True)
+    employment_status = Column(String(100), nullable=True)
+    employer = Column(String(255), nullable=True)
+    screening_approved = Column(Boolean, nullable=True)
+    screening_score = Column(Float, nullable=True)
+    screening_notes = Column(Text, nullable=True)
+    screened_at = Column(DateTime, nullable=True)
 
     organization = relationship("Organization")
     property = relationship("Property")

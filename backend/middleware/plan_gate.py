@@ -36,11 +36,13 @@ PLAN_RANK = {
 }
 
 # Mirrors the caps advertised on the pricing page (backend/routes/billing.py).
-# -1 means unlimited.
+# -1 means unlimited. team_members counts the owner too (total seats on the
+# org), not just invited members -- exists specifically so one subscription
+# can't be shared across an unlimited team to dodge per-seat pricing pressure.
 PLAN_LIMITS = {
-    PlanType.starter: {"properties": 3, "units": 25, "ai_calls": 100},
-    PlanType.professional: {"properties": 15, "units": 150, "ai_calls": 1000},
-    PlanType.enterprise: {"properties": -1, "units": -1, "ai_calls": -1},
+    PlanType.starter: {"properties": 3, "units": 25, "ai_calls": 100, "team_members": 3},
+    PlanType.professional: {"properties": 15, "units": 150, "ai_calls": 1000, "team_members": 10},
+    PlanType.enterprise: {"properties": -1, "units": -1, "ai_calls": -1, "team_members": -1},
 }
 
 AI_CALL_WINDOW_DAYS = 30
