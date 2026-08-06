@@ -1,4 +1,10 @@
-"""Lead management and CRM routes"""
+"""Lead management and CRM routes — this is PropAgent AI's own sales pipeline
+for finding and closing *new subscribers* to the platform (scraping
+landlords/property managers off Google Maps, LinkedIn, Zillow and sending
+AI outreach pitching PropAgent AI itself). It has nothing to do with any
+subscriber's own tenants or rental leads, so it's restricted to the
+platform owner only — a regular subscriber has no reason to be sending
+sales outreach on PropAgent's behalf."""
 import logging
 from typing import List, Optional
 from uuid import UUID
@@ -6,15 +12,15 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from database.session import get_db
-from models.user import User, PlanType
+from models.user import User
 from models.lead import Lead, OutreachEmail, LeadStatus, LeadSource
 from middleware.auth import get_current_user
-from middleware.plan_gate import require_plan
+from middleware.plan_gate import require_master
 from models.workflow import WorkflowTrigger
 from services.workflow_engine import run_workflows
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/leads", tags=["leads"])
+router = APIRouter(prefix="/leads", tags=["leads"], dependencies=[Depends(require_master)])
 
 
 @router.get("/", response_model=List[dict])
@@ -100,9 +106,9 @@ async def send_outreach(
     lead_id: UUID,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_plan(PlanType.professional))
+    current_user: User = Depends(get_current_user)
 ):
-    """Queue outreach email for a lead via AI-generated personalized copy — Professional plan and up"""
+    """Queue outreach email for a lead via AI-generated personalized copy."""
     lead = db.query(Lead).filter(
         Lead.id == lead_id, Lead.organization_id == current_user.organization_id
     ).first()
@@ -119,9 +125,9 @@ async def trigger_scrape(
     payload: dict,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_plan(PlanType.professional))
+    current_user: User = Depends(get_current_user)
 ):
-    """Trigger lead scraping from various sources — Professional plan and up"""
+    """Trigger lead scraping from various sources."""
     from workers.tasks.lead_scraping import scrape_leads_task
     background_tasks.add_task(
         scrape_leads_task,

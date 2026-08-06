@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { UserSearch, Plus, Mail, Zap, ExternalLink, Search, X } from 'lucide-react';
+import { UserSearch, Plus, Mail, Zap, ExternalLink, Search, X, ShieldAlert } from 'lucide-react';
 import { leads as leadsApi } from '../../lib/api';
+import { getUser } from '../../lib/auth';
 import toast from 'react-hot-toast';
 
 const STATUS_COLOR: any = { new: '#64748B', contacted: '#3B82F6', interested: '#8B5CF6', demo_scheduled: '#FBC02D', negotiating: '#F97316', closed_won: '#10B981', closed_lost: '#EF4444' };
@@ -9,6 +10,8 @@ const STATUS_COLOR: any = { new: '#64748B', contacted: '#3B82F6', interested: '#
 const EMPTY_LEAD_FORM = { first_name: '', last_name: '', company: '', email: '', phone: '', city: '', state: '' };
 
 export default function Leads() {
+  const { t } = useLanguage();
+  const [isMaster, setIsMaster] = useState(false);
   const [leadList, setLeadList] = useState<any[]>([]);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -17,7 +20,22 @@ export default function Leads() {
   const [addForm, setAddForm] = useState(EMPTY_LEAD_FORM);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { leadsApi.list().then(r => setLeadList(r.data || [])).catch(() => {}); }, []);
+  useEffect(() => { setIsMaster(!!getUser()?.is_master); }, []);
+  useEffect(() => { if (isMaster) leadsApi.list().then(r => setLeadList(r.data || [])).catch(() => {}); }, [isMaster]);
+
+  if (!isMaster) {
+    return (
+      <DashboardLayout>
+        <div style={{ maxWidth: 640, margin: '80px auto', textAlign: 'center' }}>
+          <div style={{ width: 56, height: 56, borderRadius: 14, background: 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+            <ShieldAlert size={26} color="#EF4444" />
+          </div>
+          <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text-primary)', marginBottom: 10 }}>Lead CRM</h1>
+          <p style={{ color: '#64748B', fontSize: 14 }}>This is PropAgent AI's own sales pipeline for finding new subscribers — it's restricted to the platform owner.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const addLead = async () => {
     if (!addForm.first_name.trim() && !addForm.last_name.trim() && !addForm.company.trim()) {

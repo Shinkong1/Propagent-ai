@@ -22,6 +22,11 @@ function isNavGroup(entry: NavEntry): entry is NavGroup {
 const NAV: NavEntry[] = [
   { href: '/dashboard', key: 'nav.overview', icon: LayoutDashboard },
   { href: '/dashboard/admin', key: 'nav.admin', icon: Crown, masterOnly: true },
+  // Lead CRM finds/pitches *new PropAgent AI subscribers* (it's PropAgent's
+  // own sales pipeline, not anything belonging to a customer's org) — owner
+  // only, and deliberately outside property_ops since that group's item
+  // rendering doesn't filter by masterOnly, only this top-level list does.
+  { href: '/dashboard/leads', key: 'nav.leads', icon: UserSearch, masterOnly: true },
   {
     group: true, groupKey: 'property_ops', labelKey: 'nav.groupPropertyOps', icon: Building2,
     items: [
@@ -34,7 +39,6 @@ const NAV: NavEntry[] = [
       { href: '/dashboard/compliance', key: 'nav.compliance', icon: ShieldCheck, minTier: 'professional' },
       { href: '/dashboard/documents', key: 'nav.documents', icon: FileText },
       { href: '/dashboard/communications', key: 'nav.communications', icon: MessageSquare, minTier: 'professional' },
-      { href: '/dashboard/leads', key: 'nav.leads', icon: UserSearch },
       { href: '/dashboard/analytics', key: 'nav.analytics', icon: BarChart3 },
       { href: '/dashboard/portfolio', key: 'nav.portfolio', icon: Boxes, minTier: 'enterprise' },
       { href: '/dashboard/investment', key: 'nav.investment', icon: TrendingUp, minTier: 'enterprise' },
