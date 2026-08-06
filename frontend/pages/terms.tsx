@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { Zap, AlertTriangle } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import PublicFooter from '../components/PublicFooter';
 
 const LAST_UPDATED = 'August 3, 2026';
@@ -25,13 +25,6 @@ export default function Terms() {
         <div style={{ maxWidth: 780, margin: '0 auto', padding: '48px 24px 80px' }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 32, color: 'var(--text-primary)', marginBottom: 8 }}>Terms of Service</h1>
           <p style={{ color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Mono', marginBottom: 24 }}>Last updated: {LAST_UPDATED}</p>
-
-          <div style={{ display: 'flex', gap: 12, background: 'rgba(251,192,45,0.08)', border: '1px solid rgba(251,192,45,0.25)', borderRadius: 12, padding: '16px 18px', marginBottom: 32 }}>
-            <AlertTriangle size={20} color="#FBC02D" style={{ flexShrink: 0, marginTop: 2 }} />
-            <p style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
-              <strong style={{ color: '#FBC02D' }}>Draft placeholder — not legal advice, no attorney has reviewed this.</strong> This version adds commonly-used protective clauses (indemnification, arbitration/class-action waiver, liability limits, disclaimers) on top of the earlier draft, but "commonly used" is not the same as "enforceable for your business" — arbitration clauses in particular have jurisdiction-specific requirements to hold up, and consumer-protection carve-outs vary by state/country. Replace every bracketed placeholder with your real legal entity and jurisdiction, and get this reviewed by a licensed attorney before your first paying customer signs up. Operating without that review is a real, uninsured risk you're currently carrying.
-            </p>
-          </div>
 
           <Section title="1. Agreement to Terms">
             These Terms of Service ("Terms") govern access to and use of PropAgent AI (the "Service"), operated by NamaStay LLC ("Company", "we", "us"). By creating an account or using the Service, you ("Customer", "you") agree to be bound by these Terms. If you are entering into these Terms on behalf of a company or other legal entity, you represent that you have authority to bind that entity.
@@ -84,7 +77,7 @@ export default function Terms() {
           </Section>
 
           <Section title="13. Dispute Resolution; Binding Arbitration; Class Action Waiver">
-            <strong>Please read this section carefully — it affects your legal rights.</strong> You and the Company agree that any dispute, claim, or controversy arising out of or relating to these Terms or the Service will be resolved by binding, individual arbitration administered by <Placeholder>[American Arbitration Association / JAMS]</Placeholder> under its rules then in effect, rather than in court, except that either party may bring an individual action in small-claims court.<br /><br />
+            <strong>Please read this section carefully — it affects your legal rights.</strong> You and the Company agree that any dispute, claim, or controversy arising out of or relating to these Terms or the Service will be resolved by binding, individual arbitration administered by the American Arbitration Association (AAA) under its Consumer Arbitration Rules then in effect, rather than in court, except that either party may bring an individual action in small-claims court.<br /><br />
             <strong>YOU AND THE COMPANY EACH WAIVE THE RIGHT TO A JURY TRIAL AND THE RIGHT TO PARTICIPATE IN A CLASS ACTION, CLASS ARBITRATION, OR REPRESENTATIVE PROCEEDING.</strong> Disputes will be resolved only on an individual basis, and claims of more than one customer cannot be arbitrated or litigated jointly or consolidated with those of any other customer. If this class-action waiver is found unenforceable as to a particular dispute, that dispute (and only that dispute) will proceed in court rather than in arbitration.<br /><br />
             You may opt out of this arbitration agreement within 30 days of first accepting these Terms by sending written notice to propagentapp@gmail.com with your name, account email, and a clear statement that you wish to opt out of arbitration.
           </Section>
@@ -126,8 +119,4 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <p style={{ fontSize: 14, lineHeight: 1.75, color: 'var(--text-secondary)' }}>{children}</p>
     </div>
   );
-}
-
-function Placeholder({ children }: { children: React.ReactNode }) {
-  return <span style={{ background: 'rgba(251,192,45,0.15)', color: '#FBC02D', padding: '1px 6px', borderRadius: 4, fontFamily: 'IBM Plex Mono', fontSize: 13 }}>{children}</span>;
 }

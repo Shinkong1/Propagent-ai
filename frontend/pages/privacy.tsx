@@ -34,7 +34,7 @@ export default function Privacy() {
           </div>
 
           <Section title="1. What This Policy Covers">
-            This Privacy Policy explains how <Placeholder>[Legal Entity Name]</Placeholder> ("we", "us") collects, uses, and shares information when you use PropAgent AI (the "Service"). It applies to information about you as a Customer, and — where you upload it — information about your tenants, leads, and vendors ("Third-Party Data").
+            This Privacy Policy explains how NamaStay LLC ("we", "us") collects, uses, and shares information when you use PropAgent AI (the "Service"). It applies to information about you as a Customer, and — where you upload it — information about your tenants, leads, and vendors ("Third-Party Data").
           </Section>
 
           <Section title="2. Information We Collect">
@@ -58,7 +58,7 @@ export default function Privacy() {
           </Section>
 
           <Section title="6. Data Retention">
-            We retain Customer Data for as long as your account is active. If you cancel, we retain data for <Placeholder>[30/90 days]</Placeholder> to allow reactivation, after which it is deleted, except where retention is required for legal or accounting purposes.
+            We retain Customer Data for as long as your account is active. If you cancel, we retain data for 90 days to allow reactivation, after which it is deleted, except where retention is required for legal or accounting purposes.
           </Section>
 
           <Section title="7. Security">
@@ -98,8 +98,4 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <p style={{ fontSize: 14, lineHeight: 1.75, color: 'var(--text-secondary)' }}>{children}</p>
     </div>
   );
-}
-
-function Placeholder({ children }: { children: React.ReactNode }) {
-  return <span style={{ background: 'rgba(251,192,45,0.15)', color: '#FBC02D', padding: '1px 6px', borderRadius: 4, fontFamily: 'IBM Plex Mono', fontSize: 13 }}>{children}</span>;
 }
