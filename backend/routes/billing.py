@@ -180,7 +180,12 @@ async def connect_status(
                 requests.get,
                 f"https://api.stripe.com/v2/core/accounts/{org.stripe_connect_account_id}",
                 params={"include": ["configuration.merchant", "configuration.recipient"]},
-                headers={"Authorization": f"Bearer {settings.STRIPE_SECRET}"},
+                headers={
+                    "Authorization": f"Bearer {settings.STRIPE_SECRET}",
+                    # v2 endpoints require this explicitly — v1 infers it from
+                    # the account's default version, v2 does not.
+                    "Stripe-Version": "2026-07-29.dahlia",
+                },
                 timeout=10,
             )
             if resp.ok:
