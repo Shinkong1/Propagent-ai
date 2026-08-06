@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
-  LayoutDashboard, Building2, Users, Wrench, UserSearch,
+  LayoutDashboard, Building2, Users, Wrench, UserSearch, Home,
   BarChart3, Phone, CreditCard, LogOut, Zap, User, Landmark, Sparkles, Boxes, ShieldCheck, AlertTriangle, TrendingUp, FileText, LineChart, ClipboardCheck, MessageSquare, MessageCircle, Settings, Lock, Crown, ChevronLeft, ChevronRight, Workflow, Radar, ChevronRight as CaretRight, X
 } from 'lucide-react';
 import { clearToken, getUser } from '../lib/auth';
@@ -31,6 +31,7 @@ const NAV: NavEntry[] = [
     group: true, groupKey: 'property_ops', labelKey: 'nav.groupPropertyOps', icon: Building2,
     items: [
       { href: '/dashboard/properties', key: 'nav.properties', icon: Building2 },
+      { href: '/dashboard/inquiries', key: 'nav.inquiries', icon: Home },
       { href: '/dashboard/tenants', key: 'nav.tenants', icon: Users },
       { href: '/dashboard/maintenance', key: 'nav.maintenance', icon: Wrench },
       { href: '/dashboard/inspections', key: 'nav.inspections', icon: ClipboardCheck, minTier: 'professional' },

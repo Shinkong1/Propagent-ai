@@ -67,6 +67,17 @@ export const properties = {
   aiActivity: (days = 30) => api.get('/properties/stats/ai-activity', { params: { days } }),
 };
 
+export const publicListings = {
+  get: (propertyId: string) => api.get(`/public/listings/${propertyId}`),
+  inquire: (propertyId: string, data: any) => api.post(`/public/listings/${propertyId}/inquire`, data),
+};
+
+export const inquiries = {
+  list: (propertyId?: string, status?: string) => api.get('/inquiries', { params: { property_id: propertyId, status } }),
+  update: (id: string, data: any) => api.patch(`/inquiries/${id}`, data),
+  convertToTenant: (id: string) => api.post(`/inquiries/${id}/convert-to-tenant`),
+};
+
 export const tenants = {
   list: (propertyId?: string) => api.get('/tenants/', { params: { property_id: propertyId } }),
   create: (data: any) => api.post('/tenants/', data),

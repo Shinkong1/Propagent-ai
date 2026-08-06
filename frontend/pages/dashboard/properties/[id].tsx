@@ -4,7 +4,7 @@ import Link from 'next/link';
 import DashboardLayout from '../../../components/DashboardLayout';
 import {
   ArrowLeft, Building2, MapPin, DollarSign, Home, Wrench, Users,
-  CheckCircle, XCircle, Star, Phone, Mail, ChevronDown, ChevronUp, FileText, Lock, Pencil, X, Plus, Trash2, Upload,
+  CheckCircle, XCircle, Star, Phone, Mail, ChevronDown, ChevronUp, FileText, Lock, Pencil, X, Plus, Trash2, Upload, Share2,
 } from 'lucide-react';
 import { properties as propertiesApi, tenants as tenantsApi, maintenance as maintenanceApi, accounting as accountingApi } from '../../../lib/api';
 import { getUser } from '../../../lib/auth';
@@ -252,6 +252,11 @@ export default function PropertyDetail() {
             <span style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6, background: `${TYPE_COLOR[property.property_type] || '#3B82F6'}20`, color: TYPE_COLOR[property.property_type] || '#3B82F6', fontFamily: 'IBM Plex Mono', textTransform: 'capitalize' }}>
               {property.property_type?.replace('_', ' ')}
             </span>
+            <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/listings/${id}`); toast.success('Listing link copied!'); }}
+              title="Copy public listing link for prospective renters"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer' }}>
+              <Share2 size={12} /> Share Listing
+            </button>
             <button onClick={openEditProperty} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer' }}>
               <Pencil size={12} /> Edit Property
             </button>
