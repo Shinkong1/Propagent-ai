@@ -13,6 +13,7 @@ subscriptions) that don't exist in this app.
 import logging
 import smtplib
 import socket
+import ssl
 from datetime import date
 
 from config import settings
@@ -107,28 +108,72 @@ class _SMTP_IPv4(smtplib.SMTP):
         raise last_err or OSError(f"No IPv4 address found for {host}")
 
 
+class _SMTP_SSL_IPv4(smtplib.SMTP_SSL):
+    """Same IPv4-forcing fix as _SMTP_IPv4 above, for the implicit-TLS (465)
+    path used as a fallback when STARTTLS (587) can't even complete a TCP
+    connect -- some networks silently drop one submission port but not the
+    other, and a raw connect-level timeout means the credentials were never
+    even reached, so retrying on the same port would just hang again."""
+
+    def _get_socket(self, host, port, timeout):
+        infos = socket.getaddrinfo(host, port, socket.AF_INET, socket.SOCK_STREAM)
+        last_err = None
+        for family, socktype, proto, _canonname, sockaddr in infos:
+            sock = None
+            try:
+                sock = socket.socket(family, socktype, proto)
+                if timeout is not None:
+                    sock.settimeout(timeout)
+                sock.connect(sockaddr)
+                context = self.context or ssl.create_default_context()
+                return context.wrap_socket(sock, server_hostname=host)
+            except OSError as e:
+                last_err = e
+                if sock is not None:
+                    sock.close()
+        raise last_err or OSError(f"No IPv4 address found for {host}")
+
+
 def send_email(to_email: str, subject: str, body: str) -> tuple:
     if not (settings.SMTP_USER and settings.SMTP_PASSWORD):
         return "logged_only", None
+
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = settings.FROM_EMAIL
+    msg["To"] = to_email
+    msg.attach(MIMEText(body, "plain"))
+
+    # timeout is critical here: this runs synchronously inside async route
+    # handlers on a single-worker server, so a hung connection to the SMTP
+    # host would otherwise block every other request on the process, not
+    # just this one.
     try:
-        from email.mime.text import MIMEText
-        from email.mime.multipart import MIMEMultipart
-
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"] = settings.FROM_EMAIL
-        msg["To"] = to_email
-        msg.attach(MIMEText(body, "plain"))
-
-        # timeout is critical here: this runs synchronously inside async route
-        # handlers on a single-worker server, so a hung connection to the SMTP
-        # host would otherwise block every other request on the process, not
-        # just this one.
         with _SMTP_IPv4(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as server:
             server.starttls()
             server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
             server.sendmail(settings.FROM_EMAIL, to_email, msg.as_string())
         return "sent", None
     except Exception as e:
-        logger.warning(f"Email send failed to {to_email}: {e}")
-        return "failed", str(e)
+        primary_error = str(e)
+        logger.warning(f"Email send failed to {to_email} on port {settings.SMTP_PORT}: {e}")
+
+    # A connect-level failure (as opposed to an auth/send rejection, which
+    # would mean we got a reply back and shouldn't just retry blind) can
+    # mean this specific port is being blocked somewhere in the network
+    # path even though the account itself is fine -- try Gmail's other
+    # submission port (465, implicit TLS) before giving up.
+    if settings.SMTP_PORT != 465:
+        try:
+            with _SMTP_SSL_IPv4(settings.SMTP_HOST, 465, timeout=10) as server:
+                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+                server.sendmail(settings.FROM_EMAIL, to_email, msg.as_string())
+            return "sent", None
+        except Exception as e2:
+            logger.warning(f"Email send failed to {to_email} on fallback port 465: {e2}")
+            return "failed", f"port {settings.SMTP_PORT}: {primary_error} | port 465: {e2}"
+
+    return "failed", primary_error
