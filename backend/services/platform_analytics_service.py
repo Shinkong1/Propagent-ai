@@ -171,7 +171,10 @@ def platform_health(db: Session) -> dict:
         "openai": bool(settings.OPENAI_API_KEY),
         "stripe": bool(settings.STRIPE_SECRET),
         "twilio": bool(settings.TWILIO_SID and settings.TWILIO_TOKEN),
-        "sendgrid": bool(settings.SMTP_USER and settings.SMTP_PASSWORD),
+        # Was mislabeled "sendgrid" -- it was always checking generic Gmail
+        # SMTP config, never actually SendGrid. Now true if either the
+        # preferred Resend path or the SMTP fallback is configured.
+        "email": bool(settings.RESEND_API_KEY or (settings.SMTP_USER and settings.SMTP_PASSWORD)),
         "google_oauth": bool(settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET),
     }
 
