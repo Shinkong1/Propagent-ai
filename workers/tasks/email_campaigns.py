@@ -1,11 +1,7 @@
 """Email campaign Celery tasks"""
 import logging
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 from workers.celery_app import celery_app
-from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -15,44 +11,34 @@ def send_followups():
     """Send scheduled follow-up emails"""
     from database.base import SessionLocal
     from models.lead import OutreachEmail
-    
+    # Reuse the one real send_email implementation (backend/services/
+    # communication_agent.py) instead of a second, separately-maintained
+    # copy — that copy had no connection timeout and no IPv4-forcing fix,
+    # meaning it would hit the exact same "Network is unreachable" issue
+    # that took most of a debugging session to track down elsewhere.
+    from services.communication_agent import send_email
+
     db = SessionLocal()
     try:
         pending = db.query(OutreachEmail).filter(
             OutreachEmail.status == "queued"
         ).limit(50).all()
-        
+
         sent = 0
         for email in pending:
             try:
-                _send_email(email.lead.email, email.subject, email.body)
-                email.status = "sent"
-                email.sent_at = datetime.utcnow()
-                sent += 1
+                status, error = send_email(email.lead.email, email.subject, email.body)
+                email.status = status
+                if status == "sent":
+                    email.sent_at = datetime.utcnow()
+                    sent += 1
+                else:
+                    logger.warning(f"Outreach email {email.id} not sent (status={status}): {error}")
             except Exception as e:
                 logger.error(f"Failed to send email {email.id}: {e}")
-        
+
         db.commit()
         logger.info(f"Sent {sent} outreach emails")
         return {"sent": sent}
     finally:
         db.close()
-
-
-def _send_email(to_email: str, subject: str, body: str) -> bool:
-    """Send email via SMTP"""
-    if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
-        logger.info(f"SMTP not configured — would send to {to_email}: {subject}")
-        return True
-    
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = settings.FROM_EMAIL
-    msg["To"] = to_email
-    msg.attach(MIMEText(body, "plain"))
-    
-    with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-        server.starttls()
-        server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-        server.sendmail(settings.FROM_EMAIL, to_email, msg.as_string())
-    return True

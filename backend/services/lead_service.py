@@ -29,7 +29,7 @@ Would you be open to a 15-minute demo this week?
 
 Best,
 The PropAgent Team
-https://propagent.ai
+https://propagent.app
 """
         
         email = OutreachEmail(
