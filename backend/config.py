@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     FROM_EMAIL: str = "propagentapp@gmail.com"
 
+    # HTTP-based email (port 443, never blocked by network-level SMTP port
+    # restrictions) -- used instead of SMTP whenever configured. See
+    # services/communication_agent.py send_email().
+    RESEND_API_KEY: str = ""
+
     ALLOWED_ORIGINS: list = ["http://localhost:3000", "https://app.propagent.ai"]
 
     # Google OAuth2/OIDC login — feature is simply hidden (never faked) until both

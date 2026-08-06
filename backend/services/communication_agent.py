@@ -11,6 +11,7 @@ paid integrations (WhatsApp Business API, a mobile app with push
 subscriptions) that don't exist in this app.
 """
 import logging
+import requests
 import smtplib
 import socket
 import ssl
@@ -135,6 +136,12 @@ class _SMTP_SSL_IPv4(smtplib.SMTP_SSL):
 
 
 def send_email(to_email: str, subject: str, body: str) -> tuple:
+    # Resend (HTTP, port 443) is preferred whenever configured -- it can't
+    # be taken out by the kind of SMTP-port network block that's hit this
+    # project twice now. Falls through to SMTP only if no Resend key is set.
+    if settings.RESEND_API_KEY:
+        return _send_email_via_resend(to_email, subject, body)
+
     if not (settings.SMTP_USER and settings.SMTP_PASSWORD):
         return "logged_only", None
 
@@ -177,3 +184,24 @@ def send_email(to_email: str, subject: str, body: str) -> tuple:
             return "failed", f"port {settings.SMTP_PORT}: {primary_error} | port 465: {e2}"
 
     return "failed", primary_error
+
+
+def _send_email_via_resend(to_email: str, subject: str, body: str) -> tuple:
+    """Send over Resend's HTTPS API instead of raw SMTP. Note: Resend will
+    only deliver to arbitrary recipients once FROM_EMAIL's domain has been
+    verified in the Resend dashboard (adding a couple of DNS records at
+    your domain registrar, one-time) -- until then it can only send to the
+    account's own email address, using their onboarding@resend.dev sender."""
+    try:
+        resp = requests.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}", "Content-Type": "application/json"},
+            json={"from": settings.FROM_EMAIL, "to": [to_email], "subject": subject, "text": body},
+            timeout=10,
+        )
+        if resp.ok:
+            return "sent", None
+        return "failed", f"Resend {resp.status_code}: {resp.text[:300]}"
+    except Exception as e:
+        logger.warning(f"Resend send failed to {to_email}: {e}")
+        return "failed", str(e)
