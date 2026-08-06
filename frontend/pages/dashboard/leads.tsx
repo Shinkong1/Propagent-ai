@@ -10,7 +10,6 @@ const STATUS_COLOR: any = { new: '#64748B', contacted: '#3B82F6', interested: '#
 const EMPTY_LEAD_FORM = { first_name: '', last_name: '', company: '', email: '', phone: '', city: '', state: '' };
 
 export default function Leads() {
-  const { t } = useLanguage();
   const [isMaster, setIsMaster] = useState(false);
   const [leadList, setLeadList] = useState<any[]>([]);
   const [filter, setFilter] = useState('all');
