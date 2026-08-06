@@ -39,6 +39,13 @@ class Settings(BaseSettings):
     # (e.g. 1.0 = 1%). 0 by default — never silently take a cut.
     RENT_PLATFORM_FEE_PERCENT: float = 0.0
 
+    # Shared secret for /internal/cron/* endpoints — an external free
+    # scheduler (e.g. cron-job.org) hits these on a timer in production,
+    # since no paid background worker is deployed. Empty by default, which
+    # the route treats as "not configured" and refuses all requests rather
+    # than silently running unauthenticated.
+    CRON_SECRET: str = ""
+
     TWILIO_SID: str = ""
     TWILIO_TOKEN: str = ""
     TWILIO_PHONE: str = ""
