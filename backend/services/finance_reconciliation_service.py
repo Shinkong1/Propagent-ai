@@ -92,8 +92,15 @@ def reconcile_stripe_sessions(db: Session, lookback_hours: int = 72, limit: int 
             })
             continue
 
-        # Already in sync -- Stripe's subscription id matches what we have.
-        if org.stripe_subscription_id and org.stripe_subscription_id == subscription_id:
+        # Already in sync -- Stripe's subscription AND customer ids both
+        # match what we have. Checking subscription_id alone missed a real
+        # gap: the checkout.session.completed handler never wrote
+        # stripe_customer_id at all (a separate bug from the .get() one),
+        # so an org could show "in sync" here while still missing it.
+        if (
+            org.stripe_subscription_id and org.stripe_subscription_id == subscription_id
+            and (not customer_id or org.stripe_customer_id == customer_id)
+        ):
             result["ok"] += 1
             continue
 

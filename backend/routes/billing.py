@@ -103,6 +103,13 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             old_plan = org.plan.value
             org.plan = PlanType[plan]
             org.stripe_subscription_id = session_data.get("subscription")
+            # This was always missing here, independent of the .get() bug
+            # above -- confirmed live: even after that fix landed and this
+            # handler ran successfully, stripe_customer_id stayed null.
+            # Needed for the billing-debug customer-lookup fallback and any
+            # future customer-based billing logic.
+            if session_data.get("customer"):
+                org.stripe_customer_id = session_data.get("customer")
             db.commit()
             if old_plan != plan:
                 log_org_event(db, org.id, OrgEventType.plan_changed, from_plan=old_plan, to_plan=plan)
