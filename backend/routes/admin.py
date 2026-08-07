@@ -225,6 +225,59 @@ async def rotate_demo_password_endpoint(
     return result
 
 
+@router.get("/organizations/{org_id}/billing-debug")
+async def billing_debug(
+    org_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_master),
+):
+    """Diagnostic: the raw Stripe-linkage fields on an org, not exposed
+    anywhere else -- for tracing exactly where a checkout -> webhook ->
+    plan-upgrade chain broke for a specific organization."""
+    org = db.query(Organization).filter(Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    result = {
+        "organization_id": str(org.id),
+        "name": org.name,
+        "plan": org.plan.value,
+        "is_active": org.is_active,
+        "stripe_customer_id": org.stripe_customer_id,
+        "stripe_subscription_id": org.stripe_subscription_id,
+        "subscription_status": org.subscription_status,
+        "trial_used": org.trial_used,
+        "trial_ends_at": org.trial_ends_at.isoformat() if org.trial_ends_at else None,
+    }
+
+    # If we have a subscription ID, check what Stripe itself actually has
+    # on file for it -- confirms whether Stripe's side succeeded even if
+    # our webhook never processed it.
+    if org.stripe_subscription_id:
+        try:
+            import stripe
+            from config import settings
+            stripe.api_key = settings.STRIPE_SECRET
+            sub = await run_in_threadpool(stripe.Subscription.retrieve, org.stripe_subscription_id)
+            result["stripe_actual_status"] = sub.get("status")
+            result["stripe_actual_plan_nickname"] = sub["items"]["data"][0]["price"].get("nickname") if sub.get("items", {}).get("data") else None
+        except Exception as e:
+            result["stripe_lookup_error"] = str(e)
+    elif org.stripe_customer_id:
+        try:
+            import stripe
+            from config import settings
+            stripe.api_key = settings.STRIPE_SECRET
+            subs = await run_in_threadpool(stripe.Subscription.list, customer=org.stripe_customer_id, limit=5)
+            result["stripe_customer_subscriptions"] = [
+                {"id": s["id"], "status": s["status"], "created": s["created"]} for s in subs.get("data", [])
+            ]
+        except Exception as e:
+            result["stripe_lookup_error"] = str(e)
+
+    return result
+
+
 @router.get("/users", response_model=List[UserAdminResponse])
 async def list_users(db: Session = Depends(get_db)):
     users = db.query(User).order_by(User.created_at.desc()).all()
