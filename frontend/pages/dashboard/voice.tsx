@@ -94,14 +94,14 @@ export default function Voice() {
               { label: 'AI Agent', icon: Zap, color: '#F97316' },
               { label: 'Action Taken', icon: CheckCircle, color: '#10B981' },
             ].map(({ label, icon: Icon, color }, i) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center' }}>
-                <div style={{ textAlign: 'center', minWidth: 90 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 10, background: `${color}15`, border: `1px solid ${color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
-                    <Icon size={20} color={color} />
+              <div key={label} style={{ display: 'flex', alignItems: 'center', flex: '1 1 0' }}>
+                <div style={{ textAlign: 'center', minWidth: 0, flex: 1 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 9, background: `${color}15`, border: `1px solid ${color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
+                    <Icon size={16} color={color} />
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Sans', lineHeight: 1.3 }}>{label}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Sans', lineHeight: 1.3, padding: '0 2px' }}>{label}</div>
                 </div>
-                {i < 4 && <div style={{ width: 30, height: 1, background: 'var(--border-strong)', margin: '0 4px', marginTop: -16 }} />}
+                {i < 4 && <div style={{ width: 14, minWidth: 14, height: 1, background: 'var(--border-strong)', margin: '0 2px', marginTop: -16 }} />}
               </div>
             ))}
           </div>
