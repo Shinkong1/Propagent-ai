@@ -210,7 +210,9 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: effectiveCollapsed ? '12px 8px' : '12px 12px' }}>
-        {NAV.filter(item => !item.masterOnly || isMaster).map((entry) => {
+        {(() => {
+          const filteredNav = NAV.filter(item => !item.masterOnly || isMaster);
+          return filteredNav.map((entry, idx) => {
           if (isNavGroup(entry)) {
             const { groupKey, labelKey, icon: Icon, items } = entry;
             const visibleItems = items;
@@ -269,9 +271,15 @@ export default function Sidebar() {
           const { href, key, icon: Icon, minTier } = entry;
           const active = isItemActive(href);
           const locked = isLocked(minTier);
+          // These section dividers mark the start/end of a run of consecutive
+          // master-only items -- shown once around the whole block, not once
+          // per item (that repeated 3x with Owner Admin/Lead CRM/Marketing
+          // Hub all master-only back to back, reading as confusing noise).
+          const isFirstOfMasterRun = entry.masterOnly && (idx === 0 || !filteredNav[idx - 1].masterOnly);
+          const isLastOfMasterRun = entry.masterOnly && (idx === filteredNav.length - 1 || !filteredNav[idx + 1].masterOnly);
           return (
             <div key={href}>
-              {entry.masterOnly && !effectiveCollapsed && (
+              {isFirstOfMasterRun && !effectiveCollapsed && (
                 <div style={{ padding: '10px 12px 4px', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#475569', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                   {t('nav.platformAdmin')}
                 </div>
@@ -298,14 +306,15 @@ export default function Sidebar() {
                   {!effectiveCollapsed && locked && <Lock size={11} />}
                 </div>
               </Link>
-              {entry.masterOnly && !effectiveCollapsed && (
+              {isLastOfMasterRun && !effectiveCollapsed && (
                 <div style={{ padding: '6px 12px 4px', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#475569', letterSpacing: '0.8px', textTransform: 'uppercase', borderTop: '1px solid var(--border-strong)', marginTop: 6 }}>
                   {t('nav.propertyToolsBelow')}
                 </div>
               )}
             </div>
           );
-        })}
+          });
+        })()}
       </nav>
 
       {/* Flyout submenu (portal, escapes sidebar overflow) — desktop only */}
