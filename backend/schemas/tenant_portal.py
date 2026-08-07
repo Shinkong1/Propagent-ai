@@ -1,7 +1,9 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, List
 from uuid import UUID
 from datetime import date, datetime
+
+from schemas.password_policy import check_password_strength
 
 
 class TenantLoginRequest(BaseModel):
@@ -13,6 +15,14 @@ class TenantActivateRequest(BaseModel):
     token: str
     password: str = Field(min_length=8)
 
+    @field_validator("password")
+    @classmethod
+    def _password_strength(cls, v: str) -> str:
+        error = check_password_strength(v)
+        if error:
+            raise ValueError(error)
+        return v
+
 
 class TenantForgotPasswordRequest(BaseModel):
     email: EmailStr
@@ -21,6 +31,14 @@ class TenantForgotPasswordRequest(BaseModel):
 class TenantResetPasswordRequest(BaseModel):
     token: str
     new_password: str = Field(min_length=8)
+
+    @field_validator("new_password")
+    @classmethod
+    def _password_strength(cls, v: str) -> str:
+        error = check_password_strength(v)
+        if error:
+            raise ValueError(error)
+        return v
 
 
 class TenantAuthResponse(BaseModel):

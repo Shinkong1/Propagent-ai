@@ -5,10 +5,9 @@ import logging
 import sys
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 # Make sure backend dir and project root (for agents/, voice/, workers/, lead_engine/) are on path
@@ -51,7 +50,22 @@ app = FastAPI(
 
 from middleware.rate_limit import limiter
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    # slowapi's own default handler returns {"error": "..."} with no
+    # "detail" key -- every error-display call site in the frontend reads
+    # err.response.data.detail and silently falls back to a generic,
+    # WRONG message when that key is missing ("Invalid code, check your
+    # authenticator app" on a 429, when the code was never even checked).
+    # Real, confirmed report: a legitimate MFA code got hidden behind this
+    # exact mislabeling after a few retries during troubleshooting tripped
+    # the limiter. Match the shape every other error in this API uses.
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Too many attempts. Please wait a minute and try again."},
+    )
 
 app.add_middleware(
     CORSMiddleware,
