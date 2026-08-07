@@ -199,11 +199,17 @@ def seed_demo_organization(db: Session) -> dict:
                 # 3 leases currently overdue -- feeds Collections + Accounting demo
                 payments.append(RentPayment(lease_id=lease.id, amount=lease.monthly_rent, due_date=due, status=PaymentStatus.pending))
             else:
-                late = (i % 7 == 0)
+                # A payment made a few days after its due date but actually
+                # paid is just `paid` with a later paid_date -- PaymentStatus.late
+                # means "still delinquent" everywhere else in this codebase
+                # (see collections_agent.OVERDUE_STATUSES, portfolio_agent.
+                # DELINQUENT_STATUSES), so using it here would wrongly count
+                # resolved payments as ongoing delinquency.
+                paid_a_bit_late = (i % 7 == 0)
                 payments.append(RentPayment(
                     lease_id=lease.id, amount=lease.monthly_rent, due_date=due,
-                    paid_date=due + timedelta(days=6 if late else 1),
-                    status=PaymentStatus.late if late else PaymentStatus.paid,
+                    paid_date=due + timedelta(days=6 if paid_a_bit_late else 1),
+                    status=PaymentStatus.paid,
                     payment_method=PaymentMethod.ach,
                 ))
     db.add_all(payments)
