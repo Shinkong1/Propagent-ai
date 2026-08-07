@@ -320,15 +320,19 @@ async def stripe_recent_sessions(
         # exactly the bare "Stripe lookup failed: get" this endpoint was
         # returning in production.
         for s in sessions.data:
-            metadata = getattr(s, "metadata", None)
+            # dict(stripe_object) is ALSO broken in stripe-python 15.x
+            # (raises KeyError: 0 -- confirmed by reproducing it locally,
+            # right after this exact line broke the same way in production).
+            # .to_dict() is the only reliable full conversion.
+            sd = s.to_dict()
             result.append({
-                "id": getattr(s, "id", None),
-                "created": getattr(s, "created", None),
-                "payment_status": getattr(s, "payment_status", None),
-                "status": getattr(s, "status", None),
-                "customer": getattr(s, "customer", None),
-                "subscription": getattr(s, "subscription", None),
-                "metadata": dict(metadata) if metadata else {},
+                "id": sd.get("id"),
+                "created": sd.get("created"),
+                "payment_status": sd.get("payment_status"),
+                "status": sd.get("status"),
+                "customer": sd.get("customer"),
+                "subscription": sd.get("subscription"),
+                "metadata": sd.get("metadata") or {},
             })
         return {"sessions": result}
     except Exception as e:
