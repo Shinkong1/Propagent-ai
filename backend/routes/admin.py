@@ -210,25 +210,19 @@ async def rotate_demo_password_endpoint(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_master),
 ):
-    """Generate a fresh random password for the demo login without
-    touching any of its seeded data -- for handing a clean credential to
-    a new prospect (or invalidating one a previous prospect had) without
-    resetting the whole demo account. Use /demo-org/seed instead when you
-    also want the data itself refreshed."""
-    import secrets
-    from models.user import User as UserModel
-    from services.demo_seed_service import DEMO_USER_EMAIL
-    from middleware.auth import hash_password
+    """Generate a fresh random email AND password for the demo login
+    without touching any of its seeded data -- for handing a wholly clean
+    credential to a new prospect (or invalidating one a previous prospect
+    had) without resetting the whole demo account. Use /demo-org/seed
+    instead when you also want the data itself refreshed."""
+    from services.demo_seed_service import rotate_demo_credentials
 
-    user = db.query(UserModel).filter(UserModel.email == DEMO_USER_EMAIL).first()
-    if not user:
+    result = rotate_demo_credentials(db)
+    if result is None:
         raise HTTPException(status_code=404, detail="Demo account doesn't exist yet -- run /demo-org/seed first.")
-
-    password = secrets.token_urlsafe(9)
-    user.hashed_password = hash_password(password)
     db.commit()
 
-    return {"login_email": DEMO_USER_EMAIL, "login_password": password}
+    return result
 
 
 @router.get("/users", response_model=List[UserAdminResponse])
