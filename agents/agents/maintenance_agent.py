@@ -139,7 +139,22 @@ async def maintenance_agent_node(state: AgentState) -> AgentState:
     if has_property:
         try:
             from database.base import SessionLocal
-            from models.maintenance import MaintenanceTicket
+            from models.maintenance import MaintenanceTicket, TicketCategory, TicketPriority
+
+            # Coerce to real enum members up front -- an Enum-typed SQLAlchemy
+            # column doesn't coerce a plain string until the object round-trips
+            # through the DB, so a freshly-constructed ticket's .category/
+            # .priority would otherwise still be a raw string when
+            # auto_assign_vendor reads it a few lines below, in this same
+            # request, before any refresh happens.
+            try:
+                category_enum = TicketCategory(classification.get("category", "other"))
+            except ValueError:
+                category_enum = TicketCategory.other
+            try:
+                priority_enum = TicketPriority(classification.get("priority", "medium"))
+            except ValueError:
+                priority_enum = TicketPriority.medium
 
             db = SessionLocal()
             try:
@@ -148,8 +163,8 @@ async def maintenance_agent_node(state: AgentState) -> AgentState:
                     tenant_id=state.get("tenant_id"),
                     title=classification.get("title", "Maintenance Request"),
                     description=classification.get("summary") or state["message"],
-                    category=classification.get("category", "other"),
-                    priority=classification.get("priority", "medium"),
+                    category=category_enum,
+                    priority=priority_enum,
                     ai_classification=json.dumps(classification),
                 )
                 db.add(ticket)
@@ -157,8 +172,15 @@ async def maintenance_agent_node(state: AgentState) -> AgentState:
                 ticket_id = str(ticket.id)
 
                 from services.maintenance_service import auto_assign_vendor
-                import asyncio
-                asyncio.create_task(auto_assign_vendor(ticket, db)) if hasattr(asyncio, '_get_running_loop') else None
+                # Must be awaited, not fired-and-forgotten -- vendor_assigned is
+                # read immediately below to decide what to tell the caller, and
+                # a background task has no guarantee of finishing before then.
+                # (It didn't: this used to fire via asyncio.create_task and
+                # read ticket.vendor_notified straight after, which was always
+                # still False at that point, so the caller was always told
+                # "vendor pending" even on tickets that got a real vendor
+                # assigned a moment later.)
+                await auto_assign_vendor(ticket, db)
 
                 db.commit()
                 vendor_assigned = ticket.vendor_notified

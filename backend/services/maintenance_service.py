@@ -17,7 +17,19 @@ CATEGORY_VENDOR_MAP = {
 async def auto_assign_vendor(ticket: MaintenanceTicket, db: Session) -> None:
     """Automatically find and assign best vendor for ticket category"""
     try:
-        specialties_to_match = CATEGORY_VENDOR_MAP.get(ticket.category, [ticket.category.value if ticket.category else "general"])
+        # ticket.category can be a plain string here rather than a real
+        # TicketCategory member -- SQLAlchemy doesn't coerce an Enum column's
+        # value until the object round-trips through the DB (a flush isn't
+        # enough), so a freshly-constructed, not-yet-refreshed ticket still
+        # holds whatever raw value was passed in. Normalize defensively
+        # instead of assuming the caller already did.
+        category = ticket.category
+        if isinstance(category, str):
+            try:
+                category = TicketCategory(category)
+            except ValueError:
+                category = None
+        specialties_to_match = CATEGORY_VENDOR_MAP.get(category, [category.value if category else "general"])
         
         vendors = db.query(Vendor).filter(
             Vendor.organization_id == db.query(
