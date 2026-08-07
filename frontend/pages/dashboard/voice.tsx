@@ -119,10 +119,11 @@ export default function Voice() {
             <div style={{ padding: '40px 20px', textAlign: 'center' }}>
               <PhoneMissed size={28} color="#64748B" style={{ marginBottom: 10 }} />
               <div style={{ color: 'var(--text-secondary)', fontSize: 14, fontFamily: 'IBM Plex Sans', marginBottom: 6 }}>No calls tracked yet</div>
-              <p style={{ color: '#64748B', fontSize: 12, fontFamily: 'IBM Plex Sans', maxWidth: 440, margin: '0 auto' }}>
+              <p style={{ color: '#64748B', fontSize: 12, fontFamily: 'IBM Plex Sans', maxWidth: 460, margin: '0 auto' }}>
                 Calls only show up here once your Twilio number receives one from a phone number
-                already on file for a tenant — all subscribers currently share one Twilio number,
-                so a call from an unrecognized number can't be matched to your organization.
+                already on file — either a tenant, or a prospect who submitted a rental inquiry
+                on one of your listings. All subscribers currently share one Twilio number, so a
+                call from an unrecognized number can't be matched to your organization.
               </p>
             </div>
           ) : (
@@ -139,7 +140,12 @@ export default function Voice() {
               {calls.map(c => (
                 <tr key={c.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                   <td style={{ padding: '12px 16px', fontSize: 13, fontFamily: 'IBM Plex Mono', color: '#E2E8F0' }}>
-                    {c.tenant_name || c.from_number || 'Unknown'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {c.caller_name || c.from_number || 'Unknown'}
+                      {c.caller_type === 'prospect' && (
+                        <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 4, background: 'rgba(251,192,45,0.15)', color: '#FBC02D', fontFamily: 'IBM Plex Mono', whiteSpace: 'nowrap' }}>PROSPECT</span>
+                      )}
+                    </div>
                     {c.property_name && <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Sans', marginTop: 2 }}>{c.property_name}</div>}
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: 12, color: '#64748B', fontFamily: 'IBM Plex Sans', whiteSpace: 'nowrap' }}>{timeAgo(c.started_at)}</td>

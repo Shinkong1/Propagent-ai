@@ -18,11 +18,13 @@ class VoiceCall(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     call_sid = Column(String(64), unique=True, nullable=False, index=True)
 
-    # All nullable: an unrecognized caller (not a known tenant) can't be
-    # attributed to an organization under the current shared-Twilio-number
-    # setup -- that call is still logged, just without these.
+    # All nullable: a caller who is neither a known tenant nor a known
+    # rental-inquiry prospect can't be attributed to an organization under
+    # the current shared-Twilio-number setup -- that call is still logged,
+    # just without these.
     organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True, index=True)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)
+    inquiry_id = Column(UUID(as_uuid=True), ForeignKey("rental_inquiries.id"), nullable=True)
     property_id = Column(UUID(as_uuid=True), ForeignKey("properties.id"), nullable=True)
 
     from_number = Column(String(30), nullable=True)
@@ -40,11 +42,26 @@ class VoiceCall(Base):
 
     organization = relationship("Organization")
     tenant = relationship("Tenant")
+    inquiry = relationship("RentalInquiry")
     property = relationship("Property")
 
     @builtins.property
-    def tenant_name(self):
-        return self.tenant.full_name if self.tenant else None
+    def caller_name(self):
+        if self.tenant:
+            return self.tenant.full_name
+        if self.inquiry:
+            return self.inquiry.full_name
+        return None
+
+    @builtins.property
+    def caller_type(self):
+        """'tenant' | 'prospect' | None -- an existing tenant takes priority
+        over a stale rental-inquiry match if somehow both exist."""
+        if self.tenant_id:
+            return "tenant"
+        if self.inquiry_id:
+            return "prospect"
+        return None
 
     @builtins.property
     def property_name(self):

@@ -87,12 +87,18 @@ def get_prompt(language: str, key: str) -> str:
 
 def get_org_for_phone(caller_phone: str):
     """Look up the organization (and, if resolvable, the specific tenant/
-    property) that a calling phone number belongs to.
+    prospect/property) that a calling phone number belongs to.
+
+    Tries an existing Tenant first (a verified lease relationship). If
+    that doesn't match, falls back to the most recent RentalInquiry with
+    the same phone number -- a prospect who already inquired about a
+    vacancy on a public listing, then called in. That's still a real,
+    attributable relationship even though they aren't a tenant yet.
 
     Returns a detached-safe plain dict (id, language, plan, tenant_id,
-    property_id) rather than ORM objects, since the DB session closes
-    before the caller uses the result. tenant_id/property_id may be None
-    even when an org is found (a tenant with no active lease yet).
+    inquiry_id, property_id) rather than ORM objects, since the DB session
+    closes before the caller uses the result. tenant_id/inquiry_id/
+    property_id may be None even when an org is found.
     """
     if not caller_phone:
         return None
@@ -100,6 +106,7 @@ def get_org_for_phone(caller_phone: str):
         from database.base import SessionLocal
         from models.tenant import Tenant
         from models.user import Organization
+        from models.inquiry import RentalInquiry
 
         db = SessionLocal()
         try:
@@ -111,7 +118,22 @@ def get_org_for_phone(caller_phone: str):
                     property_id = str(lease.unit.property_id) if lease and lease.unit else None
                     return {
                         "id": str(org.id), "language": org.language, "plan": org.plan.value,
-                        "tenant_id": str(tenant.id), "property_id": property_id,
+                        "tenant_id": str(tenant.id), "inquiry_id": None, "property_id": property_id,
+                    }
+
+            inquiry = (
+                db.query(RentalInquiry)
+                .filter(RentalInquiry.phone == caller_phone)
+                .order_by(RentalInquiry.created_at.desc())
+                .first()
+            )
+            if inquiry and inquiry.organization_id:
+                org = db.query(Organization).filter(Organization.id == inquiry.organization_id).first()
+                if org:
+                    return {
+                        "id": str(org.id), "language": org.language, "plan": org.plan.value,
+                        "tenant_id": None, "inquiry_id": str(inquiry.id),
+                        "property_id": str(inquiry.property_id) if inquiry.property_id else None,
                     }
         finally:
             db.close()

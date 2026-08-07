@@ -118,9 +118,14 @@ async def process_voice_input(speech: str, call_sid: str, caller_phone: str) -> 
 
 
 def _lookup_tenant(caller_phone: str) -> tuple:
-    """Resolve a caller's phone number to a known tenant/property, if any."""
+    """Resolve a caller's phone number to a known tenant/property, if any.
+    Falls back to a matching RentalInquiry so a prospect who already asked
+    about a specific vacancy gets an AI agent that knows which property
+    they mean -- tenant_id stays None in that case since they're not an
+    actual tenant, only property_id is filled in."""
     from database.base import SessionLocal
     from models.tenant import Tenant
+    from models.inquiry import RentalInquiry
 
     tenant_id = None
     property_id = None
@@ -132,6 +137,15 @@ def _lookup_tenant(caller_phone: str) -> tuple:
             tenant_id = str(tenant.id)
             if tenant.active_lease:
                 property_id = str(tenant.active_lease.unit.property_id)
+        else:
+            inquiry = (
+                db.query(RentalInquiry)
+                .filter(RentalInquiry.phone == caller_phone)
+                .order_by(RentalInquiry.created_at.desc())
+                .first()
+            )
+            if inquiry and inquiry.property_id:
+                property_id = str(inquiry.property_id)
     finally:
         db.close()
 

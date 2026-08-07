@@ -116,10 +116,11 @@ def finalize_call_record(call_sid: str, call_status: str, duration_seconds: "int
                     User.role == "owner", User.is_active == True,
                 ).all()
                 if owners:
-                    caller_desc = call.tenant_name or call.from_number or "Unknown caller"
+                    caller_desc = call.caller_name or call.from_number or "Unknown caller"
+                    caller_role = " (prospective tenant)" if call.caller_type == "prospect" else ""
                     property_line = f" ({call.property_name})" if call.property_name else ""
                     body = (
-                        f"Voice AI handled a call from {caller_desc}{property_line}.\n\n"
+                        f"Voice AI handled a call from {caller_desc}{caller_role}{property_line}.\n\n"
                         f"Status: {call_status}\n"
                         + (f"Duration: {duration_seconds}s\n" if duration_seconds else "")
                         + (f"Topic: {call.intent}\n" if call.intent else "")
@@ -159,6 +160,7 @@ def _create_call_record(call_sid: str, from_number: str, to_number: str, org: "d
                 to_number=to_number,
                 organization_id=UUID(org["id"]) if org else None,
                 tenant_id=UUID(org["tenant_id"]) if org and org.get("tenant_id") else None,
+                inquiry_id=UUID(org["inquiry_id"]) if org and org.get("inquiry_id") else None,
                 property_id=UUID(org["property_id"]) if org and org.get("property_id") else None,
                 status="in_progress",
             ))

@@ -13,7 +13,8 @@ class VoiceCallOut(BaseModel):
     duration_seconds: Optional[int] = None
     intent: Optional[str] = None
     outcome_summary: Optional[str] = None
-    tenant_name: Optional[str] = None
+    caller_name: Optional[str] = None
+    caller_type: Optional[str] = None  # "tenant" | "prospect" | None
     property_name: Optional[str] = None
     owner_notified: bool
     started_at: datetime
