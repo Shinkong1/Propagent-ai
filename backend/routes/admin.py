@@ -278,6 +278,41 @@ async def billing_debug(
     return result
 
 
+@router.get("/stripe-recent-sessions")
+async def stripe_recent_sessions(
+    current_user: User = Depends(require_master),
+):
+    """Diagnostic: the last 10 Stripe Checkout sessions, straight from
+    Stripe's own API -- to see whether a completed payment actually
+    happened on Stripe's side (and with what metadata) even when nothing
+    shows up on our own org record, which tells us whether the problem is
+    "webhook never delivered" vs "webhook delivered with bad/missing
+    metadata" vs "payment never actually completed."""
+    import stripe
+    from config import settings
+    stripe.api_key = settings.STRIPE_SECRET
+
+    try:
+        sessions = await run_in_threadpool(stripe.checkout.Session.list, limit=10)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Stripe lookup failed: {e}")
+
+    return {
+        "sessions": [
+            {
+                "id": s["id"],
+                "created": s["created"],
+                "payment_status": s.get("payment_status"),
+                "status": s.get("status"),
+                "customer": s.get("customer"),
+                "subscription": s.get("subscription"),
+                "metadata": s.get("metadata"),
+            }
+            for s in sessions.get("data", [])
+        ]
+    }
+
+
 @router.get("/users", response_model=List[UserAdminResponse])
 async def list_users(db: Session = Depends(get_db)):
     users = db.query(User).order_by(User.created_at.desc()).all()
