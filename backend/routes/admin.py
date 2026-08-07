@@ -292,25 +292,27 @@ async def stripe_recent_sessions(
     from config import settings
     stripe.api_key = settings.STRIPE_SECRET
 
+    # Everything -- the API call AND the response-serialization below --
+    # lives inside this try/except now. The earlier version only wrapped
+    # the Session.list() call, so any field-access issue while building
+    # the response list produced a bare, unlogged 500 with no detail.
     try:
         sessions = await run_in_threadpool(stripe.checkout.Session.list, limit=10)
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Stripe lookup failed: {e}")
-
-    return {
-        "sessions": [
-            {
-                "id": s["id"],
-                "created": s["created"],
+        result = []
+        for s in sessions.get("data", []):
+            result.append({
+                "id": s.get("id"),
+                "created": s.get("created"),
                 "payment_status": s.get("payment_status"),
                 "status": s.get("status"),
                 "customer": s.get("customer"),
                 "subscription": s.get("subscription"),
-                "metadata": s.get("metadata"),
-            }
-            for s in sessions.get("data", [])
-        ]
-    }
+                "metadata": dict(s.get("metadata") or {}),
+            })
+        return {"sessions": result}
+    except Exception as e:
+        logger.error(f"stripe-recent-sessions failed: {e}", exc_info=True)
+        raise HTTPException(status_code=502, detail=f"Stripe lookup failed: {e}")
 
 
 @router.get("/users", response_model=List[UserAdminResponse])
