@@ -20,7 +20,6 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger(__name__)
 
 DEMO_ORG_SLUG = "propagent-demo"
-DEMO_USER_EMAIL = "demo@propagent.app"
 
 
 def _d(days_from_today: int) -> date:
@@ -29,6 +28,49 @@ def _d(days_from_today: int) -> date:
 
 def _dt(days_from_now: int) -> datetime:
     return datetime.utcnow() + timedelta(days=days_from_now)
+
+
+def _generate_unique_demo_email(db) -> str:
+    """A fresh, unguessable demo login address -- rotated alongside the
+    password so a previous prospect's memorized email is no more useful
+    than their old password once rotated. Retries on the astronomically
+    unlikely collision rather than trusting randomness blindly against
+    the unique constraint on User.email."""
+    from models.user import User
+    for _ in range(5):
+        candidate = f"demo-{secrets.token_hex(4)}@propagent.app"
+        if not db.query(User).filter(User.email == candidate).first():
+            return candidate
+    return f"demo-{uuid.uuid4().hex[:12]}@propagent.app"
+
+
+def get_demo_user(db):
+    """Find the demo org and its single user account by organization, not
+    by a fixed email -- the email rotates, so it can't be the lookup key."""
+    from models.user import Organization, User
+    org = db.query(Organization).filter(Organization.slug == DEMO_ORG_SLUG).first()
+    if not org:
+        return None, None
+    user = db.query(User).filter(User.organization_id == org.id).first()
+    return org, user
+
+
+def rotate_demo_credentials(db: Session) -> "dict | None":
+    """Fresh random email + password for the demo login, without touching
+    any of its seeded data. Returns None if the demo org/user doesn't
+    exist yet (caller should have them run the full seed first)."""
+    from middleware.auth import hash_password
+
+    org, user = get_demo_user(db)
+    if not user:
+        return None
+
+    email = _generate_unique_demo_email(db)
+    password = secrets.token_urlsafe(9)
+    user.email = email
+    user.hashed_password = hash_password(password)
+    db.flush()
+    return {"login_email": email, "login_password": password}
 
 
 def seed_demo_organization(db: Session) -> dict:
@@ -63,15 +105,21 @@ def seed_demo_organization(db: Session) -> dict:
         db.flush()
 
     password = secrets.token_urlsafe(9)
-    user = db.query(User).filter(User.email == DEMO_USER_EMAIL).first()
+    # Named distinctly from the `email` loop variable used later (the
+    # rental-inquiry loop below) -- Python `for` loop variables leak into
+    # the enclosing function scope, so reusing `email` here silently got
+    # clobbered by the last inquiry's address before the return statement,
+    # returning a tenant's email as the login instead of the real one.
+    demo_login_email = _generate_unique_demo_email(db)
+    user = db.query(User).filter(User.organization_id == org.id).first()
     if user:
+        user.email = demo_login_email
         user.hashed_password = hash_password(password)
-        user.organization_id = org.id
         user.is_active = True
         user.is_verified = True
     else:
         user = User(
-            organization_id=org.id, email=DEMO_USER_EMAIL, hashed_password=hash_password(password),
+            organization_id=org.id, email=demo_login_email, hashed_password=hash_password(password),
             first_name="Demo", last_name="Manager", role=UserRole.owner,
             is_active=True, is_verified=True, is_master=False,
         )
@@ -439,7 +487,7 @@ def seed_demo_organization(db: Session) -> dict:
 
     return {
         "organization_id": str(org.id),
-        "login_email": DEMO_USER_EMAIL,
+        "login_email": demo_login_email,
         "login_password": password,
         "counts": {
             "properties": 3, "units": len(units), "tenants": len(tenants), "leases": len(leases),

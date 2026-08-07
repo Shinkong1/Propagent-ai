@@ -125,6 +125,7 @@ async def ai_chat(
         message=payload.message,
         tenant_id=str(payload.tenant_id) if payload.tenant_id else None,
         property_id=str(payload.property_id) if payload.property_id else None,
+        organization_id=str(current_user.organization_id) if current_user.organization_id else None,
         channel=payload.channel,
         db=db,
         language=org.language if org else "en",

@@ -18,6 +18,11 @@ class AgentState(TypedDict):
     message: str
     tenant_id: Optional[str]
     property_id: Optional[str]
+    # Which subscriber this conversation belongs to -- None means the caller
+    # couldn't be matched to any org at all (unrecognized number, no inquiry
+    # on file). Agents MUST treat a missing organization_id as "I don't have
+    # a specific portfolio to check" rather than inventing one.
+    organization_id: Optional[str]
     channel: str  # chat, voice, sms
     language: str  # en, es, fr, de, zh
     

@@ -6,7 +6,7 @@ from voice.call_session import (
     get_history, append_turns, bump_no_input_count, reset_no_input_count, clear_session,
     get_pending_agent, set_pending_agent,
 )
-from voice.voice_i18n import get_voice_config, get_prompt, get_org_language
+from voice.voice_i18n import get_voice_config, get_prompt, get_org_for_phone
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,13 @@ async def process_voice_input(speech: str, call_sid: str, caller_phone: str) -> 
     """Process speech input through AI agent and return TwiML"""
     logger.info(f"Voice input [{call_sid}]: {speech}")
 
-    language = get_org_language(caller_phone)
+    # One resolution per turn covers language + org/tenant/property context --
+    # previously this was two separate lookups (get_org_language, then a
+    # second _lookup_tenant call further down) that could disagree, and
+    # neither surfaced organization_id at all, so agents downstream had no
+    # way to ground answers in this caller's actual portfolio.
+    org = await run_in_threadpool(get_org_for_phone, caller_phone)
+    language = org["language"] if org else "en"
 
     if not speech or len(speech.strip()) < 2:
         attempts = bump_no_input_count(call_sid)
@@ -72,16 +78,14 @@ async def process_voice_input(speech: str, call_sid: str, caller_phone: str) -> 
         )
 
     try:
-        # Look up tenant by phone number (blocking DB work, off the event loop)
-        tenant_id, property_id = await run_in_threadpool(_lookup_tenant, caller_phone)
-
         history = get_history(call_sid)
         pending_agent = get_pending_agent(call_sid)
 
         result = await process_message(
             message=speech,
-            tenant_id=tenant_id,
-            property_id=property_id,
+            tenant_id=org.get("tenant_id") if org else None,
+            property_id=org.get("property_id") if org else None,
+            organization_id=org.get("id") if org else None,
             channel="voice",
             history=history,
             language=language,
@@ -115,42 +119,6 @@ async def process_voice_input(speech: str, call_sid: str, caller_phone: str) -> 
     except Exception as e:
         logger.error(f"Voice processing error: {e}")
         return build_response_twiml(get_prompt(language, "trouble"), language=language)
-
-
-def _lookup_tenant(caller_phone: str) -> tuple:
-    """Resolve a caller's phone number to a known tenant/property, if any.
-    Falls back to a matching RentalInquiry so a prospect who already asked
-    about a specific vacancy gets an AI agent that knows which property
-    they mean -- tenant_id stays None in that case since they're not an
-    actual tenant, only property_id is filled in."""
-    from database.base import SessionLocal
-    from models.tenant import Tenant
-    from models.inquiry import RentalInquiry
-    from voice.phone_match import phone_match_filter
-
-    tenant_id = None
-    property_id = None
-
-    db = SessionLocal()
-    try:
-        tenant = db.query(Tenant).filter(phone_match_filter(Tenant.phone, caller_phone)).first()
-        if tenant:
-            tenant_id = str(tenant.id)
-            if tenant.active_lease:
-                property_id = str(tenant.active_lease.unit.property_id)
-        else:
-            inquiry = (
-                db.query(RentalInquiry)
-                .filter(phone_match_filter(RentalInquiry.phone, caller_phone))
-                .order_by(RentalInquiry.created_at.desc())
-                .first()
-            )
-            if inquiry and inquiry.property_id:
-                property_id = str(inquiry.property_id)
-    finally:
-        db.close()
-
-    return tenant_id, property_id
 
 
 def _sync_call_record(call_sid: str, history: list, intent: "str | None", latest_response: str) -> None:
