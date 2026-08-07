@@ -31,3 +31,39 @@ async def process_outreach_queue_endpoint(db: Session = Depends(get_db)):
     from services.lead_service import process_outreach_queue
     result = await run_in_threadpool(process_outreach_queue, db)
     return result
+
+
+@router.post("/finance-reconcile", dependencies=[Depends(_require_cron_secret)])
+async def finance_reconcile_endpoint(db: Session = Depends(get_db)):
+    """Cross-checks recent Stripe checkout sessions against our Organization
+    records and self-heals any drift (a paid Stripe session whose org never
+    got its plan/subscription updated -- exactly the failure mode that let
+    a real customer's payment go unrecorded until they reported it
+    themselves). Alerts the owner by email whenever it heals or flags
+    anything; stays silent when everything's already in sync so this
+    doesn't become noise. Meant to be hit every 15-30 min by the same free
+    external scheduler already driving /process-outreach-queue."""
+    from services.finance_reconciliation_service import reconcile_stripe_sessions, summarize_reconciliation_for_alert
+    from services.communication_agent import send_email
+    from models.user import User
+
+    result = await run_in_threadpool(reconcile_stripe_sessions, db)
+
+    if result["healed"] or result["flagged"]:
+        summary = await summarize_reconciliation_for_alert(result)
+        subject = (
+            f"[PropAgent] Billing reconciliation: {len(result['healed'])} auto-fixed, "
+            f"{len(result['flagged'])} need review"
+        )
+        # Same "find the master/owner account" pattern services/owner_notify.py
+        # uses -- no separate OWNER_EMAIL setting to keep in sync.
+        owner = db.query(User).filter(User.is_master == True, User.is_active == True).first()
+        if owner and owner.email:
+            try:
+                await run_in_threadpool(send_email, owner.email, subject, summary)
+            except Exception as e:
+                logger.error(f"finance_reconcile: failed to send owner alert email: {e}")
+        else:
+            logger.warning("finance_reconcile: no active master/owner account found — alert logged only.")
+
+    return result

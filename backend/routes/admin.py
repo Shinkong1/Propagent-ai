@@ -340,6 +340,22 @@ async def stripe_recent_sessions(
         raise HTTPException(status_code=502, detail=f"Stripe lookup failed ({type(e).__name__}): {e}")
 
 
+@router.post("/finance-reconcile")
+async def finance_reconcile_manual(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_master),
+):
+    """On-demand version of the /internal/cron/finance-reconcile job -- same
+    deterministic Stripe-vs-DB drift check and self-heal, runnable right now
+    from the Owner Admin portal instead of waiting for the next scheduled
+    run. Returns the result inline (no email) so it doubles as a way to
+    verify a fix actually worked immediately after making one."""
+    from services.finance_reconciliation_service import reconcile_stripe_sessions
+    from fastapi.concurrency import run_in_threadpool
+    result = await run_in_threadpool(reconcile_stripe_sessions, db)
+    return result
+
+
 @router.get("/users", response_model=List[UserAdminResponse])
 async def list_users(db: Session = Depends(get_db)):
     users = db.query(User).order_by(User.created_at.desc()).all()
