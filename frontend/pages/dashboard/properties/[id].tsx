@@ -349,12 +349,12 @@ export default function PropertyDetail() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {[...units].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()).map((u: any) => (
                   <div key={u.id} style={{ padding: '10px 14px', background: 'var(--bg-app)', borderRadius: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 12, color: 'var(--text-primary)' }}>Unit {u.unit_number}</span>
-                        <span style={{ fontSize: 11, color: '#64748B' }}>{u.bedrooms}bd / {u.bathrooms}ba</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                        <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 12, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>Unit {u.unit_number}</span>
+                        <span style={{ fontSize: 11, color: '#64748B', whiteSpace: 'nowrap' }}>{u.bedrooms}bd / {u.bathrooms}ba</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                         <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 12, color: 'var(--text-secondary)' }}>{formatMoney(Number(u.monthly_rent))}/mo</span>
                         {u.is_occupied ? (
                           <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#10B981' }}><CheckCircle size={12} /> Occupied</span>
@@ -394,9 +394,9 @@ export default function PropertyDetail() {
                     <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, var(--border-input), var(--border-strong))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', fontFamily: 'Syne' }}>
                       {t.first_name?.[0]}{t.last_name?.[0]}
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans' }}>{t.first_name} {t.last_name}</div>
-                      <div style={{ fontSize: 11, color: '#64748B' }}>{t.email || '—'}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.first_name} {t.last_name}</div>
+                      <div style={{ fontSize: 11, color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.email || '—'}</div>
                     </div>
                     {t.active_lease_id && (
                       canGenerateContracts ? (

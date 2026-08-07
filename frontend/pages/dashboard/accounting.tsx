@@ -151,8 +151,8 @@ export default function Accounting() {
             {payments.length === 0 ? <Empty text="No payments recorded yet." /> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 420, overflowY: 'auto' }}>
                 {payments.slice(0, 30).map((p: any) => (
-                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-app)', borderRadius: 8 }}>
-                    <div>
+                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-app)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
+                    <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans', fontWeight: 600, marginBottom: 2 }}>{p.tenant_name || 'Unknown tenant'}</div>
                       <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono', marginBottom: 2 }}>{formatMoney(p.amount)} · {p.property_name}{p.unit_number ? ` · Unit ${p.unit_number}` : ''}</div>
                       <div style={{ fontSize: 11, color: '#64748B' }}>Due {p.due_date}{p.paid_date ? ` · Paid ${p.paid_date}` : ''}</div>
@@ -171,8 +171,8 @@ export default function Accounting() {
             {expenses.length === 0 ? <Empty text="No expenses recorded yet." /> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 420, overflowY: 'auto' }}>
                 {expenses.slice(0, 30).map((e: any) => (
-                  <div key={e.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-app)', borderRadius: 8 }}>
-                    <div>
+                  <div key={e.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-app)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
+                    <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono' }}>{formatMoney(e.amount)}</div>
                       <div style={{ fontSize: 11, color: '#64748B' }}>{e.expense_date}{e.description ? ` · ${e.description}` : ''}</div>
                     </div>
