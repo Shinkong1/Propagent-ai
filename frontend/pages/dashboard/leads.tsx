@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { UserSearch, Plus, Mail, Zap, ExternalLink, Search, X, ShieldAlert } from 'lucide-react';
+import { UserSearch, Plus, Mail, Zap, ExternalLink, Search, X, ShieldAlert, MessageCircle } from 'lucide-react';
 import { leads as leadsApi } from '../../lib/api';
 import { getUser } from '../../lib/auth';
 import toast from 'react-hot-toast';
@@ -66,6 +66,16 @@ export default function Leads() {
       setTimeout(() => { leadsApi.list().then(r => setLeadList(r.data || [])).catch(() => {}); }, 1000);
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || 'Failed to queue email');
+    }
+  };
+
+  const markReplied = async (id: string) => {
+    try {
+      await leadsApi.markReplied(id);
+      toast.success('Marked replied — follow-up with the demo link queued');
+      setTimeout(() => { leadsApi.list().then(r => setLeadList(r.data || [])).catch(() => {}); }, 1000);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to mark replied');
     }
   };
 
@@ -193,9 +203,16 @@ export default function Leads() {
                     )}
                   </td>
                   <td style={{ padding: '12px 16px' }}>
-                    <button onClick={() => sendOutreach(l.id)} title="Send AI outreach" style={{ padding: '6px 10px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 6, color: '#3B82F6', cursor: 'pointer', fontSize: 12 }}>
-                      <Mail size={13} />
-                    </button>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={() => sendOutreach(l.id)} title="Send AI outreach" style={{ padding: '6px 10px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 6, color: '#3B82F6', cursor: 'pointer', fontSize: 12 }}>
+                        <Mail size={13} />
+                      </button>
+                      {l.outreach_status === 'sent' && (
+                        <button onClick={() => markReplied(l.id)} title="They replied — send the demo follow-up" style={{ padding: '6px 10px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 6, color: '#10B981', cursor: 'pointer', fontSize: 12 }}>
+                          <MessageCircle size={13} />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

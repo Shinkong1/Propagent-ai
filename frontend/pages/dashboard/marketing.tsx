@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import {
   ShieldAlert, Megaphone, Search, Building2, Share2, Copy, ExternalLink,
-  CheckCircle2, Circle, Linkedin, Twitter, Facebook, Instagram, Home,
+  CheckCircle2, Circle, Linkedin, Twitter, Facebook, Instagram, Home, PlayCircle,
 } from 'lucide-react';
 import { getUser } from '../../lib/auth';
 import { publicListings } from '../../lib/api';
@@ -92,6 +92,29 @@ export default function MarketingHub() {
             </span>
           </div>
         )}
+
+        {/* Automated demo */}
+        <Section icon={PlayCircle} title="Automated demo">
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 16, display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 240 }}>
+              <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 13.5, color: 'var(--text-primary)', marginBottom: 4 }}>Self-playing product walkthrough</div>
+              <div style={{ fontSize: 12.5, color: '#64748B', marginBottom: 10, lineHeight: 1.5 }}>
+                A 6-scene, self-advancing tour built from real demo-account data — AI Workforce, Voice Receptionist, Maintenance, Leasing &amp; screening.
+                Send this link instead of walking a prospect through it live. It's automatically kept up to date whenever the demo data is refreshed.
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <a href="/demo" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', color: '#FBC02D', fontSize: 11.5, fontFamily: 'Syne', fontWeight: 600 }}>
+                    Open demo <ExternalLink size={11} />
+                  </span>
+                </a>
+                <button onClick={() => copy(`${SITE_URL}/demo`, 'Demo link copied')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 11.5, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+                  <Copy size={11} /> Copy link
+                </button>
+              </div>
+            </div>
+          </div>
+        </Section>
 
         {/* Google */}
         <Section icon={Search} title="Google">

@@ -6,6 +6,7 @@ subscriber's own tenants or rental leads, so it's restricted to the
 platform owner only — a regular subscriber has no reason to be sending
 sales outreach on PropAgent's behalf."""
 import logging
+from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
@@ -134,6 +135,38 @@ async def send_outreach(
     from services.lead_service import queue_outreach_email
     background_tasks.add_task(queue_outreach_email, lead, db)
     return {"message": "Outreach email queued"}
+
+
+@router.post("/{lead_id}/mark-replied")
+async def mark_replied(
+    lead_id: UUID,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """There's no inbound-email parsing in this app -- replies land in a
+    real inbox a human reads, not a webhook. This is that human telling
+    the system "they wrote back," which marks the latest outreach email
+    replied, moves the lead to interested, and queues the step-2
+    follow-up (which points them at the automated demo)."""
+    lead = db.query(Lead).filter(
+        Lead.id == lead_id, Lead.organization_id == current_user.organization_id
+    ).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    latest = max(lead.outreach_emails, key=lambda e: e.created_at) if lead.outreach_emails else None
+    if latest:
+        latest.status = "replied"
+        latest.replied_at = latest.replied_at or datetime.utcnow()
+
+    if lead.status == LeadStatus.new:
+        lead.status = LeadStatus.interested
+    db.commit()
+
+    from services.lead_service import queue_followup_email
+    background_tasks.add_task(queue_followup_email, lead, db)
+    return {"message": "Marked replied; follow-up with demo link queued"}
 
 
 @router.post("/scrape")

@@ -129,6 +129,7 @@ export const leads = {
   create: (data: any) => api.post('/leads/', data),
   updateStatus: (id: string, data: any) => api.patch(`/leads/${id}/status`, data),
   sendOutreach: (id: string) => api.post(`/leads/${id}/outreach`),
+  markReplied: (id: string) => api.post(`/leads/${id}/mark-replied`),
   scrape: (data: any) => api.post('/leads/scrape', data),
 };
 
