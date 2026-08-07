@@ -182,6 +182,29 @@ async def delete_organization_endpoint(
     return {"organization_id": str(org_id), "deleted": counts}
 
 
+@router.post("/demo-org/seed")
+async def seed_demo_org_endpoint(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_master),
+):
+    """Create (or wipe + refresh) a dedicated 'PropAgent Demo' organization
+    with realistic data across every feature area, for sales/marketing
+    demos -- entirely separate from any real subscriber's data. Returns
+    a fresh login (the password is only ever returned here, never stored
+    in plaintext or logged)."""
+    from services.demo_seed_service import seed_demo_organization
+
+    try:
+        result = seed_demo_organization(db)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to seed demo org: {e}")
+        raise HTTPException(status_code=500, detail=f"Seeding failed and was rolled back: {e}")
+
+    return result
+
+
 @router.get("/users", response_model=List[UserAdminResponse])
 async def list_users(db: Session = Depends(get_db)):
     users = db.query(User).order_by(User.created_at.desc()).all()
