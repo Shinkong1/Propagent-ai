@@ -126,13 +126,14 @@ def _lookup_tenant(caller_phone: str) -> tuple:
     from database.base import SessionLocal
     from models.tenant import Tenant
     from models.inquiry import RentalInquiry
+    from voice.phone_match import phone_match_filter
 
     tenant_id = None
     property_id = None
 
     db = SessionLocal()
     try:
-        tenant = db.query(Tenant).filter(Tenant.phone == caller_phone).first()
+        tenant = db.query(Tenant).filter(phone_match_filter(Tenant.phone, caller_phone)).first()
         if tenant:
             tenant_id = str(tenant.id)
             if tenant.active_lease:
@@ -140,7 +141,7 @@ def _lookup_tenant(caller_phone: str) -> tuple:
         else:
             inquiry = (
                 db.query(RentalInquiry)
-                .filter(RentalInquiry.phone == caller_phone)
+                .filter(phone_match_filter(RentalInquiry.phone, caller_phone))
                 .order_by(RentalInquiry.created_at.desc())
                 .first()
             )

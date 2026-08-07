@@ -107,10 +107,11 @@ def get_org_for_phone(caller_phone: str):
         from models.tenant import Tenant
         from models.user import Organization
         from models.inquiry import RentalInquiry
+        from voice.phone_match import phone_match_filter
 
         db = SessionLocal()
         try:
-            tenant = db.query(Tenant).filter(Tenant.phone == caller_phone).first()
+            tenant = db.query(Tenant).filter(phone_match_filter(Tenant.phone, caller_phone)).first()
             if tenant and tenant.organization_id:
                 org = db.query(Organization).filter(Organization.id == tenant.organization_id).first()
                 if org:
@@ -123,7 +124,7 @@ def get_org_for_phone(caller_phone: str):
 
             inquiry = (
                 db.query(RentalInquiry)
-                .filter(RentalInquiry.phone == caller_phone)
+                .filter(phone_match_filter(RentalInquiry.phone, caller_phone))
                 .order_by(RentalInquiry.created_at.desc())
                 .first()
             )
