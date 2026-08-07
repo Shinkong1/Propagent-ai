@@ -379,7 +379,9 @@ async def property_stats(
     ).with_entities(
         func.sum(Lease.monthly_rent)
     ).scalar() or 0.0
-    
+
+    tenant_count = db.query(Tenant).filter(Tenant.organization_id == org_id).count()
+
     return {
         "total_properties": len(properties),
         "total_units": total_units,
@@ -387,6 +389,7 @@ async def property_stats(
         "vacancy_rate": round(((total_units - active_leases) / total_units * 100) if total_units else 0, 1),
         "open_tickets": open_tickets,
         "monthly_revenue": round(monthly_revenue, 2),
+        "tenant_count": tenant_count,
     }
 
 

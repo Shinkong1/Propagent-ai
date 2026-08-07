@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/DashboardLayout';
 import MetricCard from '../../components/MetricCard';
+import OnboardingChecklist from '../../components/OnboardingChecklist';
 import { Building2, Users, Wrench, DollarSign, TrendingUp, MessageSquare, Send, X } from 'lucide-react';
 import { properties, maintenance, leads as leadsApi } from '../../lib/api';
 import { getUser } from '../../lib/auth';
@@ -97,6 +98,8 @@ export default function Dashboard() {
             Real-time metrics across your property portfolio
           </p>
         </div>
+
+        <OnboardingChecklist stats={stats} />
 
         {/* Metrics Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 28 }}>
