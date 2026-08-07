@@ -258,11 +258,20 @@ async def billing_debug(
             import stripe
             from config import settings
             stripe.api_key = settings.STRIPE_SECRET
+            # stripe-python 15.x's StripeObject/ListObject dropped dict-style
+            # .get() -- only attribute access (or bracket access, which
+            # still works) is supported. .get() here silently produced
+            # "stripe_lookup_error": "get" and masked the real data, which
+            # is why this diagnostic looked empty even when it shouldn't
+            # have been. Use getattr(...) throughout instead.
             sub = await run_in_threadpool(stripe.Subscription.retrieve, org.stripe_subscription_id)
-            result["stripe_actual_status"] = sub.get("status")
-            result["stripe_actual_plan_nickname"] = sub["items"]["data"][0]["price"].get("nickname") if sub.get("items", {}).get("data") else None
+            result["stripe_actual_status"] = getattr(sub, "status", None)
+            items_data = getattr(getattr(sub, "items", None), "data", None)
+            result["stripe_actual_plan_nickname"] = (
+                getattr(getattr(items_data[0], "price", None), "nickname", None) if items_data else None
+            )
         except Exception as e:
-            result["stripe_lookup_error"] = str(e)
+            result["stripe_lookup_error"] = f"{type(e).__name__}: {e}"
     elif org.stripe_customer_id:
         try:
             import stripe
@@ -270,10 +279,15 @@ async def billing_debug(
             stripe.api_key = settings.STRIPE_SECRET
             subs = await run_in_threadpool(stripe.Subscription.list, customer=org.stripe_customer_id, limit=5)
             result["stripe_customer_subscriptions"] = [
-                {"id": s["id"], "status": s["status"], "created": s["created"]} for s in subs.get("data", [])
+                {
+                    "id": getattr(s, "id", None),
+                    "status": getattr(s, "status", None),
+                    "created": getattr(s, "created", None),
+                }
+                for s in subs.data
             ]
         except Exception as e:
-            result["stripe_lookup_error"] = str(e)
+            result["stripe_lookup_error"] = f"{type(e).__name__}: {e}"
 
     return result
 
@@ -299,20 +313,27 @@ async def stripe_recent_sessions(
     try:
         sessions = await run_in_threadpool(stripe.checkout.Session.list, limit=10)
         result = []
-        for s in sessions.get("data", []):
+        # stripe-python 15.x's StripeObject/ListObject dropped dict-style
+        # .get() -- only real attribute access works now. This was the
+        # actual bug (confirmed by reproducing it locally): .get() on a
+        # Session or its .metadata raises AttributeError('get'), which is
+        # exactly the bare "Stripe lookup failed: get" this endpoint was
+        # returning in production.
+        for s in sessions.data:
+            metadata = getattr(s, "metadata", None)
             result.append({
-                "id": s.get("id"),
-                "created": s.get("created"),
-                "payment_status": s.get("payment_status"),
-                "status": s.get("status"),
-                "customer": s.get("customer"),
-                "subscription": s.get("subscription"),
-                "metadata": dict(s.get("metadata") or {}),
+                "id": getattr(s, "id", None),
+                "created": getattr(s, "created", None),
+                "payment_status": getattr(s, "payment_status", None),
+                "status": getattr(s, "status", None),
+                "customer": getattr(s, "customer", None),
+                "subscription": getattr(s, "subscription", None),
+                "metadata": dict(metadata) if metadata else {},
             })
         return {"sessions": result}
     except Exception as e:
-        logger.error(f"stripe-recent-sessions failed: {e}", exc_info=True)
-        raise HTTPException(status_code=502, detail=f"Stripe lookup failed: {e}")
+        logger.error(f"stripe-recent-sessions failed: {type(e).__name__}: {e}", exc_info=True)
+        raise HTTPException(status_code=502, detail=f"Stripe lookup failed ({type(e).__name__}): {e}")
 
 
 @router.get("/users", response_model=List[UserAdminResponse])

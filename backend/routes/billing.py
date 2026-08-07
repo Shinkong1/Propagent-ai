@@ -71,9 +71,23 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, settings.STRIPE_WEBHOOK_SECRET)
+        # ROOT CAUSE of the "paid but never upgraded" bug: stripe-python 15.x's
+        # Event/StripeObject dropped dict-style .get() -- only real attribute
+        # access (or bracket access) works now. Every branch below calls
+        # .get() on nested Stripe objects (session_data["metadata"].get(...),
+        # sub.get("id"), etc.), which raised AttributeError('get') on EVERY
+        # checkout.session.completed event, before the org's plan/subscription
+        # fields were ever written. Stripe saw that as a failed delivery and
+        # retried a few times, then gave up -- so on our side nothing ever
+        # updated. .to_dict() recursively converts the whole event (and every
+        # nested Stripe object inside it) to plain dicts, so the .get() calls
+        # below work exactly as originally written, with no further changes.
+        event = event.to_dict()
+    except HTTPException:
+        raise
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid webhook signature")
-    
+
     from models.user import Organization
     from models.platform import OrgEventType
     from services.platform_service import log_org_event
@@ -232,6 +246,13 @@ async def stripe_connect_webhook(request: Request, db: Session = Depends(get_db)
         logger.warning(f"Connect webhook signature verification failed against all configured secrets: {errors}")
         raise HTTPException(status_code=400, detail="Invalid webhook signature")
 
+    # Same fix as /billing/webhook above: stripe-python 15.x's Event/
+    # StripeObject dropped dict-style .get(), which every helper below
+    # (_extract_account_id, _has_active_capability, _handle_account_updated)
+    # relies on. .to_dict() makes the whole nested payload plain dicts so
+    # those .get() calls behave as originally written.
+    event = event.to_dict()
+
     logger.info(f"Connect webhook event type={event['type']}")
 
     # Stripe's v2 Core Accounts API doesn't fire a single generic "updated"
@@ -306,7 +327,7 @@ def _handle_account_updated(db: Session, event: dict):
     newly_onboarded = org.stripe_connect_onboarded or _has_active_capability(event.get("data", {}).get("changes", {}))
 
     try:
-        account = stripe.Account.retrieve(account_id)
+        account = stripe.Account.retrieve(account_id).to_dict()
         newly_onboarded = newly_onboarded or bool(account.get("charges_enabled") and account.get("payouts_enabled"))
     except Exception as e:
         logger.warning(f"Couldn't re-fetch Stripe account {account_id} after {event.get('type')}: {e} (continuing with event-embedded signal only)")
