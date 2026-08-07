@@ -126,6 +126,62 @@ async def update_organization(
     )
 
 
+@router.post("/organizations/{org_id}/wipe-data")
+async def wipe_organization_data_endpoint(
+    org_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_master),
+):
+    """Delete all operational data (properties, tenants, leases,
+    maintenance, inquiries, voice calls, etc.) for an organization while
+    keeping the organization and its login accounts intact -- for
+    clearing test data out of an org you're keeping, including your own."""
+    from services.org_wipe_service import wipe_organization_data
+
+    org = db.query(Organization).filter(Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    try:
+        counts = wipe_organization_data(db, org_id)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to wipe data for org {org_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Wipe failed and was rolled back: {e}")
+
+    return {"organization_id": str(org_id), "deleted": counts}
+
+
+@router.delete("/organizations/{org_id}")
+async def delete_organization_endpoint(
+    org_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_master),
+):
+    """Permanently delete an organization: all its data, its login
+    accounts, and the organization itself. Irreversible. Cannot be used
+    on your own organization -- use wipe-data on yourself instead."""
+    from services.org_wipe_service import delete_organization
+
+    if org_id == current_user.organization_id:
+        raise HTTPException(status_code=422, detail="You can't delete your own organization. Use wipe-data instead.")
+
+    org = db.query(Organization).filter(Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    try:
+        counts = delete_organization(db, org_id)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to delete org {org_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Delete failed and was rolled back: {e}")
+
+    return {"organization_id": str(org_id), "deleted": counts}
+
+
 @router.get("/users", response_model=List[UserAdminResponse])
 async def list_users(db: Session = Depends(get_db)):
     users = db.query(User).order_by(User.created_at.desc()).all()
