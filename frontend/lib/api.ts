@@ -248,6 +248,8 @@ export const admin = {
   listVerificationFiles: () => api.get('/admin/verification-files'),
   createVerificationFile: (filename: string, content: string) => api.post('/admin/verification-files', { filename, content }),
   deleteVerificationFile: (id: string) => api.delete(`/admin/verification-files/${id}`),
+  seedDemoOrg: () => api.post('/admin/demo-org/seed'),
+  rotateDemoPassword: () => api.post('/admin/demo-org/rotate-password'),
 };
 
 export const contact = {

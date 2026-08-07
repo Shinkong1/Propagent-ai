@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import {
   ShieldAlert, Megaphone, Search, Building2, Share2, Copy, ExternalLink,
-  CheckCircle2, Circle, Linkedin, Twitter, Facebook, Instagram, Home, PlayCircle,
+  CheckCircle2, Circle, Linkedin, Twitter, Facebook, Instagram, Home, PlayCircle, RefreshCw, KeyRound,
 } from 'lucide-react';
 import { getUser } from '../../lib/auth';
-import { publicListings } from '../../lib/api';
+import { publicListings, admin as adminApi } from '../../lib/api';
 import toast from 'react-hot-toast';
 
 const SITE_URL = 'https://propagent.app';
@@ -40,6 +40,8 @@ export default function MarketingHub() {
   const isMaster = getUser()?.is_master;
   const [listingCount, setListingCount] = useState<number | null>(null);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [rotating, setRotating] = useState(false);
+  const [demoCreds, setDemoCreds] = useState<{ login_email: string; login_password: string } | null>(null);
 
   useEffect(() => {
     if (!isMaster) return;
@@ -54,6 +56,20 @@ export default function MarketingHub() {
     const next = { ...checked, [id]: !checked[id] };
     setChecked(next);
     localStorage.setItem(CHECKLIST_KEY, JSON.stringify(next));
+  };
+
+  const rotateDemoPassword = async () => {
+    setRotating(true);
+    setDemoCreds(null);
+    try {
+      const res = await adminApi.rotateDemoPassword();
+      setDemoCreds(res.data);
+      toast.success('New demo password generated');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to rotate password — run "Seed demo data" first if the account doesn\'t exist yet');
+    } finally {
+      setRotating(false);
+    }
   };
 
   const doneCount = CHECKLIST_ITEMS.filter(i => checked[i.id]).length;
@@ -111,7 +127,26 @@ export default function MarketingHub() {
                 <button onClick={() => copy(`${SITE_URL}/demo`, 'Demo link copied')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 11.5, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
                   <Copy size={11} /> Copy link
                 </button>
+                <button onClick={rotateDemoPassword} disabled={rotating} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 11.5, fontFamily: 'IBM Plex Mono', cursor: rotating ? 'default' : 'pointer', opacity: rotating ? 0.6 : 1 }}>
+                  <RefreshCw size={11} /> {rotating ? 'Rotating…' : 'Rotate demo password'}
+                </button>
               </div>
+
+              {demoCreds && (
+                <div style={{ marginTop: 12, background: 'var(--bg-app)', border: '1px solid rgba(251,192,45,0.3)', borderRadius: 8, padding: '10px 14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#FBC02D', marginBottom: 8 }}>
+                    <KeyRound size={11} /> New demo login — copy this now, it's only shown once
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>{demoCreds.login_email}</span>
+                    <button onClick={() => copy(demoCreds.login_email, 'Email copied')} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', padding: 2 }}><Copy size={12} /></button>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <span style={{ fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-primary)' }}>{demoCreds.login_password}</span>
+                    <button onClick={() => copy(demoCreds.login_password, 'Password copied')} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', padding: 2 }}><Copy size={12} /></button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </Section>
