@@ -18,6 +18,7 @@ export const translations: Record<Language, Dict> = {
     'common.cancel': 'Cancel',
     // Nav
     'nav.overview': 'Overview',
+    'nav.aiWorkforce': 'AI Workforce',
     'nav.groupPropertyOps': 'Property Operations',
     'nav.groupLeasing': 'Leasing',
     'nav.groupOperations': 'Maintenance & Compliance',
@@ -747,6 +748,7 @@ export const translations: Record<Language, Dict> = {
   es: {
     'common.cancel': 'Cancelar',
     'nav.overview': 'Resumen',
+    'nav.aiWorkforce': 'Equipo de IA',
     'nav.groupPropertyOps': 'Operaciones de Propiedades',
     'nav.groupLeasing': 'Arrendamiento',
     'nav.groupOperations': 'Mantenimiento y Cumplimiento',
@@ -1460,6 +1462,7 @@ export const translations: Record<Language, Dict> = {
   fr: {
     'common.cancel': 'Annuler',
     'nav.overview': "Vue d'ensemble",
+    'nav.aiWorkforce': 'Équipe IA',
     'nav.groupPropertyOps': 'Opérations Immobilières',
     'nav.groupLeasing': 'Location',
     'nav.groupOperations': 'Entretien et Conformité',
@@ -2173,6 +2176,7 @@ export const translations: Record<Language, Dict> = {
   de: {
     'common.cancel': 'Abbrechen',
     'nav.overview': 'Übersicht',
+    'nav.aiWorkforce': 'KI-Belegschaft',
     'nav.groupPropertyOps': 'Immobilienverwaltung',
     'nav.groupLeasing': 'Vermietung',
     'nav.groupOperations': 'Wartung & Compliance',
@@ -2886,6 +2890,7 @@ export const translations: Record<Language, Dict> = {
   zh: {
     'common.cancel': '取消',
     'nav.overview': '概览',
+    'nav.aiWorkforce': 'AI 团队',
     'nav.groupPropertyOps': '物业运营',
     'nav.groupLeasing': '租赁',
     'nav.groupOperations': '维护与合规',
@@ -3599,6 +3604,7 @@ export const translations: Record<Language, Dict> = {
   is: {
     'common.cancel': 'Hætta við',
     'nav.overview': 'Yfirlit',
+    'nav.aiWorkforce': 'Gervigreindarstarfslið',
     'nav.groupPropertyOps': 'Fasteignarekstur',
     'nav.groupLeasing': 'Leiga',
     'nav.groupOperations': 'Viðhald og Regluvarsla',
@@ -4312,6 +4318,7 @@ export const translations: Record<Language, Dict> = {
   ko: {
     'common.cancel': '취소',
     'nav.overview': '개요',
+    'nav.aiWorkforce': 'AI 인력',
     'nav.groupPropertyOps': '부동산 운영',
     'nav.groupLeasing': '임대',
     'nav.groupOperations': '유지보수 및 컴플라이언스',
@@ -5025,6 +5032,7 @@ export const translations: Record<Language, Dict> = {
   it: {
     'common.cancel': 'Annulla',
     'nav.overview': 'Panoramica',
+    'nav.aiWorkforce': 'Team IA',
     'nav.groupPropertyOps': 'Operazioni Immobiliari',
     'nav.groupLeasing': 'Locazione',
     'nav.groupOperations': 'Manutenzione e Conformità',

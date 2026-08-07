@@ -120,6 +120,10 @@ export const voice = {
   calls: () => api.get('/voice/calls'),
 };
 
+export const aiWorkforce = {
+  summary: () => api.get('/ai-workforce/summary'),
+};
+
 export const leads = {
   list: (status?: string) => api.get('/leads/', { params: { status } }),
   create: (data: any) => api.post('/leads/', data),

@@ -21,6 +21,7 @@ function isNavGroup(entry: NavEntry): entry is NavGroup {
 
 const NAV: NavEntry[] = [
   { href: '/dashboard', key: 'nav.overview', icon: LayoutDashboard },
+  { href: '/dashboard/ai-workforce', key: 'nav.aiWorkforce', icon: Sparkles },
   { href: '/dashboard/admin', key: 'nav.admin', icon: Crown, masterOnly: true },
   // Lead CRM finds/pitches *new PropAgent AI subscribers* (it's PropAgent's
   // own sales pipeline, not anything belonging to a customer's org) — owner
