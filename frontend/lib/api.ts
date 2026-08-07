@@ -116,6 +116,10 @@ export const maintenance = {
   vendors: () => api.get('/maintenance/vendors'),
 };
 
+export const voice = {
+  calls: () => api.get('/voice/calls'),
+};
+
 export const leads = {
   list: (status?: string) => api.get('/leads/', { params: { status } }),
   create: (data: any) => api.post('/leads/', data),

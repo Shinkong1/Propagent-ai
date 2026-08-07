@@ -1,5 +1,6 @@
 """Voice call AI agent — connects speech to LangGraph pipeline"""
 import logging
+from fastapi.concurrency import run_in_threadpool
 from agents.graph import process_message
 from voice.call_session import (
     get_history, append_turns, bump_no_input_count, reset_no_input_count, clear_session,
@@ -71,22 +72,8 @@ async def process_voice_input(speech: str, call_sid: str, caller_phone: str) -> 
         )
 
     try:
-        # Look up tenant by phone number
-        from database.base import SessionLocal
-        from models.tenant import Tenant
-
-        tenant_id = None
-        property_id = None
-
-        db = SessionLocal()
-        try:
-            tenant = db.query(Tenant).filter(Tenant.phone == caller_phone).first()
-            if tenant:
-                tenant_id = str(tenant.id)
-                if tenant.active_lease:
-                    property_id = str(tenant.active_lease.unit.property_id)
-        finally:
-            db.close()
+        # Look up tenant by phone number (blocking DB work, off the event loop)
+        tenant_id, property_id = await run_in_threadpool(_lookup_tenant, caller_phone)
 
         history = get_history(call_sid)
         pending_agent = get_pending_agent(call_sid)
@@ -112,6 +99,7 @@ async def process_voice_input(speech: str, call_sid: str, caller_phone: str) -> 
             {"role": "user", "content": speech},
             {"role": "assistant", "content": response_text},
         ])
+        await run_in_threadpool(_sync_call_record, call_sid, get_history(call_sid), result.get("agent"), response_text)
 
         # Mid-intake (agent just asked a clarifying question and is waiting on
         # a direct answer) — don't tack on "just say goodbye", it reads as the
@@ -127,3 +115,51 @@ async def process_voice_input(speech: str, call_sid: str, caller_phone: str) -> 
     except Exception as e:
         logger.error(f"Voice processing error: {e}")
         return build_response_twiml(get_prompt(language, "trouble"), language=language)
+
+
+def _lookup_tenant(caller_phone: str) -> tuple:
+    """Resolve a caller's phone number to a known tenant/property, if any."""
+    from database.base import SessionLocal
+    from models.tenant import Tenant
+
+    tenant_id = None
+    property_id = None
+
+    db = SessionLocal()
+    try:
+        tenant = db.query(Tenant).filter(Tenant.phone == caller_phone).first()
+        if tenant:
+            tenant_id = str(tenant.id)
+            if tenant.active_lease:
+                property_id = str(tenant.active_lease.unit.property_id)
+    finally:
+        db.close()
+
+    return tenant_id, property_id
+
+
+def _sync_call_record(call_sid: str, history: list, intent: "str | None", latest_response: str) -> None:
+    """Mirror the live (Redis) conversation onto the permanent VoiceCall row
+    after every turn, not just at the end -- if the caller hangs up without
+    Twilio ever firing /voice/status (it does happen), the transcript up to
+    that point is still saved rather than lost entirely."""
+    if not call_sid:
+        return
+    try:
+        import json
+        from database.base import SessionLocal
+        from models.voice_call import VoiceCall
+
+        db = SessionLocal()
+        try:
+            call = db.query(VoiceCall).filter(VoiceCall.call_sid == call_sid).first()
+            if call:
+                call.transcript = json.dumps(history)
+                if intent:
+                    call.intent = intent
+                call.outcome_summary = latest_response
+                db.commit()
+        finally:
+            db.close()
+    except Exception as e:
+        logger.warning(f"Failed to sync voice call record for {call_sid}: {e}")

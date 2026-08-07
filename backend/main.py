@@ -67,7 +67,7 @@ from routes.properties import router as properties_router
 from routes.tenants import router as tenants_router
 from routes.maintenance import router as maintenance_router
 from routes.leads import router as leads_router
-from routes.voice import router as voice_router
+from routes.voice import router as voice_router, staff_router as voice_staff_router
 from routes.billing import router as billing_router
 from routes.screening import router as screening_router
 from routes.accounting import router as accounting_router
@@ -95,7 +95,7 @@ from routes.inquiries import router as inquiries_router
 from routes.verification import router as verification_router
 
 for r in [auth_router, properties_router, tenants_router, maintenance_router,
-          leads_router, voice_router, billing_router, screening_router, accounting_router,
+          leads_router, voice_router, voice_staff_router, billing_router, screening_router, accounting_router,
           executive_router, portfolio_router, compliance_router, collections_router, investment_router,
           documents_router, pricing_router, inspections_router, communications_router, admin_router, contact_router,
           team_router, mfa_router, oauth_router, workflows_router, predictive_router, fraud_router, public_api_router,

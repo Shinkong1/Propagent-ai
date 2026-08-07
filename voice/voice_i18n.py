@@ -86,10 +86,13 @@ def get_prompt(language: str, key: str) -> str:
 
 
 def get_org_for_phone(caller_phone: str):
-    """Look up the organization that owns the calling tenant, if any.
+    """Look up the organization (and, if resolvable, the specific tenant/
+    property) that a calling phone number belongs to.
 
-    Returns a detached-safe plain dict (id, language, plan) rather than the ORM
-    object, since the DB session closes before the caller uses the result.
+    Returns a detached-safe plain dict (id, language, plan, tenant_id,
+    property_id) rather than ORM objects, since the DB session closes
+    before the caller uses the result. tenant_id/property_id may be None
+    even when an org is found (a tenant with no active lease yet).
     """
     if not caller_phone:
         return None
@@ -104,7 +107,12 @@ def get_org_for_phone(caller_phone: str):
             if tenant and tenant.organization_id:
                 org = db.query(Organization).filter(Organization.id == tenant.organization_id).first()
                 if org:
-                    return {"id": str(org.id), "language": org.language, "plan": org.plan.value}
+                    lease = tenant.active_lease
+                    property_id = str(lease.unit.property_id) if lease and lease.unit else None
+                    return {
+                        "id": str(org.id), "language": org.language, "plan": org.plan.value,
+                        "tenant_id": str(tenant.id), "property_id": property_id,
+                    }
         finally:
             db.close()
     except Exception as e:
