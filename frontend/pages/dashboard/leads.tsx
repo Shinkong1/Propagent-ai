@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { UserSearch, Plus, Mail, Zap, ExternalLink, Search, X, ShieldAlert, MessageCircle } from 'lucide-react';
+import { UserSearch, Plus, Mail, Zap, ExternalLink, Search, X, ShieldAlert, MessageCircle, Trash2 } from 'lucide-react';
 import { leads as leadsApi } from '../../lib/api';
 import { getUser } from '../../lib/auth';
 import toast from 'react-hot-toast';
@@ -88,6 +88,17 @@ export default function Leads() {
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || 'Scrape failed');
       setScraping(false);
+    }
+  };
+
+  const deleteLead = async (id: string, name: string) => {
+    if (!confirm(`Delete lead "${name}"? This can't be undone.`)) return;
+    try {
+      await leadsApi.delete(id);
+      setLeadList(p => p.filter(l => l.id !== id));
+      toast.success('Lead deleted');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to delete lead');
     }
   };
 
@@ -212,6 +223,9 @@ export default function Leads() {
                           <MessageCircle size={13} />
                         </button>
                       )}
+                      <button onClick={() => deleteLead(l.id, `${l.first_name} ${l.last_name}`.trim() || l.email)} title="Delete lead" style={{ padding: '6px 10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 6, color: '#EF4444', cursor: 'pointer', fontSize: 12 }}>
+                        <Trash2 size={13} />
+                      </button>
                     </div>
                   </td>
                 </tr>

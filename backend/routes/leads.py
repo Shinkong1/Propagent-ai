@@ -99,6 +99,26 @@ async def create_lead(
     return {"id": str(lead.id), "message": "Lead created"}
 
 
+@router.delete("/{lead_id}")
+async def delete_lead(
+    lead_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    lead = db.query(Lead).filter(
+        Lead.id == lead_id, Lead.organization_id == current_user.organization_id
+    ).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    # OutreachEmail.lead_id has no cascade configured and is NOT NULL --
+    # delete the children first or this would fail with a FK violation.
+    db.query(OutreachEmail).filter(OutreachEmail.lead_id == lead_id).delete()
+    db.delete(lead)
+    db.commit()
+    return {"message": "Lead deleted"}
+
+
 @router.patch("/{lead_id}/status")
 async def update_lead_status(
     lead_id: UUID,
