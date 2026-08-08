@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
-import { Zap } from 'lucide-react';
+import { Zap, Gift } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { auth } from '../lib/api';
 import { setToken, setUser } from '../lib/auth';
@@ -12,8 +12,23 @@ export default function Signup() {
   const router = useRouter();
   const { t } = useLanguage();
   const [form, setForm] = useState({ email: '', password: '', first_name: '', last_name: '', organization_name: '' });
+  const [referralCode, setReferralCode] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // A referral link looks like https://propagent.app/signup?ref=ABCD1234 --
+  // pick that up once the router's query params are available and carry it
+  // through to the signup payload, so the referring org actually gets
+  // credit (see routes/auth.py's signup(), which already looks up
+  // `referral_code` -- this was the missing piece connecting a clicked
+  // link to that existing mechanism).
+  useEffect(() => {
+    if (!router.isReady) return;
+    const ref = router.query.ref;
+    if (typeof ref === 'string' && ref) {
+      setReferralCode(ref.toUpperCase());
+    }
+  }, [router.isReady, router.query.ref]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +38,8 @@ export default function Signup() {
     }
     setLoading(true);
     try {
-      const res = await auth.signup(form);
+      const payload = referralCode ? { ...form, referral_code: referralCode } : form;
+      const res = await auth.signup(payload);
       setToken(res.data.access_token);
       setUser(res.data);
       toast.success('Account created! Welcome to PropAgent AI.');
@@ -55,6 +71,15 @@ export default function Signup() {
           <h1 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 24, color: 'var(--text-primary)', marginBottom: 6 }}>{t('signup.title')}</h1>
           <p style={{ color: '#64748B', fontSize: 14 }}>{t('signup.subtitle')}</p>
         </div>
+
+        {referralCode && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
+            <Gift size={15} color="#FBC02D" />
+            <span style={{ fontSize: 12.5, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Sans' }}>
+              Referral code <strong style={{ color: '#FBC02D', fontFamily: 'IBM Plex Mono' }}>{referralCode}</strong> applied
+            </span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>

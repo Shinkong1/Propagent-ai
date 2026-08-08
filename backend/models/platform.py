@@ -21,6 +21,7 @@ class OrgEventType(enum.Enum):
     subscription_updated = "subscription_updated"
     subscription_canceled = "subscription_canceled"
     payment_failed = "payment_failed"
+    referral_reward_granted = "referral_reward_granted"
 
 
 class OrganizationEvent(Base):

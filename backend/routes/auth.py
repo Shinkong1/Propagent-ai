@@ -331,6 +331,28 @@ async def regenerate_organization_api_key(
     return {"api_key": org.api_key}
 
 
+@router.get("/organization/referral")
+async def get_organization_referral(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """This org's own referral code/link plus how many referrals have
+    converted to paid so far. Every org gets a referral_code at signup
+    (routes/auth.py's signup() always sets one), so this should only ever
+    be null for orgs created before the referral program existed --
+    self-heal by generating one on first view rather than showing nothing."""
+    org = current_user.organization
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    if not org.referral_code:
+        org.referral_code = generate_referral_code()
+        db.commit()
+    return {
+        "referral_code": org.referral_code,
+        "referral_credits_earned": org.referral_credits_earned or 0,
+    }
+
+
 @router.post("/change-password")
 async def change_password(
     payload: PasswordChangeRequest,

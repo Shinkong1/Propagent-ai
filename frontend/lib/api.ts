@@ -47,6 +47,7 @@ export const auth = {
   verifyEmail: (token: string) => api.post('/auth/verify-email', { token }),
   resendVerification: () => api.post('/auth/resend-verification'),
   updateProfile: (data: { email?: string; first_name?: string; last_name?: string; current_password: string }) => api.patch('/auth/profile', data),
+  referral: () => api.get('/auth/organization/referral'),
 };
 
 export const properties = {
@@ -258,6 +259,8 @@ export const admin = {
 
 export const contact = {
   send: (subject: string, message: string) => api.post('/contact/', { subject, message }),
+  salesChat: (message: string, history: { role: string; content: string }[]) =>
+    api.post('/contact/sales-chat', { message, history }),
 };
 
 export const team = {

@@ -46,7 +46,7 @@ def reconcile_stripe_sessions(db: Session, lookback_hours: int = 72, limit: int 
     from config import settings
     from models.user import Organization, PlanType
     from models.platform import OrgEventType
-    from services.platform_service import log_org_event
+    from services.platform_service import log_org_event, grant_referral_reward_if_eligible
 
     stripe.api_key = settings.STRIPE_SECRET
 
@@ -129,6 +129,11 @@ def reconcile_stripe_sessions(db: Session, lookback_hours: int = 72, limit: int 
 
         log_org_event(db, org.id, OrgEventType.plan_changed, from_plan=old_plan, to_plan=plan_enum.value,
                       subscription_status=subscription_status)
+        # Same "trial converted to paid" signal as the webhook handler --
+        # a missed webhook self-healed here is just as real a conversion,
+        # and this org's referrer (if any) shouldn't miss out on its
+        # credit just because the webhook happened to fail. Idempotent.
+        grant_referral_reward_if_eligible(db, org)
         logger.warning(
             f"finance_reconciliation: HEALED drift for org {org.id} ({org.name}) -- "
             f"Stripe showed paid session {s.get('id')} with subscription {subscription_id}, "

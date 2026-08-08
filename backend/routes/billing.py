@@ -128,7 +128,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
 
     from models.user import Organization
     from models.platform import OrgEventType
-    from services.platform_service import log_org_event
+    from services.platform_service import log_org_event, grant_referral_reward_if_eligible
     from uuid import UUID
 
     if event["type"] == "checkout.session.completed":
@@ -151,6 +151,12 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             db.commit()
             if old_plan != plan:
                 log_org_event(db, org.id, OrgEventType.plan_changed, from_plan=old_plan, to_plan=plan)
+            # Checkout completing is the real "trial converted to a paying
+            # subscription" moment -- if this org was referred by another
+            # org's referral code, grant that referrer its credit now.
+            # Idempotent on its own (referral_reward_granted flag), so this
+            # doesn't need to be gated on old_plan != plan.
+            grant_referral_reward_if_eligible(db, org)
             logger.info(f"Org {org_id} upgraded to {plan}")
 
     elif event["type"] in ("customer.subscription.created", "customer.subscription.updated"):

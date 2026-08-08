@@ -3,7 +3,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import DashboardLayout from '../../components/DashboardLayout';
 import TutorialWalkthrough from '../../components/TutorialWalkthrough';
-import { User, Mail, Building2, CreditCard, Shield, Globe, ChevronRight } from 'lucide-react';
+import { User, Mail, Building2, CreditCard, Shield, Globe, ChevronRight, Gift, Copy, Check } from 'lucide-react';
 import { auth, billing } from '../../lib/api';
 import { getUser } from '../../lib/auth';
 import { useLanguage } from '../../lib/LanguageContext';
@@ -14,6 +14,8 @@ export default function Profile() {
   const [me, setMe] = useState<any>(getUser() || {});
   const [plans, setPlans] = useState<any[]>([]);
   const [openingPortal, setOpeningPortal] = useState(false);
+  const [referral, setReferral] = useState<{ referral_code: string; referral_credits_earned: number } | null>(null);
+  const [copied, setCopied] = useState(false);
   const { language } = useLanguage();
   const { isMobile } = useSidebar();
   const currentLang = LANGUAGES.find(l => l.code === language);
@@ -21,9 +23,11 @@ export default function Profile() {
   useEffect(() => {
     auth.me().then(r => setMe((prev: any) => ({ ...prev, ...r.data }))).catch(() => {});
     billing.plans().then(r => setPlans(r.data?.plans || [])).catch(() => {});
+    auth.referral().then(r => setReferral(r.data)).catch(() => {});
   }, []);
 
   const currentPlan = plans.find(p => p.key === me.plan);
+  const referralLink = referral ? `https://propagent.app/signup?ref=${referral.referral_code}` : '';
 
   const openBillingPortal = async () => {
     setOpeningPortal(true);
@@ -33,6 +37,17 @@ export default function Profile() {
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || 'Could not open the billing portal.');
       setOpeningPortal(false);
+    }
+  };
+
+  const copyReferralLink = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      setCopied(true);
+      toast.success('Signup link copied!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Could not copy — copy it manually instead.');
     }
   };
 
@@ -96,6 +111,45 @@ export default function Profile() {
               <p style={{ fontSize: 11, color: '#64748B', marginTop: 8, textAlign: 'center' }}>
                 Manage Subscription lets you change plans, update your payment method, or cancel — handled securely by Stripe.
               </p>
+            </div>
+
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                <Gift size={16} color="#FBC02D" />
+                <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>Refer a Friend</h3>
+              </div>
+              {referral ? (
+                <>
+                  <p style={{ fontSize: 12.5, color: '#64748B', marginBottom: 14, lineHeight: 1.5 }}>
+                    Share your link. When someone signs up and converts to a paid plan, you earn a free-month credit.
+                  </p>
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 4 }}>YOUR REFERRAL CODE</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#FBC02D', fontFamily: 'IBM Plex Mono', letterSpacing: 1 }}>{referral.referral_code}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+                    <input
+                      readOnly
+                      value={referralLink}
+                      onFocus={(e) => e.target.select()}
+                      style={{ flex: 1, minWidth: 0, padding: '9px 10px', borderRadius: 8, background: 'var(--bg-app)', border: '1px solid var(--border-input)', color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'IBM Plex Mono' }}
+                    />
+                    <button
+                      onClick={copyReferralLink}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 12px', borderRadius: 8, background: 'rgba(var(--accent-rgb),0.1)', border: '1px solid rgba(var(--accent-rgb),0.3)', color: '#FBC02D', fontSize: 12.5, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    >
+                      {copied ? <Check size={13} /> : <Copy size={13} />}
+                      {copied ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: '1px solid var(--border-subtle)' }}>
+                    <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Free-month credits earned</span>
+                    <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Syne' }}>{referral.referral_credits_earned}</span>
+                  </div>
+                </>
+              ) : (
+                <div style={{ fontSize: 13, color: '#64748B' }}>Loading your referral link...</div>
+              )}
             </div>
 
             <Link href="/dashboard/language" style={{ textDecoration: 'none' }}>
