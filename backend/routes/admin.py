@@ -101,9 +101,50 @@ async def update_organization(
     if payload.plan is not None:
         old_plan = org.plan.value
         try:
-            org.plan = PlanType(payload.plan)
+            new_plan_enum = PlanType(payload.plan)
         except ValueError:
             raise HTTPException(status_code=422, detail=f"Invalid plan: {payload.plan}")
+
+        # This endpoint was originally "flip a plan flag to test gating" --
+        # fine when an org has no real subscription. But if it DOES have a
+        # real stripe_subscription_id, changing only our local plan field
+        # would silently desync it from what Stripe actually charges --
+        # exactly the drift bug this session spent hours tracking down and
+        # fixing for a real customer. So: if there's a real subscription,
+        # actually change IT (with proration), and only update our local
+        # field once Stripe confirms it. If there's no real subscription
+        # (test/manual org), just flip the flag as before.
+        if org.stripe_subscription_id and old_plan != new_plan_enum.value:
+            import stripe
+            from config import settings
+            stripe.api_key = settings.STRIPE_SECRET
+            price_map = {
+                "starter": settings.STRIPE_STARTER_PRICE_ID,
+                "professional": settings.STRIPE_PRO_PRICE_ID,
+                "enterprise": settings.STRIPE_ENTERPRISE_PRICE_ID,
+            }
+            new_price_id = price_map.get(new_plan_enum.value)
+            if not new_price_id:
+                raise HTTPException(status_code=422, detail=f"No Stripe price configured for plan: {new_plan_enum.value}")
+            try:
+                sub = stripe.Subscription.retrieve(org.stripe_subscription_id)
+                items_data = getattr(getattr(sub, "items", None), "data", None)
+                if not items_data:
+                    raise HTTPException(status_code=502, detail="Stripe subscription has no line items -- can't change its price.")
+                item_id = getattr(items_data[0], "id", None)
+                stripe.Subscription.modify(
+                    org.stripe_subscription_id,
+                    items=[{"id": item_id, "price": new_price_id}],
+                    proration_behavior="create_prorations",
+                )
+                logger.info(f"Admin changed Stripe subscription {org.stripe_subscription_id} for org {org.id} from {old_plan} to {new_plan_enum.value}")
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.error(f"Failed to change Stripe subscription for org {org.id}: {type(e).__name__}: {e}")
+                raise HTTPException(status_code=502, detail=f"Couldn't update the real Stripe subscription ({type(e).__name__}: {e}) -- plan was NOT changed, to avoid desyncing from what the customer is actually billed.")
+
+        org.plan = new_plan_enum
         if old_plan != org.plan.value:
             log_org_event(db, org.id, OrgEventType.plan_changed, from_plan=old_plan, to_plan=org.plan.value)
     if payload.is_active is not None and payload.is_active != org.is_active:
@@ -124,6 +165,99 @@ async def update_organization(
         unit_count=unit_count, ai_calls_this_period=org.ai_calls_this_period or 0,
         created_at=org.created_at,
     )
+
+
+@router.get("/organizations/{org_id}/activity")
+async def organization_activity(
+    org_id: UUID,
+    db: Session = Depends(get_db),
+):
+    """Real usage/engagement signals for one subscriber -- not just the
+    static counts already on the list view, but whether they're actually
+    using the product: who's logged in and when, what's happened to their
+    billing over time, and how much real work has moved through the
+    platform recently. Answers "is this subscriber actually using it,"
+    which the plain org list can't."""
+    from models.platform import OrganizationEvent
+    from models.voice_call import VoiceCall
+    from models.maintenance import MaintenanceTicket
+
+    org = db.query(Organization).filter(Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    users = db.query(User).filter(User.organization_id == org_id).order_by(User.last_login_at.desc().nullslast()).all()
+    events = (
+        db.query(OrganizationEvent)
+        .filter(OrganizationEvent.organization_id == org_id)
+        .order_by(OrganizationEvent.created_at.desc())
+        .limit(30)
+        .all()
+    )
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    voice_calls_30d = db.query(func.count(VoiceCall.id)).filter(
+        VoiceCall.organization_id == org_id, VoiceCall.started_at >= thirty_days_ago
+    ).scalar() or 0
+    tickets_30d = (
+        db.query(func.count(MaintenanceTicket.id))
+        .join(Property, MaintenanceTicket.property_id == Property.id)
+        .filter(Property.organization_id == org_id, MaintenanceTicket.created_at >= thirty_days_ago)
+        .scalar() or 0
+    )
+
+    return {
+        "organization_id": str(org_id),
+        "users": [
+            {
+                "id": str(u.id), "email": u.email, "full_name": u.full_name,
+                "role": u.role.value, "is_active": u.is_active,
+                "last_login_at": u.last_login_at.isoformat() if u.last_login_at else None,
+                "created_at": u.created_at.isoformat() if u.created_at else None,
+            }
+            for u in users
+        ],
+        "events": [
+            {
+                "type": e.event_type.value, "from_plan": e.from_plan, "to_plan": e.to_plan,
+                "subscription_status": e.subscription_status,
+                "created_at": e.created_at.isoformat() if e.created_at else None,
+            }
+            for e in events
+        ],
+        "voice_calls_last_30d": voice_calls_30d,
+        "maintenance_tickets_last_30d": tickets_30d,
+    }
+
+
+@router.post("/organizations/{org_id}/cancel-subscription")
+async def admin_cancel_subscription(
+    org_id: UUID,
+    db: Session = Depends(get_db),
+):
+    """Cancels a subscriber's real Stripe subscription at the end of their
+    current period (same behavior as a customer using the self-service
+    Billing Portal themselves) -- for handling a cancellation request
+    directly rather than making the owner ask the customer to do it via
+    /billing/portal. No effect on an org with no real subscription."""
+    org = db.query(Organization).filter(Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    if not org.stripe_subscription_id:
+        raise HTTPException(status_code=400, detail="This organization has no active Stripe subscription to cancel.")
+
+    import stripe
+    from config import settings
+    stripe.api_key = settings.STRIPE_SECRET
+    try:
+        sub = await run_in_threadpool(stripe.Subscription.modify, org.stripe_subscription_id, cancel_at_period_end=True)
+        status = getattr(sub, "status", None)
+        cancel_at = getattr(sub, "cancel_at", None) or getattr(sub, "current_period_end", None)
+    except Exception as e:
+        logger.error(f"Failed to cancel Stripe subscription for org {org.id}: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=502, detail=f"Couldn't cancel the Stripe subscription ({type(e).__name__}: {e})")
+
+    logger.warning(f"Admin scheduled cancellation of subscription {org.stripe_subscription_id} for org {org.id}")
+    return {"status": status, "cancel_at": cancel_at}
 
 
 @router.post("/organizations/{org_id}/wipe-data")

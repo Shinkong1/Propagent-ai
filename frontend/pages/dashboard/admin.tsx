@@ -105,6 +105,10 @@ export default function OwnerAdmin() {
   const [users, setUsers] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
+  const [activityOrg, setActivityOrg] = useState<any>(null); // the org row whose activity modal is open
+  const [orgActivity, setOrgActivity] = useState<any>(null);
+  const [loadingActivity, setLoadingActivity] = useState(false);
+  const [cancelingSubscription, setCancelingSubscription] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
   const [savingOrgId, setSavingOrgId] = useState<string | null>(null);
@@ -183,6 +187,35 @@ export default function OwnerAdmin() {
       toast.error(err?.response?.data?.detail || t('admin.actionFailed'));
     } finally {
       setSavingOrgId(null);
+    }
+  };
+
+  const openActivity = async (org: any) => {
+    setActivityOrg(org);
+    setOrgActivity(null);
+    setLoadingActivity(true);
+    try {
+      const res = await adminApi.orgActivity(org.id);
+      setOrgActivity(res.data);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || t('admin.actionFailed'));
+    } finally {
+      setLoadingActivity(false);
+    }
+  };
+
+  const cancelSubscription = async () => {
+    if (!activityOrg) return;
+    if (!confirm(`Cancel ${activityOrg.name}'s subscription at the end of their current billing period? This mirrors what they'd see using "Manage Subscription" themselves.`)) return;
+    setCancelingSubscription(true);
+    try {
+      await adminApi.cancelOrgSubscription(activityOrg.id);
+      toast.success('Subscription scheduled to cancel at period end');
+      openActivity(activityOrg); // refresh the modal's data
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || t('admin.actionFailed'));
+    } finally {
+      setCancelingSubscription(false);
     }
   };
 
@@ -316,10 +349,10 @@ export default function OwnerAdmin() {
 
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden', marginBottom: 32 }}>
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 1020 }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
-                      {[t('admin.name'), t('admin.planCol'), t('admin.usersCol'), t('admin.propertiesCol'), t('admin.unitsCol'), t('admin.aiCallsCol'), t('admin.statusCol'), t('admin.createdCol')].map(h => (
+                      {[t('admin.name'), t('admin.planCol'), t('admin.usersCol'), t('admin.propertiesCol'), t('admin.unitsCol'), t('admin.aiCallsCol'), t('admin.statusCol'), t('admin.createdCol'), t('admin.activityCol')].map(h => (
                         <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -354,6 +387,14 @@ export default function OwnerAdmin() {
                           </button>
                         </td>
                         <td style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', whiteSpace: 'nowrap' }}>{new Date(o.created_at).toLocaleDateString()}</td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <button
+                            onClick={() => openActivity(o)}
+                            style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', borderRadius: 6, color: 'var(--text-secondary)', fontSize: 11, fontFamily: 'IBM Plex Mono', padding: '5px 9px', cursor: 'pointer' }}
+                          >
+                            <Activity size={11} /> {t('admin.viewActivity')}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -680,6 +721,86 @@ export default function OwnerAdmin() {
 
         <p style={{ marginTop: 24, fontSize: 11, color: '#475569' }}>{t('admin.note')}</p>
       </div>
+
+      {activityOrg && (
+        <div
+          onClick={() => setActivityOrg(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 24, maxWidth: 640, width: '100%', maxHeight: '85vh', overflowY: 'auto' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
+              <div>
+                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 17, color: 'var(--text-primary)', marginBottom: 4 }}>{activityOrg.name}</h2>
+                <div style={{ fontSize: 12, color: '#64748B' }}>
+                  {t(`admin.plan.${activityOrg.plan}`)} · {activityOrg.user_count} {t('admin.usersCol').toLowerCase()} · {activityOrg.property_count} {t('admin.propertiesCol').toLowerCase()}
+                </div>
+              </div>
+              <button onClick={() => setActivityOrg(null)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {loadingActivity ? (
+              <p style={{ fontSize: 13, color: '#64748B' }}>{t('admin.loading')}</p>
+            ) : orgActivity ? (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+                  <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 12 }}>
+                    <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'Syne', color: '#FBC02D' }}>{orgActivity.voice_calls_last_30d}</div>
+                    <div style={{ fontSize: 11, color: '#64748B' }}>{t('admin.voiceCalls30d')}</div>
+                  </div>
+                  <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 12 }}>
+                    <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'Syne', color: '#FBC02D' }}>{orgActivity.maintenance_tickets_last_30d}</div>
+                    <div style={{ fontSize: 11, color: '#64748B' }}>{t('admin.tickets30d')}</div>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 8, letterSpacing: '0.5px' }}>{t('admin.usersTable').toUpperCase()}</div>
+                  {orgActivity.users.map((u: any) => (
+                    <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border-subtle)', fontSize: 12 }}>
+                      <div>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{u.full_name}</span>
+                        <span style={{ color: '#64748B', marginLeft: 6 }}>{u.email}</span>
+                      </div>
+                      <span style={{ color: '#64748B', fontFamily: 'IBM Plex Mono', fontSize: 11 }}>
+                        {u.last_login_at ? new Date(u.last_login_at).toLocaleDateString() : t('admin.neverLoggedIn')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 8, letterSpacing: '0.5px' }}>{t('admin.billingHistory').toUpperCase()}</div>
+                  {orgActivity.events.length === 0 ? (
+                    <p style={{ fontSize: 12, color: '#64748B' }}>{t('admin.noEvents')}</p>
+                  ) : orgActivity.events.map((e: any, i: number) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--border-subtle)', fontSize: 12 }}>
+                      <span style={{ color: 'var(--text-primary)' }}>
+                        {e.type}{e.from_plan && e.to_plan ? ` (${e.from_plan} → ${e.to_plan})` : ''}
+                      </span>
+                      <span style={{ color: '#64748B', fontFamily: 'IBM Plex Mono', fontSize: 11 }}>{new Date(e.created_at).toLocaleDateString()}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={cancelSubscription}
+                  disabled={cancelingSubscription}
+                  style={{ width: '100%', padding: '10px', borderRadius: 8, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#EF4444', fontSize: 13, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  {cancelingSubscription ? t('admin.saving') : t('admin.cancelSubscription')}
+                </button>
+              </>
+            ) : (
+              <p style={{ fontSize: 13, color: '#64748B' }}>{t('admin.actionFailed')}</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {selectedMessage && (
         <div
