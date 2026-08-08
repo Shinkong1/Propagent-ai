@@ -28,6 +28,16 @@ class SalesContactRequest(BaseModel):
     message: str
 
 
+class SalesChatMessage(BaseModel):
+    role: str  # 'user' | 'assistant'
+    content: str
+
+
+class SalesChatRequest(BaseModel):
+    message: str
+    history: list[SalesChatMessage] = []
+
+
 @router.post("/")
 async def send_contact_message(
     payload: ContactRequest,
@@ -71,3 +81,25 @@ async def send_sales_inquiry(request: Request, payload: SalesContactRequest, db:
         sender_email=payload.email,
     )
     return {"status": result.email_status}
+
+
+@router.post("/sales-chat")
+@limiter.limit("15/minute")
+async def sales_chat(request: Request, payload: SalesChatRequest):
+    """Public, no account required -- the pre-sales chat widget on the
+    marketing site (pricing page etc). Runs the same sales_agent used
+    elsewhere in the app (grounded in agents/agents/sales_agent.py's
+    REAL_PLANS, kept manually in sync with frontend/pages/pricing.tsx --
+    see that file's own comment) via forced_agent="sales" so a visitor
+    gets accurate, real plan/feature answers instead of a generic bot,
+    without needing tenant/property/organization context that doesn't
+    exist yet for someone who hasn't signed up."""
+    from agents.graph import process_message
+
+    result = await process_message(
+        message=payload.message,
+        channel="chat",
+        history=[{"role": m.role, "content": m.content} for m in payload.history[-10:]],
+        forced_agent="sales",
+    )
+    return {"response": result["response"]}

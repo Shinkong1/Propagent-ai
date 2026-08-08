@@ -6,6 +6,7 @@ import { Zap, Building2, MessageSquare, Wrench, Users, Phone, ChevronRight, Chec
 import { useLanguage } from '../lib/LanguageContext';
 import { useSidebar } from '../lib/SidebarContext';
 import PublicFooter from '../components/PublicFooter';
+import SalesChatWidget from '../components/SalesChatWidget';
 import { auth } from '../lib/api';
 import { setToken, setUser } from '../lib/auth';
 import toast from 'react-hot-toast';
@@ -268,6 +269,7 @@ export default function Home() {
 
         <PublicFooter />
       </div>
+      <SalesChatWidget />
     </>
   );
 }
