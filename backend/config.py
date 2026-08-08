@@ -86,6 +86,15 @@ class Settings(BaseSettings):
     # with a real session token after Google's redirect lands on the backend.
     FRONTEND_URL: str = "http://localhost:3000"
 
+    # Google Places API (New) key used by workers/tasks/lead_scraping.py to find
+    # real property management companies for PropAgent's own B2B sales pipeline
+    # (see routes/leads.py POST /scrape). Separate Google Cloud credential from
+    # GOOGLE_CLIENT_ID/SECRET above -- those are for user-facing OAuth login,
+    # this is a server-side API key for Places Text Search. Empty by default,
+    # which the scraper treats as "not configured" and refuses to run (it will
+    # NOT fall back to fake/demo leads).
+    GOOGLE_PLACES_API_KEY: str = ""
+
     class Config:
         env_file = ".env"
         extra = "ignore"
