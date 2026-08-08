@@ -266,6 +266,9 @@ async def billing_debug(
             # have been. Use getattr(...) throughout instead.
             sub = await run_in_threadpool(stripe.Subscription.retrieve, org.stripe_subscription_id)
             result["stripe_actual_status"] = getattr(sub, "status", None)
+            result["stripe_cancel_at_period_end"] = getattr(sub, "cancel_at_period_end", None)
+            cpe = getattr(sub, "cancel_at", None) or getattr(sub, "current_period_end", None)
+            result["stripe_cancel_or_period_end"] = cpe
             items_data = getattr(getattr(sub, "items", None), "data", None)
             result["stripe_actual_plan_nickname"] = (
                 getattr(getattr(items_data[0], "price", None), "nickname", None) if items_data else None
