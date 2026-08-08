@@ -7,6 +7,7 @@ import { isAuthenticated } from '../lib/auth';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import PublicFooter from '../components/PublicFooter';
+import SalesChatWidget from '../components/SalesChatWidget';
 
 const PLANS = [
   {
@@ -116,9 +117,16 @@ export default function Pricing() {
           <p style={{ textAlign: 'center', marginTop: 32, color: '#475569', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>
             All plans include 14-day free trial · Cancel anytime · No setup fees
           </p>
+
+          <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, fontFamily: 'IBM Plex Sans' }}>
+            <Link href="/compare" style={{ color: '#FBC02D', textDecoration: 'none', fontWeight: 600 }}>
+              See how PropAgent AI compares to traditional property management software →
+            </Link>
+          </p>
         </div>
         <PublicFooter />
       </div>
+      <SalesChatWidget />
     </>
   );
 }

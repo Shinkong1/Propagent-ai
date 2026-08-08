@@ -19,6 +19,8 @@ export default function PublicFooter() {
       <Link href="/privacy" style={{ color: '#475569', textDecoration: 'none' }}>Privacy</Link>
       <span style={{ margin: '0 8px' }}>·</span>
       <Link href="/security" style={{ color: '#475569', textDecoration: 'none' }}>Security</Link>
+      <span style={{ margin: '0 8px' }}>·</span>
+      <Link href="/api-docs" style={{ color: '#475569', textDecoration: 'none' }}>API Docs</Link>
     </footer>
   );
 }
