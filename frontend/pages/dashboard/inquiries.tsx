@@ -11,6 +11,11 @@ const STATUS_COLOR: Record<string, string> = {
 };
 const STATUSES = ['new', 'contacted', 'tour_scheduled', 'applied', 'converted', 'closed'];
 
+// Automatic pre-screening triage (services/inquiry_triage_service.py) --
+// not a financial screening decision, just a "who to call first" signal
+// based on what the prospect already wrote.
+const PRIORITY_COLOR: Record<string, string> = { hot: '#EF4444', warm: '#F97316', cold: '#64748B' };
+
 const EMPTY_SCREEN_FORM = { annual_income: '', monthly_rent: '', credit_score: '', employment_status: '', employer: '' };
 
 export default function Inquiries() {
@@ -150,14 +155,14 @@ export default function Inquiries() {
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 940 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
-                    {['Prospect', 'Property / Unit', 'Contact', 'Move-in', 'Status', 'Screening', 'Actions'].map(h => (
+                    {['Prospect', 'Priority', 'Property / Unit', 'Contact', 'Move-in', 'Status', 'Screening', 'Actions'].map(h => (
                       <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', fontWeight: 500 }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {inquiryList.length === 0 ? (
-                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: '60px', color: '#475569', fontFamily: 'IBM Plex Sans' }}>
+                    <tr><td colSpan={8} style={{ textAlign: 'center', padding: '60px', color: '#475569', fontFamily: 'IBM Plex Sans' }}>
                       <UserSearch size={32} style={{ margin: '0 auto 12px', opacity: 0.3, display: 'block' }} />
                       No inquiries yet. Share a listing link above to start collecting them.
                     </td></tr>
@@ -166,6 +171,16 @@ export default function Inquiries() {
                       <td style={{ padding: '14px 16px' }}>
                         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans' }}>{i.first_name} {i.last_name}</div>
                         {i.message && <div style={{ fontSize: 11, color: '#64748B', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={i.message}>{i.message}</div>}
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        {i.priority_label ? (
+                          <span title={i.priority_reasoning || ''}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 6, background: `${PRIORITY_COLOR[i.priority_label]}15`, border: `1px solid ${PRIORITY_COLOR[i.priority_label]}40`, color: PRIORITY_COLOR[i.priority_label], fontSize: 11, fontFamily: 'IBM Plex Mono', textTransform: 'capitalize', cursor: 'help' }}>
+                            {i.priority_label} · {i.priority_score}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 11, color: '#475569' }}>—</span>
+                        )}
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)' }}>

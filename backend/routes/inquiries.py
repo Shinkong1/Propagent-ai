@@ -40,7 +40,37 @@ def _inquiry_out(i: RentalInquiry) -> InquiryOut:
         employment_status=i.employment_status, employer=i.employer,
         screening_approved=i.screening_approved, screening_score=i.screening_score,
         screening_notes=i.screening_notes, screened_at=i.screened_at,
+        priority_label=i.priority_label, priority_score=i.priority_score,
+        priority_reasoning=i.priority_reasoning, triaged_at=i.triaged_at,
     )
+
+
+async def _triage_new_inquiry(inquiry_id):
+    """Runs after the response is already sent -- the applicant never
+    waits on this. Opens its own DB session since the request-scoped `db`
+    from the route handler may already be torn down by the time a
+    background task actually executes (same pattern _notify_new_inquiry
+    below already uses for the same reason)."""
+    from database.base import SessionLocal
+    from services.inquiry_triage_service import triage_inquiry
+    db = SessionLocal()
+    try:
+        inquiry = db.query(RentalInquiry).filter(RentalInquiry.id == inquiry_id).first()
+        if not inquiry:
+            return
+        result = await triage_inquiry(
+            message=inquiry.message, desired_move_in=inquiry.desired_move_in,
+            has_email=bool(inquiry.email), has_phone=bool(inquiry.phone),
+        )
+        inquiry.priority_label = result["label"]
+        inquiry.priority_score = result["score"]
+        inquiry.priority_reasoning = result["reasoning"]
+        inquiry.triaged_at = datetime.utcnow()
+        db.commit()
+    except Exception as e:
+        logger.warning(f"Inquiry triage failed for {inquiry_id}: {e}")
+    finally:
+        db.close()
 
 
 def _notify_new_inquiry(org_id, property_name: str, inquiry: RentalInquiry):
@@ -140,6 +170,7 @@ async def submit_inquiry(
     db.refresh(inquiry)
 
     background_tasks.add_task(_notify_new_inquiry, prop.organization_id, prop.name, inquiry)
+    background_tasks.add_task(_triage_new_inquiry, inquiry.id)
 
     return {"message": "Inquiry submitted"}
 

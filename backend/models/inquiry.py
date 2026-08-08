@@ -1,7 +1,7 @@
 import builtins
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Date, ForeignKey, Text, Boolean, Float, Enum as SAEnum
+from sqlalchemy import Column, String, DateTime, Date, ForeignKey, Text, Boolean, Float, Integer, Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import enum
@@ -55,6 +55,18 @@ class RentalInquiry(Base):
     screening_score = Column(Float, nullable=True)
     screening_notes = Column(Text, nullable=True)
     screened_at = Column(DateTime, nullable=True)
+
+    # Triage -- automatic, runs the moment the inquiry arrives (see
+    # services/inquiry_triage_service.py), separate from screening above.
+    # Screening needs the applicant to supply income/credit/employment
+    # data by hand; triage needs nothing from them -- it's a quick read on
+    # what they already wrote (message, move-in date, contact
+    # completeness) to help a subscriber with a pile of inquiries know who
+    # to call first, before anyone's filled out a screening form at all.
+    priority_label = Column(String(10), nullable=True)  # 'hot' | 'warm' | 'cold'
+    priority_score = Column(Integer, nullable=True)  # 0-100, informational only -- not a screening decision
+    priority_reasoning = Column(Text, nullable=True)  # one short sentence, shown to the subscriber
+    triaged_at = Column(DateTime, nullable=True)
 
     organization = relationship("Organization")
     property = relationship("Property")

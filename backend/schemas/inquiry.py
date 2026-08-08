@@ -82,6 +82,10 @@ class InquiryOut(BaseModel):
     screening_score: Optional[float] = None
     screening_notes: Optional[str] = None
     screened_at: Optional[datetime] = None
+    priority_label: Optional[str] = None
+    priority_score: Optional[int] = None
+    priority_reasoning: Optional[str] = None
+    triaged_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
