@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Integer, Float, Text, Enum as SAEnum
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Integer, Float, Text, Enum as SAEnum, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import enum
@@ -47,6 +47,17 @@ class Organization(Base):
     trial_ends_at = Column(DateTime, nullable=True)
     referral_code = Column(String(20), unique=True, nullable=True)
     referred_by_org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True)
+    # Referral reward program. referral_credits_earned lives on the REFERRING org --
+    # one free-month credit per referred org whose trial converts to a real paid
+    # plan (the owner applies it manually via the billing portal / a support
+    # request until/unless this is wired to a real Stripe coupon). See
+    # services/platform_service.grant_referral_reward_if_eligible().
+    referral_credits_earned = Column(Integer, default=0, nullable=False)
+    # referral_reward_granted lives on the REFERRED org (this org) -- flips to
+    # True the first time its conversion to paid grants its referrer a credit,
+    # so a later plan change (upgrade/downgrade/webhook retry) can never
+    # double-grant the same referral.
+    referral_reward_granted = Column(Boolean, default=False, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -116,3 +127,30 @@ class User(Base):
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
+
+
+class TrialEmailMilestone(enum.Enum):
+    """Each value is one email in the trial-activation sequence (see
+    services/trial_activation_service.py). Day 1 is deliberately absent --
+    routes/auth.py's signup endpoint already sends a welcome/verification
+    email, so this sequence picks up from day 3."""
+    day3_add_property = "day3_add_property"     # nudge: still zero properties a few days in
+    day7_checkin = "day7_checkin"                 # mid-trial check-in, points at an unused feature
+    day13_trial_ending = "day13_trial_ending"     # trial ends day 14 -- last chance to convert
+
+
+class OrgTrialEmail(Base):
+    """Idempotency ledger for the trial-activation email sequence -- one row
+    per (org, milestone) ever sent, so the cron job (which may run several
+    times a day and re-evaluate every trialing org each time) never sends
+    the same milestone email twice. A new table rather than flag columns on
+    Organization since the set of milestones is expected to grow."""
+    __tablename__ = "org_trial_emails"
+    __table_args__ = (UniqueConstraint("organization_id", "milestone", name="uq_org_trial_email_org_milestone"),)
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False, index=True)
+    milestone = Column(SAEnum(TrialEmailMilestone), nullable=False)
+    sent_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    organization = relationship("Organization")

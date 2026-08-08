@@ -67,3 +67,19 @@ async def finance_reconcile_endpoint(db: Session = Depends(get_db)):
             logger.warning("finance_reconcile: no active master/owner account found — alert logged only.")
 
     return result
+
+
+@router.post("/trial-activation-emails", dependencies=[Depends(_require_cron_secret)])
+async def trial_activation_emails_endpoint(db: Session = Depends(get_db)):
+    """Trial-activation nurture sequence for orgs currently inside their
+    14-day free trial (Organization.trial_ends_at) -- day 3 "add your first
+    property" nudge, day 7 mid-trial check-in, day 13 trial-ending-soon
+    reminder. Distinct from services/lead_service.py's outreach queue, which
+    pitches prospects who haven't signed up at all. Idempotent per
+    (org, milestone) via the org_trial_emails table, so this is safe to hit
+    every few hours -- it's date-based, not time-critical, on the same free
+    external scheduler already driving /process-outreach-queue and
+    /finance-reconcile."""
+    from services.trial_activation_service import run_trial_activation_emails
+    result = await run_in_threadpool(run_trial_activation_emails, db)
+    return result
