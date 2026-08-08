@@ -162,8 +162,8 @@ export default function Sidebar() {
         overflow: 'hidden',
       }}>
       {/* Logo */}
-      <div style={{ padding: effectiveCollapsed ? '20px 0' : '24px 20px 20px', borderBottom: '1px solid var(--border-strong)', display: 'flex', alignItems: 'center', justifyContent: effectiveCollapsed ? 'center' : 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ padding: effectiveCollapsed ? '20px 0' : '24px 16px 20px 20px', borderBottom: '1px solid var(--border-strong)', display: 'flex', alignItems: 'center', justifyContent: effectiveCollapsed ? 'center' : 'space-between', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <div style={{
             width: 34, height: 34, borderRadius: 8, flexShrink: 0,
             background: 'linear-gradient(135deg, #FBC02D, #F57F17)',
