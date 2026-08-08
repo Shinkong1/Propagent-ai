@@ -136,6 +136,7 @@ export const leads = {
 export const billing = {
   plans: () => api.get('/billing/plans'),
   checkout: (plan: string) => api.post('/billing/checkout', { plan }),
+  portal: () => api.post('/billing/portal'),
   connectOnboard: () => api.post('/billing/connect/onboard'),
   connectStatus: () => api.get('/billing/connect/status'),
 };

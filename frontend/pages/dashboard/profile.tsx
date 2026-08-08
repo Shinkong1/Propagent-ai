@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 import DashboardLayout from '../../components/DashboardLayout';
 import TutorialWalkthrough from '../../components/TutorialWalkthrough';
 import { User, Mail, Building2, CreditCard, Shield, Globe, ChevronRight } from 'lucide-react';
@@ -12,6 +13,7 @@ import { useSidebar } from '../../lib/SidebarContext';
 export default function Profile() {
   const [me, setMe] = useState<any>(getUser() || {});
   const [plans, setPlans] = useState<any[]>([]);
+  const [openingPortal, setOpeningPortal] = useState(false);
   const { language } = useLanguage();
   const { isMobile } = useSidebar();
   const currentLang = LANGUAGES.find(l => l.code === language);
@@ -22,6 +24,17 @@ export default function Profile() {
   }, []);
 
   const currentPlan = plans.find(p => p.key === me.plan);
+
+  const openBillingPortal = async () => {
+    setOpeningPortal(true);
+    try {
+      const res = await billing.portal();
+      window.location.href = res.data.url;
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Could not open the billing portal.');
+      setOpeningPortal(false);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -68,9 +81,21 @@ export default function Profile() {
               ) : (
                 <div style={{ fontSize: 13, color: '#64748B' }}>Loading plan...</div>
               )}
-              <a href="/pricing" style={{ display: 'block', marginTop: 16, textAlign: 'center', padding: '9px', borderRadius: 8, background: 'rgba(var(--accent-rgb),0.1)', border: '1px solid rgba(var(--accent-rgb),0.3)', color: '#FBC02D', fontSize: 13, fontFamily: 'Syne', fontWeight: 600, textDecoration: 'none' }}>
-                View / Upgrade Plans
-              </a>
+              <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+                <a href="/pricing" style={{ flex: 1, display: 'block', textAlign: 'center', padding: '9px', borderRadius: 8, background: 'rgba(var(--accent-rgb),0.1)', border: '1px solid rgba(var(--accent-rgb),0.3)', color: '#FBC02D', fontSize: 13, fontFamily: 'Syne', fontWeight: 600, textDecoration: 'none' }}>
+                  View Plans
+                </a>
+                <button
+                  onClick={openBillingPortal}
+                  disabled={openingPortal}
+                  style={{ flex: 1, textAlign: 'center', padding: '9px', borderRadius: 8, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)', fontSize: 13, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  {openingPortal ? '...' : 'Manage Subscription'}
+                </button>
+              </div>
+              <p style={{ fontSize: 11, color: '#64748B', marginTop: 8, textAlign: 'center' }}>
+                Manage Subscription lets you change plans, update your payment method, or cancel — handled securely by Stripe.
+              </p>
             </div>
 
             <Link href="/dashboard/language" style={{ textDecoration: 'none' }}>

@@ -64,6 +64,44 @@ async def create_checkout(
         raise HTTPException(status_code=500, detail="Payment processing error")
 
 
+@router.post("/portal")
+async def create_billing_portal_session(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _=Depends(require_role(UserRole.owner)),
+):
+    """Stripe's own hosted Billing Portal -- lets a customer change plan,
+    cancel, update their payment method, and see past invoices, without us
+    building and maintaining custom UI for each of those. There was
+    previously no way to do any of this short of starting a brand-new
+    /checkout session (which doesn't cancel or downgrade anything)."""
+    from models.user import Organization
+    org = db.query(Organization).filter(Organization.id == current_user.organization_id).first()
+    if not org or not org.stripe_customer_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No active subscription on file yet -- subscribe to a plan first.",
+        )
+
+    try:
+        session = await run_in_threadpool(
+            stripe.billing_portal.Session.create,
+            customer=org.stripe_customer_id,
+            return_url=f"{settings.FRONTEND_URL}/dashboard/profile",
+        )
+        return {"url": session.url}
+    except Exception as e:
+        logger.error(f"Stripe billing portal error for org {org.id}: {e}")
+        # Most common real cause: the Stripe account's Customer Portal
+        # hasn't been configured yet (Stripe Dashboard -> Settings ->
+        # Billing -> Customer portal) -- a one-time setup step on Stripe's
+        # side, not something this endpoint can fix on its own.
+        raise HTTPException(
+            status_code=502,
+            detail="Couldn't open the billing portal. If this keeps happening, the Stripe Customer Portal may need to be configured in the Stripe Dashboard first.",
+        )
+
+
 @router.post("/webhook")
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.body()
