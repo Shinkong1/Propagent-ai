@@ -57,6 +57,7 @@ export default function SettingsPage() {
   const [savingEmail, setSavingEmail] = useState(false);
 
   const [mfaEnabled, setMfaEnabled] = useState(false);
+  const [mfaBackupCodesRemaining, setMfaBackupCodesRemaining] = useState(0);
   const [mfaSetup, setMfaSetup] = useState<{ secret: string; qr_code_base64: string } | null>(null);
   const [mfaEnrollCode, setMfaEnrollCode] = useState('');
   const [confirmingMfa, setConfirmingMfa] = useState(false);
@@ -64,11 +65,18 @@ export default function SettingsPage() {
   const [disablePassword, setDisablePassword] = useState('');
   const [disableCode, setDisableCode] = useState('');
   const [disablingMfa, setDisablingMfa] = useState(false);
+  // Shown exactly once, right after MFA is confirmed enabled (or codes are
+  // regenerated) -- the backend never returns these again after this.
+  const [newBackupCodes, setNewBackupCodes] = useState<string[] | null>(null);
+  const [regeneratingBackupCodes, setRegeneratingBackupCodes] = useState(false);
+  const [regenPassword, setRegenPassword] = useState('');
+  const [showRegenPrompt, setShowRegenPrompt] = useState(false);
 
   const loadMfaStatus = async () => {
     try {
       const res = await mfaApi.status();
       setMfaEnabled(res.data.mfa_enabled);
+      setMfaBackupCodesRemaining(res.data.backup_codes_remaining || 0);
     } catch {
       // silent — status just gates which MFA UI to show
     }
@@ -197,15 +205,33 @@ export default function SettingsPage() {
   const confirmMfaSetup = async () => {
     setConfirmingMfa(true);
     try {
-      await mfaApi.verify(mfaEnrollCode);
+      const res = await mfaApi.verify(mfaEnrollCode);
       toast.success(t('settings.mfaEnabledSuccess'));
       setMfaEnabled(true);
       setMfaSetup(null);
       setMfaEnrollCode('');
+      setNewBackupCodes(res.data.backup_codes || []);
+      setMfaBackupCodesRemaining((res.data.backup_codes || []).length);
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || t('settings.mfaInvalidCode'));
     } finally {
       setConfirmingMfa(false);
+    }
+  };
+
+  const regenerateBackupCodes = async () => {
+    setRegeneratingBackupCodes(true);
+    try {
+      const res = await mfaApi.regenerateBackupCodes(regenPassword);
+      setNewBackupCodes(res.data.backup_codes || []);
+      setMfaBackupCodesRemaining((res.data.backup_codes || []).length);
+      setShowRegenPrompt(false);
+      setRegenPassword('');
+      toast.success(t('settings.mfaBackupCodesRegenerated'));
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || t('settings.saveFailed'));
+    } finally {
+      setRegeneratingBackupCodes(false);
     }
   };
 
@@ -653,6 +679,27 @@ export default function SettingsPage() {
               <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.mfaTitle')}</h2>
               <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('settings.mfaSubtitle')}</p>
 
+              {newBackupCodes && (
+                <div style={{ maxWidth: 420, background: 'var(--bg-app)', border: '1px solid #F59E0B', borderRadius: 10, padding: 18, marginBottom: 20 }}>
+                  <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: '#F59E0B', marginBottom: 6 }}>{t('settings.mfaBackupCodesTitle')}</h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 14 }}>{t('settings.mfaBackupCodesWarning')}</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontFamily: 'IBM Plex Mono', fontSize: 14, marginBottom: 14 }}>
+                    {newBackupCodes.map(code => (
+                      <div key={code} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 6, padding: '8px 10px', textAlign: 'center', userSelect: 'all' }}>{code}</div>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button
+                      onClick={() => { navigator.clipboard.writeText(newBackupCodes.join('\n')); toast.success(t('settings.mfaBackupCodesCopied')); }}
+                      style={{ ...btn, background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-strong)' }}
+                    >
+                      {t('settings.mfaBackupCodesCopy')}
+                    </button>
+                    <button onClick={() => setNewBackupCodes(null)} style={btn}>{t('settings.mfaBackupCodesDone')}</button>
+                  </div>
+                </div>
+              )}
+
               {mfaSetup ? (
                 <div>
                   <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>{t('settings.mfaScanQr')}</p>
@@ -677,6 +724,31 @@ export default function SettingsPage() {
               ) : mfaEnabled ? (
                 <div>
                   <p style={{ fontSize: 13, color: '#22C55E', marginBottom: 14 }}>{t('settings.mfaEnabled')}</p>
+
+                  <div style={{ maxWidth: 320, marginBottom: 18 }}>
+                    <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>
+                      {t('settings.mfaBackupCodesRemaining').replace('{n}', String(mfaBackupCodesRemaining))}
+                    </p>
+                    {showRegenPrompt ? (
+                      <div>
+                        <label style={lbl}>{t('settings.mfaDisablePassword')}</label>
+                        <input type="password" value={regenPassword} onChange={e => setRegenPassword(e.target.value)} style={inp} />
+                        <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                          <button onClick={regenerateBackupCodes} disabled={regeneratingBackupCodes || !regenPassword} style={{ ...btn, background: 'var(--bg-app)', color: 'var(--text-secondary)', border: '1px solid var(--border-strong)' }}>
+                            {regeneratingBackupCodes ? t('settings.saving') : t('settings.mfaBackupCodesRegenerateConfirm')}
+                          </button>
+                          <button onClick={() => { setShowRegenPrompt(false); setRegenPassword(''); }} style={{ ...btn, background: 'var(--bg-app)', color: 'var(--text-secondary)', border: '1px solid var(--border-strong)' }}>
+                            {t('settings.mfaCancel')}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setShowRegenPrompt(true)} style={{ ...btn, background: 'var(--bg-app)', color: 'var(--text-secondary)', border: '1px solid var(--border-strong)' }}>
+                        {t('settings.mfaBackupCodesRegenerateButton')}
+                      </button>
+                    )}
+                  </div>
+
                   {showMfaDisable ? (
                     <div style={{ maxWidth: 320 }}>
                       <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 12 }}>{t('settings.mfaDisableTitle')}</h3>

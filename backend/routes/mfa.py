@@ -2,7 +2,9 @@
 second-factor login challenge."""
 import base64
 import io
+import json
 import logging
+import secrets
 from datetime import timedelta
 from uuid import UUID
 
@@ -17,9 +19,10 @@ from models.user import User
 from schemas.auth import TokenResponse
 from schemas.mfa import (
     MFASetupResponse, MFACodeRequest, MFADisableRequest, MFAStatusResponse,
-    MFAChallengeResponse, MFALoginVerifyRequest,
+    MFAChallengeResponse, MFALoginVerifyRequest, MFAVerifyResponse,
+    MFARegenerateBackupCodesRequest,
 )
-from middleware.auth import get_current_user, verify_password, create_access_token, decode_token
+from middleware.auth import get_current_user, verify_password, hash_password, create_access_token, decode_token
 from middleware.rate_limit import limiter
 
 logger = logging.getLogger(__name__)
@@ -27,6 +30,39 @@ router = APIRouter(prefix="/auth/mfa", tags=["mfa"])
 
 ISSUER = "PropAgent AI"
 MFA_CHALLENGE_EXPIRY_MINUTES = 5
+BACKUP_CODE_COUNT = 10
+
+
+def _generate_backup_codes() -> list:
+    """10 codes, each XXXX-XXXX in uppercase base32-ish alphabet (no
+    ambiguous 0/O/1/I) -- readable enough to write down, long enough that
+    guessing one is infeasible."""
+    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    codes = []
+    for _ in range(BACKUP_CODE_COUNT):
+        raw = "".join(secrets.choice(alphabet) for _ in range(8))
+        codes.append(f"{raw[:4]}-{raw[4:]}")
+    return codes
+
+
+def _consume_backup_code(user: User, submitted: str) -> bool:
+    """Checks `submitted` against the user's stored (hashed) backup codes.
+    If it matches one, removes that code from the list (single-use) and
+    returns True. Does not commit -- caller commits alongside whatever else
+    it's already writing."""
+    if not user.mfa_backup_codes:
+        return False
+    try:
+        hashed_codes = json.loads(user.mfa_backup_codes)
+    except (ValueError, TypeError):
+        return False
+    normalized = submitted.strip().upper()
+    for h in hashed_codes:
+        if verify_password(normalized, h):
+            hashed_codes.remove(h)
+            user.mfa_backup_codes = json.dumps(hashed_codes)
+            return True
+    return False
 
 
 def _qr_data_uri(provisioning_uri: str) -> str:
@@ -61,7 +97,13 @@ def _build_token_response(user: User) -> TokenResponse:
 
 @router.get("/status", response_model=MFAStatusResponse)
 async def mfa_status(current_user: User = Depends(get_current_user)):
-    return MFAStatusResponse(mfa_enabled=current_user.mfa_enabled)
+    remaining = 0
+    if current_user.mfa_backup_codes:
+        try:
+            remaining = len(json.loads(current_user.mfa_backup_codes))
+        except (ValueError, TypeError):
+            remaining = 0
+    return MFAStatusResponse(mfa_enabled=current_user.mfa_enabled, backup_codes_remaining=remaining)
 
 
 @router.post("/setup", response_model=MFASetupResponse)
@@ -80,7 +122,7 @@ async def setup_mfa(
     return MFASetupResponse(secret=secret, provisioning_uri=provisioning_uri, qr_code_base64=_qr_data_uri(provisioning_uri))
 
 
-@router.post("/verify")
+@router.post("/verify", response_model=MFAVerifyResponse)
 @limiter.limit("10/minute")
 async def verify_mfa(
     request: Request,
@@ -94,8 +136,39 @@ async def verify_mfa(
         raise HTTPException(status_code=400, detail="Invalid code. Check your authenticator app and try again.")
 
     current_user.mfa_enabled = True
+    # Generated once, right when MFA is actually confirmed active -- these
+    # are the recovery path if the authenticator app is ever lost or its
+    # clock drifts out of sync (a real incident that happened without any
+    # recovery path before this existed). Only the bcrypt hashes are
+    # stored; the plaintext codes are returned exactly once, here.
+    plain_codes = _generate_backup_codes()
+    current_user.mfa_backup_codes = json.dumps([hash_password(c) for c in plain_codes])
     db.commit()
-    return {"mfa_enabled": True}
+    return MFAVerifyResponse(mfa_enabled=True, backup_codes=plain_codes)
+
+
+@router.post("/backup-codes/regenerate", response_model=MFAVerifyResponse)
+@limiter.limit("5/minute")
+async def regenerate_backup_codes(
+    request: Request,
+    payload: MFARegenerateBackupCodesRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Invalidates all existing backup codes and issues a fresh set -- for
+    when the user's used most of them, or just wants to be sure old ones
+    (that they may have written down somewhere less secure) stop working.
+    Password-gated since this is a security-relevant action, same as
+    disabling MFA outright."""
+    if not verify_password(payload.password, current_user.hashed_password):
+        raise HTTPException(status_code=401, detail="Incorrect password")
+    if not current_user.mfa_enabled:
+        raise HTTPException(status_code=400, detail="MFA is not enabled")
+
+    plain_codes = _generate_backup_codes()
+    current_user.mfa_backup_codes = json.dumps([hash_password(c) for c in plain_codes])
+    db.commit()
+    return MFAVerifyResponse(mfa_enabled=True, backup_codes=plain_codes)
 
 
 @router.post("/disable")
@@ -110,11 +183,13 @@ async def disable_mfa(
         raise HTTPException(status_code=401, detail="Incorrect password")
     if not current_user.mfa_enabled or not current_user.mfa_secret:
         raise HTTPException(status_code=400, detail="MFA is not enabled")
-    if not pyotp.TOTP(current_user.mfa_secret).verify(payload.code, valid_window=1):
+    valid_totp = pyotp.TOTP(current_user.mfa_secret).verify(payload.code, valid_window=1)
+    if not valid_totp and not _consume_backup_code(current_user, payload.code):
         raise HTTPException(status_code=400, detail="Invalid code")
 
     current_user.mfa_enabled = False
     current_user.mfa_secret = None
+    current_user.mfa_backup_codes = None
     db.commit()
     return {"mfa_enabled": False}
 
@@ -138,12 +213,19 @@ async def login_verify(request: Request, payload: MFALoginVerifyRequest, db: Ses
     if not user or not user.is_active or not user.mfa_enabled or not user.mfa_secret:
         raise HTTPException(status_code=401, detail="MFA challenge is no longer valid.")
 
-    if not pyotp.TOTP(user.mfa_secret).verify(payload.code, valid_window=1):
-        raise HTTPException(status_code=400, detail="Invalid code. Check your authenticator app and try again.")
+    valid_totp = pyotp.TOTP(user.mfa_secret).verify(payload.code, valid_window=1)
+    used_backup_code = False
+    if not valid_totp:
+        used_backup_code = _consume_backup_code(user, payload.code)
+        if not used_backup_code:
+            raise HTTPException(status_code=400, detail="Invalid code. Check your authenticator app and try again.")
 
     from datetime import datetime
     user.last_login_at = datetime.utcnow()
     db.commit()
+
+    if used_backup_code:
+        logger.warning(f"User {user.id} logged in via MFA backup code (authenticator code failed).")
 
     return _build_token_response(user)
 

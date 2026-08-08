@@ -267,6 +267,7 @@ export const mfa = {
   status: () => api.get('/auth/mfa/status'),
   setup: () => api.post('/auth/mfa/setup'),
   verify: (code: string) => api.post('/auth/mfa/verify', { code }),
+  regenerateBackupCodes: (password: string) => api.post('/auth/mfa/backup-codes/regenerate', { password }),
   disable: (password: string, code: string) => api.post('/auth/mfa/disable', { password, code }),
   loginVerify: (mfaToken: string, code: string) => api.post('/auth/mfa/login-verify', { mfa_token: mfaToken, code }),
 };

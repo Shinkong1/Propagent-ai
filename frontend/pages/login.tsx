@@ -85,16 +85,19 @@ export default function Login() {
 
         {mfaToken ? (
           <form onSubmit={handleMfaSubmit} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28 }}>
-            <div style={{ marginBottom: 24 }}>
+            <div style={{ marginBottom: 12 }}>
               <input
-                type="text" required value={mfaCode} maxLength={6} inputMode="numeric"
-                onChange={e => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                type="text" required value={mfaCode} maxLength={9}
+                onChange={e => setMfaCode(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))}
                 placeholder={t('login.mfaCodePlaceholder')}
-                style={{ ...inputStyle, textAlign: 'center', fontSize: 22, letterSpacing: 6, fontFamily: 'IBM Plex Mono' }}
+                style={{ ...inputStyle, textAlign: 'center', fontSize: 22, letterSpacing: 4, fontFamily: 'IBM Plex Mono' }}
                 autoFocus
               />
             </div>
-            <button type="submit" disabled={loading || mfaCode.length !== 6} style={btnStyle}>
+            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 12, textAlign: 'center' }}>
+              {t('login.mfaBackupHint')}
+            </p>
+            <button type="submit" disabled={loading || mfaCode.length < 6} style={btnStyle}>
               {loading ? '...' : t('login.mfaSubmit')}
             </button>
             <button type="button" onClick={() => { setMfaToken(null); setMfaCode(''); }} style={{ width: '100%', marginTop: 12, background: 'none', border: 'none', color: '#64748B', fontSize: 13, cursor: 'pointer', fontFamily: 'IBM Plex Sans' }}>

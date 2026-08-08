@@ -102,6 +102,11 @@ class User(Base):
     is_master = Column(Boolean, default=False, nullable=False)  # bypasses all plan gating; full-app admin access
     mfa_secret = Column(String(64), nullable=True)  # TOTP secret; set at /mfa/setup, not active until mfa_enabled
     mfa_enabled = Column(Boolean, default=False, nullable=False)
+    mfa_backup_codes = Column(Text, nullable=True)  # JSON array of bcrypt-hashed single-use recovery codes,
+                                                      # generated once when MFA is confirmed enabled; each is
+                                                      # removed from the list the moment it's used. Recovery path
+                                                      # for a lost/desynced authenticator app -- without this,
+                                                      # a user whose TOTP goes out of sync has no way back in.
     last_login_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

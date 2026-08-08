@@ -398,6 +398,32 @@ async def update_user(
     )
 
 
+@router.post("/users/{user_id}/mfa-disable")
+async def admin_disable_mfa(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_master),
+):
+    """Last-resort MFA recovery: turns off MFA on a user's account entirely
+    (clears the TOTP secret and any backup codes) so they can log back in
+    with just their password, then re-enroll fresh. Only exists for the
+    case where someone's authenticator app AND all 10 backup codes are
+    unusable/lost -- the backup codes generated at /auth/mfa/verify should
+    cover almost every real case before this is ever needed."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not user.mfa_enabled:
+        raise HTTPException(status_code=400, detail="MFA is not enabled on this account.")
+
+    user.mfa_enabled = False
+    user.mfa_secret = None
+    user.mfa_backup_codes = None
+    db.commit()
+    logger.warning(f"Admin {current_user.email} disabled MFA on user {user.email} ({user.id}) via recovery endpoint.")
+    return {"mfa_enabled": False, "email": user.email}
+
+
 @router.get("/messages", response_model=List[OwnerMessageResponse])
 async def list_owner_messages(db: Session = Depends(get_db)):
     """Complaints, advice, and notes routed here from the AI chat assistant and the Contact Us page."""
