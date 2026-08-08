@@ -11,11 +11,11 @@ import PublicFooter from '../components/PublicFooter';
 const PLANS = [
   {
     name: 'Starter', key: 'starter', price: 49, popular: false,
-    features: ['3 properties', '25 units', 'AI chat support', 'Maintenance tracking', 'Document uploads & search', 'Lead CRM (manual)', '100 AI calls/mo', 'Email support'],
+    features: ['3 properties', '25 units', 'AI chat support', 'Maintenance tracking', 'Document uploads & search', 'Rental inquiry & prospect tracking', '100 AI calls/mo', 'Email support'],
   },
   {
     name: 'Professional', key: 'professional', price: 149, popular: true,
-    features: ['15 properties', '150 units', 'Voice AI call center', 'Executive AI Assistant', 'Lease & notice generation', 'Inspection AI (photo damage detection)', 'Compliance, Collections & Communications agents', 'Automated lead scraping & outreach', '1,000 AI calls/mo', 'Priority support'],
+    features: ['15 properties', '150 units', 'Voice AI call center', 'Executive AI Assistant', 'Lease & notice generation', 'Inspection AI (photo damage detection)', 'Compliance, Collections & Communications agents', '1,000 AI calls/mo', 'Priority support'],
   },
   {
     name: 'Enterprise', key: 'enterprise', price: 499, popular: false,

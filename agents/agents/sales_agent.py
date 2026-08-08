@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 # feature here is a real false-advertising risk, not just an inconvenience.
 # Keep these two in sync by hand; there's no shared source of truth between
 # the Next.js pricing page and this Python prompt.
-REAL_PLANS = """Starter -- $49/mo: 3 properties, 25 units, AI chat support, maintenance tracking, document uploads & search, manual lead CRM, 100 AI calls/mo, email support.
-Professional -- $149/mo (most popular): 15 properties, 150 units, Voice AI call center, Executive AI Assistant, lease & notice generation, Inspection AI (photo damage detection), Compliance/Collections/Communications agents, automated lead scraping & outreach, 1,000 AI calls/mo, priority support.
+REAL_PLANS = """Starter -- $49/mo: 3 properties, 25 units, AI chat support, maintenance tracking, document uploads & search, rental inquiry & prospect tracking, 100 AI calls/mo, email support.
+Professional -- $149/mo (most popular): 15 properties, 150 units, Voice AI call center, Executive AI Assistant, lease & notice generation, Inspection AI (photo damage detection), Compliance/Collections/Communications agents, 1,000 AI calls/mo, priority support.
 Enterprise -- $499/mo: unlimited properties and units, Portfolio Dashboard, Investment Analysis, Pricing Intelligence, full AI autonomy, custom integrations (public REST API), dedicated CSM, unlimited AI calls, SLA guarantee.
 All plans include a 14-day free trial, no credit card required to start."""
 
