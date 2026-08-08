@@ -2,7 +2,7 @@
 import logging
 from datetime import datetime
 from sqlalchemy.orm import Session
-from models.lead import Lead, OutreachEmail
+from models.lead import Lead, OutreachEmail, LeadStatus
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +99,14 @@ def process_outreach_queue(db: Session, limit: int = 50) -> dict:
     sent = 0
     for email in pending:
         try:
-            status, error = send_email(email.lead.email, email.subject, email.body)
+            # Per-lead Reply-To so a reply routes back through the Cloudflare
+            # Email Worker (infra/cloudflare/email-reply-worker.js), which
+            # extracts the lead id from the address and calls
+            # /internal/email/inbound-reply -- see mark_lead_replied() below.
+            # Without this, "replied" only ever happened if a human noticed
+            # the reply in a real inbox and clicked "mark replied" manually.
+            reply_to = f"reply+{email.lead_id}@propagent.app"
+            status, error = send_email(email.lead.email, email.subject, email.body, reply_to=reply_to)
             email.status = status
             if status == "sent":
                 email.sent_at = datetime.utcnow()
@@ -112,3 +119,31 @@ def process_outreach_queue(db: Session, limit: int = 50) -> dict:
     db.commit()
     logger.info(f"Processed outreach queue: {sent} sent of {len(pending)} pending")
     return {"sent": sent, "pending": len(pending)}
+
+
+def mark_lead_replied(db: Session, lead_id) -> "Lead | None":
+    """Marks the lead's latest outreach email replied and moves a brand-new
+    lead to 'interested'. Shared by the manual 'mark replied' button
+    (routes/leads.py) and the automated inbound-reply webhook
+    (routes/internal_cron.py, fed by the Cloudflare Email Worker) -- same
+    outcome regardless of whether a human or the worker noticed the reply.
+    Deliberately synchronous and doesn't queue the step-2 follow-up itself
+    (queue_followup_email is async) -- the caller queues it however fits
+    its own context (BackgroundTasks in an async route, run_in_threadpool
+    callers use asyncio.run). Returns the Lead on success, None if the id
+    doesn't match anything (logged, not raised -- the caller here is often
+    an unattended webhook)."""
+    lead = db.query(Lead).filter(Lead.id == lead_id).first()
+    if not lead:
+        logger.warning(f"mark_lead_replied: no lead found for id {lead_id}")
+        return None
+
+    latest = max(lead.outreach_emails, key=lambda e: e.created_at) if lead.outreach_emails else None
+    if latest:
+        latest.status = "replied"
+        latest.replied_at = latest.replied_at or datetime.utcnow()
+
+    if lead.status == LeadStatus.new:
+        lead.status = LeadStatus.interested
+    db.commit()
+    return lead

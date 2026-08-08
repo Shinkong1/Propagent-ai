@@ -105,6 +105,7 @@ from routes.fraud import router as fraud_router
 from routes.public_api import router as public_api_router
 from routes.tenant_portal import router as tenant_portal_router
 from routes.internal_cron import router as internal_cron_router
+from routes.internal_email import router as internal_email_router
 from routes.inquiries import router as inquiries_router
 from routes.verification import router as verification_router
 from routes.ai_workforce import router as ai_workforce_router
@@ -114,7 +115,7 @@ for r in [auth_router, properties_router, tenants_router, maintenance_router,
           executive_router, portfolio_router, compliance_router, collections_router, investment_router,
           documents_router, pricing_router, inspections_router, communications_router, admin_router, contact_router,
           team_router, mfa_router, oauth_router, workflows_router, predictive_router, fraud_router, public_api_router,
-          tenant_portal_router, internal_cron_router, inquiries_router, verification_router, ai_workforce_router]:
+          tenant_portal_router, internal_cron_router, internal_email_router, inquiries_router, verification_router, ai_workforce_router]:
     app.include_router(r)
 
 

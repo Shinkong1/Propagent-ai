@@ -135,12 +135,12 @@ class _SMTP_SSL_IPv4(smtplib.SMTP_SSL):
         raise last_err or OSError(f"No IPv4 address found for {host}")
 
 
-def send_email(to_email: str, subject: str, body: str) -> tuple:
+def send_email(to_email: str, subject: str, body: str, reply_to: str = None) -> tuple:
     # Resend (HTTP, port 443) is preferred whenever configured -- it can't
     # be taken out by the kind of SMTP-port network block that's hit this
     # project twice now. Falls through to SMTP only if no Resend key is set.
     if settings.RESEND_API_KEY:
-        return _send_email_via_resend(to_email, subject, body)
+        return _send_email_via_resend(to_email, subject, body, reply_to=reply_to)
 
     if not (settings.SMTP_USER and settings.SMTP_PASSWORD):
         return "logged_only", None
@@ -152,6 +152,8 @@ def send_email(to_email: str, subject: str, body: str) -> tuple:
     msg["Subject"] = subject
     msg["From"] = settings.FROM_EMAIL
     msg["To"] = to_email
+    if reply_to:
+        msg["Reply-To"] = reply_to
     msg.attach(MIMEText(body, "plain"))
 
     # timeout is critical here: this runs synchronously inside async route
@@ -186,17 +188,20 @@ def send_email(to_email: str, subject: str, body: str) -> tuple:
     return "failed", primary_error
 
 
-def _send_email_via_resend(to_email: str, subject: str, body: str) -> tuple:
+def _send_email_via_resend(to_email: str, subject: str, body: str, reply_to: str = None) -> tuple:
     """Send over Resend's HTTPS API instead of raw SMTP. Note: Resend will
     only deliver to arbitrary recipients once FROM_EMAIL's domain has been
     verified in the Resend dashboard (adding a couple of DNS records at
     your domain registrar, one-time) -- until then it can only send to the
     account's own email address, using their onboarding@resend.dev sender."""
     try:
+        payload = {"from": settings.FROM_EMAIL, "to": [to_email], "subject": subject, "text": body}
+        if reply_to:
+            payload["reply_to"] = reply_to
         resp = requests.post(
             "https://api.resend.com/emails",
             headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}", "Content-Type": "application/json"},
-            json={"from": settings.FROM_EMAIL, "to": [to_email], "subject": subject, "text": body},
+            json=payload,
             timeout=10,
         )
         if resp.ok:

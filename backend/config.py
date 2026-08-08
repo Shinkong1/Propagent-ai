@@ -46,6 +46,14 @@ class Settings(BaseSettings):
     # than silently running unauthenticated.
     CRON_SECRET: str = ""
 
+    # Separate shared secret for the Cloudflare Email Worker that detects
+    # inbound replies to Lead CRM outreach emails (infra/cloudflare/
+    # email-reply-worker.js -> POST /internal/email/inbound-reply). Kept
+    # distinct from CRON_SECRET so a leak of one doesn't also expose the
+    # other -- different trust boundary (a Worker's environment vs a
+    # scheduler service's).
+    EMAIL_WORKER_SECRET: str = ""
+
     TWILIO_SID: str = ""
     TWILIO_TOKEN: str = ""
     TWILIO_PHONE: str = ""
