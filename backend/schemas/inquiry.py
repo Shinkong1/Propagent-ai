@@ -45,6 +45,10 @@ class PublicListingSummary(BaseModel):
     max_rent: float
     min_bedrooms: int
     max_bedrooms: int
+    # When the listing was made public (Property.public_listed_at) -- None if
+    # it predates this field or was never explicitly stamped. Powers the
+    # "New" badge and the newest-first sort on the public directory.
+    public_listed_at: Optional[datetime] = None
 
 
 class InquiryCreate(BaseModel):

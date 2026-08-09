@@ -100,21 +100,31 @@ def _notify_new_inquiry(org_id, property_name: str, inquiry: RentalInquiry):
 async def browse_public_listings(
     city: Optional[str] = None,
     state: Optional[str] = None,
+    sort: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
     """The public /listings directory — every property whose manager has
     opted in (is_public_listing=True) and that currently has at least one
     vacant unit. This is what gives renters a reason to land on
     propagent.app organically instead of only ever reaching a listing via
-    a link someone sent them directly."""
+    a link someone sent them directly.
+
+    `sort=newest` orders by Property.public_listed_at descending (freshest
+    first, nulls -- listings that predate the column -- sorted last). Any
+    other value (including omitted) keeps the original city-alphabetical
+    order so existing callers see no behavior change."""
     q = db.query(Property).filter(Property.is_active == True, Property.is_public_listing == True)
     if city:
         q = q.filter(Property.city.ilike(f"%{city.strip()}%"))
     if state:
         q = q.filter(Property.state.ilike(f"%{state.strip()}%"))
+    if sort == "newest":
+        q = q.order_by(Property.public_listed_at.desc().nullslast(), Property.city)
+    else:
+        q = q.order_by(Property.city)
 
     results: List[PublicListingSummary] = []
-    for prop in q.order_by(Property.city).all():
+    for prop in q.all():
         units = [u for u in prop.units if u.is_available and not u.is_occupied]
         if not units:
             continue
@@ -125,6 +135,7 @@ async def browse_public_listings(
             property_type=prop.property_type.value, unit_count=len(units),
             min_rent=min(rents), max_rent=max(rents),
             min_bedrooms=min(beds), max_bedrooms=max(beds),
+            public_listed_at=prop.public_listed_at,
         ))
     return results
 

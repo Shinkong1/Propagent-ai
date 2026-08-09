@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, Float, Integer, Boolean, DateTime, ForeignKey, Text, Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 import enum
 from database.base import Base
 
@@ -34,6 +34,12 @@ class Property(Base):
     mortgage_payment = Column(Float, nullable=True)  # monthly debt service
     is_active = Column(Boolean, default=True)
     is_public_listing = Column(Boolean, default=False, nullable=False)  # opt-in: shown on propagent.app/listings directory
+    # When is_public_listing was last flipped True -- distinct from created_at, which
+    # reflects when the property record itself was created (possibly long before it
+    # ever went public). None if the property has never been made public. Kept in sync
+    # by the validator below so every code path that sets is_public_listing (routes,
+    # seed scripts, admin tooling) gets it for free without needing to remember to.
+    public_listed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -42,6 +48,15 @@ class Property(Base):
     maintenance_tickets = relationship("MaintenanceTicket", back_populates="property")
     expenses = relationship("Expense", back_populates="property", cascade="all, delete-orphan")
     compliance_items = relationship("ComplianceItem", back_populates="property", cascade="all, delete-orphan")
+
+    @validates('is_public_listing')
+    def _stamp_public_listed_at(self, key, value):
+        """Stamp public_listed_at the moment is_public_listing transitions to
+        True -- covers every write path (properties routes, demo seeding,
+        future admin tooling) since it's on the model, not any one caller."""
+        if value and not self.is_public_listing:
+            self.public_listed_at = datetime.utcnow()
+        return value
 
     @property
     def occupied_units(self) -> int:
