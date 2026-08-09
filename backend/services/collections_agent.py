@@ -111,7 +111,7 @@ def compute_collections_queue(db: Session, org: Organization, property_id=None) 
     return results
 
 
-def check_overdue_payment_workflows(db: Session) -> dict:
+def check_overdue_payment_workflows(db: Session, limit: int = 25) -> dict:
     """Fires WorkflowTrigger.payment_overdue exactly once per payment, the
     first time it's found overdue -- 'Payment Overdue' was a selectable
     trigger in the no-code workflow builder that silently never fired,
@@ -119,7 +119,16 @@ def check_overdue_payment_workflows(db: Session) -> dict:
     hit periodically by the same free external scheduler already driving
     the other /internal/cron/* jobs (process-outreach-queue,
     finance-reconcile, trial-activation-emails); idempotent via
-    RentPayment.overdue_workflow_fired regardless of how often it runs."""
+    RentPayment.overdue_workflow_fired regardless of how often it runs.
+
+    Bounded to `limit` payments per call -- same reasoning as
+    services/lead_service.py's process_outreach_queue(limit=50): a
+    matching rule's action can include a real blocking send_email/send_sms
+    call (services/workflow_engine.py's execute_actions), so processing an
+    unbounded backlog in one request could run long enough to hit a
+    gateway/scheduler timeout. A capped batch keeps each invocation fast;
+    the scheduler's own repeat interval works through any backlog over
+    several runs instead of one slow one."""
     from models.workflow import WorkflowTrigger
     from services.workflow_engine import run_workflows
 
@@ -133,6 +142,7 @@ def check_overdue_payment_workflows(db: Session) -> dict:
             RentPayment.due_date < today,
             RentPayment.overdue_workflow_fired == False,
         )
+        .limit(limit)
         .all()
     )
 
