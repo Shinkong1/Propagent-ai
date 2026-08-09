@@ -3,7 +3,7 @@ import json
 import logging
 from typing import List
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, File
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, UploadFile, File
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -70,6 +70,7 @@ async def get_property(
 async def update_property(
     property_id: UUID,
     payload: PropertyUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -87,11 +88,24 @@ async def update_property(
         except ValueError:
             raise HTTPException(status_code=422, detail=f"Invalid property_type: {data['property_type']}")
 
+    was_public_listing = prop.is_public_listing
+
     for field, value in data.items():
         setattr(prop, field, value)
 
     db.commit()
     db.refresh(prop)
+
+    # Auto-post to connected social accounts the moment a listing goes
+    # public -- only on the actual False->True flip, not on every save of an
+    # already-public listing. Backgrounded so a slow/broken social API call
+    # can never delay or break this response; see
+    # services/social_posting_service.auto_post_new_listing for the
+    # defensive (log-and-continue) handling.
+    if not was_public_listing and prop.is_public_listing:
+        from services.social_posting_service import auto_post_new_listing
+        background_tasks.add_task(auto_post_new_listing, str(prop.id))
+
     return prop
 
 

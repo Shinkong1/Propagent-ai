@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
   LayoutDashboard, Building2, Users, Wrench, UserSearch, Home,
-  BarChart3, Phone, CreditCard, LogOut, Zap, User, Landmark, Sparkles, Boxes, ShieldCheck, AlertTriangle, TrendingUp, FileText, LineChart, ClipboardCheck, MessageSquare, MessageCircle, Settings, Lock, Crown, ChevronLeft, ChevronRight, Workflow, Radar, ChevronRight as CaretRight, X, Megaphone
+  BarChart3, Phone, CreditCard, LogOut, Zap, User, Landmark, Sparkles, Boxes, ShieldCheck, AlertTriangle, TrendingUp, FileText, LineChart, ClipboardCheck, MessageSquare, MessageCircle, Settings, Lock, Crown, ChevronLeft, ChevronRight, Workflow, Radar, ChevronRight as CaretRight, X, Megaphone, Share2
 } from 'lucide-react';
 import { clearToken, getUser } from '../lib/auth';
 import { useLanguage } from '../lib/LanguageContext';
@@ -37,6 +37,10 @@ const NAV: NavEntry[] = [
       { href: '/dashboard/tenants', key: 'nav.tenants', icon: Users },
       { href: '/dashboard/communications', key: 'nav.communications', icon: MessageSquare, minTier: 'professional' },
       { href: '/dashboard/documents', key: 'nav.documents', icon: FileText },
+      // Subscriber's own social posting (Facebook/Instagram/LinkedIn) for
+      // marketing THEIR properties -- distinct from the master-only
+      // PropAgent Marketing Hub above, which promotes PropAgent AI itself.
+      { href: '/dashboard/social', key: 'nav.social', icon: Share2 },
     ],
   },
   {

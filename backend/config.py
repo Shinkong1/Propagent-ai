@@ -95,6 +95,37 @@ class Settings(BaseSettings):
     # NOT fall back to fake/demo leads).
     GOOGLE_PLACES_API_KEY: str = ""
 
+    # Meta Graph API (Facebook Login for Business) -- powers automated
+    # Facebook Page + Instagram Business Account posting in routes/social.py
+    # and services/social_posting_service.py. Create an app at
+    # https://developers.facebook.com, add the "Facebook Login for Business"
+    # product, and (beyond your own admin/tester accounts) submit for App
+    # Review + Business Verification to request pages_manage_posts and
+    # instagram_content_publish. Empty by default -- the feature is simply
+    # hidden (never faked) until all three are set.
+    FACEBOOK_APP_ID: str = ""
+    FACEBOOK_APP_SECRET: str = ""
+    # Exact redirect URI registered in the Facebook app's OAuth settings,
+    # e.g. https://api.propagent.ai/social/facebook/callback
+    FACEBOOK_REDIRECT_URI: str = ""
+
+    # LinkedIn Marketing API -- powers automated Company Page posting in
+    # routes/social.py and services/social_posting_service.py. Create an app
+    # at https://www.linkedin.com/developers/apps, then request the
+    # "Marketing Developer Platform" product (approval required) to unlock
+    # the w_organization_social / r_organization_admin scopes used here.
+    # Empty by default -- hidden (never faked) until all three are set.
+    LINKEDIN_CLIENT_ID: str = ""
+    LINKEDIN_CLIENT_SECRET: str = ""
+    # Exact redirect URI registered in the LinkedIn app's OAuth settings,
+    # e.g. https://api.propagent.ai/social/linkedin/callback
+    LINKEDIN_REDIRECT_URI: str = ""
+
+    # X/Twitter is intentionally NOT integrated -- posting requires a paid
+    # API tier (no free-tier write access as of this app's build) that
+    # hasn't been purchased. TODO: add FACEBOOK/LINKEDIN-style settings here
+    # once a paid X API plan is decided on; don't stub/fake it before then.
+
     class Config:
         env_file = ".env"
         extra = "ignore"
