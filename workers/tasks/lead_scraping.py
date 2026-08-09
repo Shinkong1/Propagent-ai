@@ -27,6 +27,36 @@ PLACES_FIELD_MASK = "places.displayName,places.formattedAddress,places.internati
 # Best-effort email-discovery heuristic (see _discover_email below).
 _MAILTO_RE = re.compile(r'mailto:([^"\'?<>\s]+)', re.IGNORECASE)
 _EMAIL_RE = re.compile(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}')
+# Placeholder/example addresses real sites genuinely put in their HTML as
+# sample text (contact-form examples, template boilerplate never swapped
+# out) -- these regex-match as valid emails but were never meant to be
+# reachable, and sending real outreach to them just bounces. Confirmed via
+# a real scrape: "user@domain.com" came back as a "found" email for a real
+# business's site, verbatim.
+_PLACEHOLDER_EMAILS = {
+    "user@domain.com", "your@email.com", "email@example.com", "example@example.com",
+    "name@domain.com", "test@test.com", "you@example.com", "someone@example.com",
+    "info@example.com", "email@domain.com",
+}
+
+
+def _clean_email(raw: Optional[str]) -> Optional[str]:
+    """Strips punctuation a regex boundary can accidentally sweep in (a
+    trailing ')' from '(email us at mailto:x@y.com)' was a real bug, caught
+    live: 'info@texasbmg.com)'), then validates the result is actually a
+    plausible email -- not just whatever text happened to follow 'mailto:'
+    in the HTML (also a real bug caught live: a mailto link with no real
+    address in it came back as the literal company name, 'Evernest') --
+    and rejects known placeholder addresses. Returns None rather than a
+    guess for anything that fails these checks."""
+    if not raw:
+        return None
+    candidate = raw.strip().strip('.,;:()[]{}<>"\'')
+    if not _EMAIL_RE.fullmatch(candidate):
+        return None
+    if candidate.lower() in _PLACEHOLDER_EMAILS:
+        return None
+    return candidate
 
 
 @celery_app.task(name="workers.tasks.lead_scraping.daily_scrape")
@@ -118,10 +148,14 @@ def _discover_email(website_url: str) -> Optional[str]:
         html = resp.text
         m = _MAILTO_RE.search(html)
         if m:
-            return m.group(1).strip()
+            cleaned = _clean_email(m.group(1))
+            if cleaned:
+                return cleaned
         m = _EMAIL_RE.search(html)
         if m:
-            return m.group(0).strip()
+            cleaned = _clean_email(m.group(0))
+            if cleaned:
+                return cleaned
     except Exception as e:
         # A single unreachable/slow/broken site must never crash the scrape.
         logger.info(f"Email discovery skipped for {website_url}: {e}")
