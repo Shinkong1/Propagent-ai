@@ -1,10 +1,12 @@
 """Lead generation and outreach service"""
 import logging
-from datetime import datetime
-from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session, joinedload, aliased
 from models.lead import Lead, OutreachEmail, LeadStatus
 
 logger = logging.getLogger(__name__)
+
+REENGAGEMENT_SEQUENCE_STEP = 3
 
 
 async def queue_outreach_email(lead: Lead, db: Session) -> None:
@@ -119,6 +121,147 @@ def process_outreach_queue(db: Session, limit: int = 50) -> dict:
     db.commit()
     logger.info(f"Processed outreach queue: {sent} sent of {len(pending)} pending")
     return {"sent": sent, "pending": len(pending)}
+
+
+def queue_lead_reengagement_emails(db: Session, limit: int = 30, stale_days: int = 10) -> dict:
+    """Re-engagement step for stale leads -- prospects who were sent outreach
+    (step 1, and sometimes step 2 if they replied once and went quiet again)
+    but never replied and never moved past 'new'/'contacted'. Not visitor
+    tracking (this app has none) -- this works off real OutreachEmail rows
+    already created by queue_outreach_email/queue_followup_email above.
+
+    A lead qualifies when ALL of:
+      - its most recently created OutreachEmail has status == 'sent'
+        (i.e. nothing is still queued/pending and it hasn't bounced)
+      - that email's sent_at is more than `stale_days` days ago
+      - none of its OutreachEmails has status == 'replied'
+      - lead.status is still LeadStatus.new or LeadStatus.contacted
+      - it doesn't already have a sequence_step == REENGAGEMENT_SEQUENCE_STEP
+        (3) OutreachEmail
+
+    That last check is the whole idempotency mechanism -- same pattern as
+    sequence_step 1/2 above, no separate "reengaged" column needed. Queues
+    ONE step-3 OutreachEmail with status='queued' per qualifying lead;
+    sending is unchanged, still handled by process_outreach_queue() once
+    the row lands in the same table.
+
+    Bounded to `limit` leads queued per call, same reasoning as
+    services/collections_agent.py's check_overdue_payment_workflows(limit=25)
+    and process_outreach_queue(limit=50) -- keep each invocation fast so a
+    scheduler-triggered call can't run long enough to hit a gateway/scheduler
+    timeout; the scheduler's own repeat interval works through any backlog
+    over several runs instead of one slow one. The candidate query itself is
+    pre-filtered in SQL (early status, no reply, no existing step-3 email, has
+    a stale 'sent' email) and additionally capped at `limit * 3` rows fetched,
+    since only the "is the latest email actually the stale sent one" check
+    needs to happen in Python.
+    """
+    cutoff = datetime.utcnow() - timedelta(days=stale_days)
+    early_statuses = (LeadStatus.new, LeadStatus.contacted)
+
+    # Separate aliases per correlated EXISTS subquery -- reusing OutreachEmail
+    # directly (or joining it onto the outer query) makes SQLAlchemy's
+    # auto-correlation ambiguous about which FROM belongs to which clause.
+    OE_sent = aliased(OutreachEmail)
+    OE_replied = aliased(OutreachEmail)
+    OE_step3 = aliased(OutreachEmail)
+
+    has_stale_sent = (
+        db.query(OE_sent.id)
+        .filter(
+            OE_sent.lead_id == Lead.id,
+            OE_sent.status == "sent",
+            OE_sent.sent_at.isnot(None),
+            OE_sent.sent_at < cutoff,
+        )
+        .exists()
+    )
+    has_reply = (
+        db.query(OE_replied.id)
+        .filter(OE_replied.lead_id == Lead.id, OE_replied.status == "replied")
+        .exists()
+    )
+    has_reengagement = (
+        db.query(OE_step3.id)
+        .filter(
+            OE_step3.lead_id == Lead.id,
+            OE_step3.sequence_step == REENGAGEMENT_SEQUENCE_STEP,
+        )
+        .exists()
+    )
+
+    candidates = (
+        db.query(Lead)
+        .options(joinedload(Lead.outreach_emails))
+        .filter(
+            Lead.status.in_(early_statuses),
+            has_stale_sent,
+            ~has_reply,
+            ~has_reengagement,
+        )
+        .limit(limit * 3)
+        .all()
+    )
+
+    queued = 0
+    for lead in candidates:
+        if queued >= limit:
+            break
+
+        emails = lead.outreach_emails
+        if not emails:
+            continue
+        # Re-check in Python: the SQL join only guarantees *a* stale sent
+        # email exists, not that it's the most recent one for this lead.
+        latest = max(emails, key=lambda e: e.created_at)
+        if latest.status != "sent" or not latest.sent_at or latest.sent_at >= cutoff:
+            continue
+        if any(e.status == "replied" for e in emails):
+            continue
+        if any(e.sequence_step == REENGAGEMENT_SEQUENCE_STEP for e in emails):
+            continue
+
+        try:
+            subject = f"Still worth a look, {lead.first_name or 'there'}?"
+            body = f"""Hi {lead.first_name or 'there'},
+
+I reached out a little while back about PropAgent AI for {lead.company or 'your properties'}
+and never heard back, so I didn't want it to just sit forgotten in your inbox.
+
+Different angle this time, no call required: here's a 2-minute self-playing demo of
+PropAgent running on a real account -- real tenant inquiries, real maintenance tickets,
+real AI screening decisions, start to finish.
+
+https://propagent.app/demo
+
+If it's not a fit right now, no worries -- just reply "not now" and I'll stop following up.
+If it is, reply here and I'll get you a login of your own to try it firsthand.
+
+Best,
+The PropAgent Team
+https://propagent.app
+"""
+            email = OutreachEmail(
+                lead_id=lead.id,
+                subject=subject,
+                body=body,
+                status="queued",
+                sequence_step=REENGAGEMENT_SEQUENCE_STEP,
+            )
+            db.add(email)
+            lead.last_contacted = datetime.utcnow()
+            queued += 1
+        except Exception as e:
+            logger.error(f"Failed to queue re-engagement email for lead {lead.id}: {e}")
+
+    if queued:
+        db.commit()
+
+    logger.info(
+        f"Lead re-engagement: queued {queued} email(s) "
+        f"(checked {len(candidates)} candidate(s), stale_days={stale_days}, limit={limit})"
+    )
+    return {"queued": queued, "checked": len(candidates)}
 
 
 def mark_lead_replied(db: Session, lead_id) -> "Lead | None":

@@ -97,3 +97,20 @@ async def payment_overdue_workflows_endpoint(db: Session = Depends(get_db)):
     from services.collections_agent import check_overdue_payment_workflows
     result = await run_in_threadpool(check_overdue_payment_workflows, db)
     return result
+
+
+@router.post("/lead-reengagement", dependencies=[Depends(_require_cron_secret)])
+async def lead_reengagement_endpoint(db: Session = Depends(get_db)):
+    """Re-engagement step for stale leads in PropAgent's own sales pipeline --
+    prospects sent outreach (services/lead_service.py's queue_outreach_email /
+    queue_followup_email, sequence_step 1/2) who never replied and are still
+    sitting in 'new'/'contacted' more than ~10 days later. Queues a single
+    sequence_step=3 OutreachEmail per qualifying lead; actual sending is
+    unchanged, still handled by /process-outreach-queue against the same
+    table. Idempotent per lead via the existing sequence_step column (no new
+    tracking column), and bounded per call for the same reason as
+    /payment-overdue-workflows -- safe to hit periodically on the same free
+    external scheduler already driving the other /internal/cron/* jobs."""
+    from services.lead_service import queue_lead_reengagement_emails
+    result = await run_in_threadpool(queue_lead_reengagement_emails, db)
+    return result
