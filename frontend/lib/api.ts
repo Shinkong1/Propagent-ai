@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getToken } from './auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -78,7 +79,7 @@ export const publicContact = {
 };
 
 export const publicListings = {
-  browse: (params?: { city?: string; state?: string }) => api.get('/public/listings', { params }),
+  browse: (params?: { city?: string; state?: string; sort?: string }) => api.get('/public/listings', { params }),
   get: (propertyId: string) => api.get(`/public/listings/${propertyId}`),
   inquire: (propertyId: string, data: any) => api.post(`/public/listings/${propertyId}/inquire`, data),
 };
@@ -255,6 +256,15 @@ export const admin = {
   deleteVerificationFile: (id: string) => api.delete(`/admin/verification-files/${id}`),
   seedDemoOrg: () => api.post('/admin/demo-org/seed'),
   rotateDemoPassword: () => api.post('/admin/demo-org/rotate-password'),
+  listTestimonials: () => api.get('/admin/testimonials'),
+  createTestimonial: (data: { customer_name: string; customer_title?: string; quote_text: string; rating?: number | null; is_published?: boolean; display_order?: number }) =>
+    api.post('/admin/testimonials', data),
+  updateTestimonial: (id: string, data: any) => api.patch(`/admin/testimonials/${id}`, data),
+  deleteTestimonial: (id: string) => api.delete(`/admin/testimonials/${id}`),
+};
+
+export const publicTestimonials = {
+  list: () => api.get('/public/testimonials'),
 };
 
 export const contact = {
@@ -300,4 +310,18 @@ export const workflows = {
   update: (id: string, data: any) => api.patch(`/workflows/${id}`, data),
   delete: (id: string) => api.delete(`/workflows/${id}`),
   test: (id: string, sampleData: any) => api.post(`/workflows/${id}/test`, { sample_data: sampleData }),
+};
+
+export const social = {
+  config: () => api.get('/social/config'),
+  connections: () => api.get('/social/connections'),
+  disconnect: (connectionId: string) => api.delete(`/social/connections/${connectionId}`),
+  posts: (limit?: number) => api.get('/social/posts', { params: { limit } }),
+  compose: (data: { connection_ids: string[]; message: string; image_url?: string; link?: string }) =>
+    api.post('/social/compose', data),
+  // Full-navigation OAuth connect links -- the JWT is passed as a query
+  // param because these are top-level browser redirects to Facebook/
+  // LinkedIn's own login pages, which can't carry an Authorization header.
+  facebookConnectUrl: () => `${API_URL}/social/facebook/connect?token=${encodeURIComponent(getToken() || '')}`,
+  linkedinConnectUrl: () => `${API_URL}/social/linkedin/connect?token=${encodeURIComponent(getToken() || '')}`,
 };

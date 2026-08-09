@@ -1,13 +1,13 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Zap, Building2, MessageSquare, Wrench, Users, Phone, ChevronRight, Check } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 import { useSidebar } from '../lib/SidebarContext';
 import PublicFooter from '../components/PublicFooter';
 import SalesChatWidget from '../components/SalesChatWidget';
-import { auth } from '../lib/api';
+import { auth, publicTestimonials } from '../lib/api';
 import { setToken, setUser } from '../lib/auth';
 import toast from 'react-hot-toast';
 
@@ -64,6 +64,15 @@ export default function Home() {
   const { isMobile } = useSidebar();
   const router = useRouter();
   const [demoLoading, setDemoLoading] = useState(false);
+
+  // Real customer testimonials only, managed by the owner in the admin dashboard
+  // (see /admin/testimonials). No fallback/example content: if nothing has been
+  // published yet, `testimonials` just stays an empty array and the section
+  // below renders nothing at all.
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  useEffect(() => {
+    publicTestimonials.list().then(res => setTestimonials(res.data || [])).catch(() => {});
+  }, []);
 
   const handleViewDemo = async () => {
     setDemoLoading(true);
@@ -251,6 +260,40 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {/* Testimonials — real customer quotes only, added by the owner as they're
+            actually collected (see the admin dashboard's Testimonials tab). Renders
+            nothing at all when there are none published yet; no placeholder content. */}
+        {testimonials.length > 0 && (
+          <section style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px 80px' }}>
+            <h2 style={{ textAlign: 'center', fontFamily: 'Syne', fontWeight: 800, fontSize: 32, color: 'var(--text-primary)', marginBottom: 40 }}>
+              What real customers say
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+              {testimonials.map((tst: any) => (
+                <div key={tst.id} style={{
+                  background: 'var(--bg-surface)', border: '1px solid var(--border-strong)',
+                  borderRadius: 14, padding: '24px', display: 'flex', flexDirection: 'column', gap: 12,
+                }}>
+                  {tst.rating ? (
+                    <div style={{ color: '#FBC02D', fontSize: 14, letterSpacing: '1px' }}>
+                      {'★'.repeat(tst.rating)}{'☆'.repeat(5 - tst.rating)}
+                    </div>
+                  ) : null}
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, fontFamily: 'IBM Plex Sans', fontStyle: 'italic' }}>
+                    &ldquo;{tst.quote_text}&rdquo;
+                  </p>
+                  <div style={{ fontSize: 13, fontFamily: 'Syne', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    {tst.customer_name}
+                    {tst.customer_title && (
+                      <span style={{ fontWeight: 400, color: '#64748B' }}> — {tst.customer_title}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* CTA */}
         <section style={{ textAlign: 'center', padding: '60px 24px 80px', borderTop: '1px solid var(--border-subtle)' }}>

@@ -18,6 +18,8 @@ from models import user, property, tenant, maintenance, lead, accounting  # noqa
 from models import compliance, collections, document, inspection, communication, owner_message  # noqa: F401
 from models import workflow  # noqa: F401
 from models import platform  # noqa: F401
+from models import testimonial  # noqa: F401
+from models import social_connection  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

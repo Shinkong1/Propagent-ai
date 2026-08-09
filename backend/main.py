@@ -109,13 +109,16 @@ from routes.internal_email import router as internal_email_router
 from routes.inquiries import router as inquiries_router
 from routes.verification import router as verification_router
 from routes.ai_workforce import router as ai_workforce_router
+from routes.social import router as social_router
+from routes.testimonials import router as testimonials_router, admin_router as testimonials_admin_router
 
 for r in [auth_router, properties_router, tenants_router, maintenance_router,
           leads_router, voice_router, voice_staff_router, billing_router, screening_router, accounting_router,
           executive_router, portfolio_router, compliance_router, collections_router, investment_router,
           documents_router, pricing_router, inspections_router, communications_router, admin_router, contact_router,
           team_router, mfa_router, oauth_router, workflows_router, predictive_router, fraud_router, public_api_router,
-          tenant_portal_router, internal_cron_router, internal_email_router, inquiries_router, verification_router, ai_workforce_router]:
+          tenant_portal_router, internal_cron_router, internal_email_router, inquiries_router, verification_router, ai_workforce_router,
+          social_router, testimonials_router, testimonials_admin_router]:
     app.include_router(r)
 
 

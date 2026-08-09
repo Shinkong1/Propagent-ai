@@ -5,7 +5,7 @@ import {
   ShieldAlert, Crown, Building2, Users, DollarSign, Sparkles, MessageSquare,
   TrendingUp, Activity, BarChart3, Search, Database, Server, Cpu, Plug, AlertOctagon, Repeat, Gift, X, Send,
   Link2, ExternalLink, Copy, Github, CreditCard, Phone, Mail, Timer, Cloud, KeyRound, Megaphone,
-  ShieldCheck, Trash2, Plus,
+  ShieldCheck, Trash2, Plus, Star,
 } from 'lucide-react';
 import Link from 'next/link';
 import { admin as adminApi } from '../../lib/api';
@@ -16,9 +16,9 @@ import toast from 'react-hot-toast';
 
 const PLANS = ['starter', 'professional', 'enterprise'];
 const PLAN_COLOR: Record<string, string> = { starter: '#64748B', professional: '#FBC02D', enterprise: '#8B5CF6' };
-const TABS = ['subscribers', 'revenue', 'growth', 'platform', 'links', 'analytics'] as const;
+const TABS = ['subscribers', 'revenue', 'growth', 'platform', 'links', 'testimonials', 'analytics'] as const;
 type Tab = typeof TABS[number];
-const TAB_ICON: Record<Tab, any> = { subscribers: Users, revenue: DollarSign, growth: TrendingUp, platform: Activity, links: Link2, analytics: BarChart3 };
+const TAB_ICON: Record<Tab, any> = { subscribers: Users, revenue: DollarSign, growth: TrendingUp, platform: Activity, links: Link2, testimonials: Star, analytics: BarChart3 };
 
 const SITE_URL = 'https://propagent.app';
 const API_URL = 'https://propagent-api.onrender.com';
@@ -683,6 +683,23 @@ export default function OwnerAdmin() {
           </>
         )}
 
+        {tab === 'testimonials' && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+              <div>
+                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Star size={16} color="#FBC02D" /> Testimonials
+                </h2>
+                <p style={{ fontSize: 12.5, color: '#64748B', maxWidth: 560 }}>
+                  Add real testimonials only, as you actually collect them from real customers with their permission.
+                  New entries start as drafts (unpublished) so you can review before anything goes live on the public site.
+                </p>
+              </div>
+            </div>
+            <TestimonialsPanel />
+          </>
+        )}
+
         {tab === 'analytics' && businessAnalytics && (
           <>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 12 }}>{t('admin.subscriberGrowth')}</h2>
@@ -992,6 +1009,213 @@ function VerificationFilesPanel() {
         <button onClick={() => setShowAdd(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px', background: 'none', border: 'none', borderTop: files.length > 0 ? '1px solid var(--border-subtle)' : 'none', color: '#FBC02D', fontSize: 12.5, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer' }}>
           <Plus size={13} /> Add verification file
         </button>
+      )}
+    </div>
+  );
+}
+
+const testimonialLabelStyle: React.CSSProperties = { display: 'block', marginBottom: 5, marginTop: 12, fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B' };
+const testimonialInputStyle: React.CSSProperties = { width: '100%', padding: '9px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none', boxSizing: 'border-box' };
+
+const emptyTestimonialForm = { customer_name: '', customer_title: '', quote_text: '', rating: '', display_order: 0, is_published: false };
+
+function TestimonialsPanel() {
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null); // null = adding a new one
+  const [form, setForm] = useState(emptyTestimonialForm);
+  const [saving, setSaving] = useState(false);
+
+  const load = () => {
+    adminApi.listTestimonials().then(r => setTestimonials(r.data || [])).catch(() => {}).finally(() => setLoading(false));
+  };
+  useEffect(() => { load(); }, []);
+
+  const openNew = () => {
+    setEditing(null);
+    setForm(emptyTestimonialForm);
+    setModalOpen(true);
+  };
+
+  const openEdit = (t: any) => {
+    setEditing(t);
+    setForm({
+      customer_name: t.customer_name,
+      customer_title: t.customer_title || '',
+      quote_text: t.quote_text,
+      rating: t.rating != null ? String(t.rating) : '',
+      display_order: t.display_order,
+      is_published: t.is_published,
+    });
+    setModalOpen(true);
+  };
+
+  const save = async () => {
+    if (!form.customer_name.trim() || !form.quote_text.trim()) {
+      toast.error('Customer name and quote are both required');
+      return;
+    }
+    setSaving(true);
+    const payload = {
+      customer_name: form.customer_name.trim(),
+      customer_title: form.customer_title.trim() || undefined,
+      quote_text: form.quote_text.trim(),
+      rating: form.rating ? Number(form.rating) : null,
+      display_order: Number(form.display_order) || 0,
+      is_published: form.is_published,
+    };
+    try {
+      if (editing) {
+        const res = await adminApi.updateTestimonial(editing.id, payload);
+        setTestimonials(prev => prev.map(t => (t.id === editing.id ? res.data : t)));
+        toast.success('Testimonial updated');
+      } else {
+        const res = await adminApi.createTestimonial(payload as any);
+        setTestimonials(prev => [...prev, res.data]);
+        toast.success('Testimonial added');
+      }
+      setModalOpen(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const togglePublish = async (t: any) => {
+    try {
+      const res = await adminApi.updateTestimonial(t.id, { is_published: !t.is_published });
+      setTestimonials(prev => prev.map(x => (x.id === t.id ? res.data : x)));
+      toast.success(res.data.is_published ? 'Published — now visible on the public site' : 'Unpublished');
+    } catch {
+      toast.error('Failed to update');
+    }
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm("Delete this testimonial? This can't be undone.")) return;
+    try {
+      await adminApi.deleteTestimonial(id);
+      setTestimonials(prev => prev.filter(t => t.id !== id));
+      toast.success('Deleted');
+    } catch {
+      toast.error('Failed to delete');
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <button onClick={openNew} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', fontSize: 12.5, border: 'none', cursor: 'pointer' }}>
+          <Plus size={13} /> Add testimonial
+        </button>
+      </div>
+
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden' }}>
+        {loading ? (
+          <div style={{ padding: 20, textAlign: 'center', color: '#64748B', fontSize: 13 }}>Loading...</div>
+        ) : testimonials.length === 0 ? (
+          <div style={{ padding: 24, textAlign: 'center', color: '#64748B', fontSize: 13 }}>
+            No testimonials yet. Add one once you have a real quote from a real customer, with their permission.
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
+                  {['Customer', 'Quote', 'Rating', 'Order', 'Status', ''].map(h => (
+                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {testimonials.map(t => (
+                  <tr key={t.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                    <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>
+                      {t.customer_name}
+                      {t.customer_title && <div style={{ fontSize: 11, color: '#64748B', fontWeight: 400 }}>{t.customer_title}</div>}
+                    </td>
+                    <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)', maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.quote_text}</td>
+                    <td style={{ padding: '10px 14px', fontSize: 12, color: '#FBC02D', whiteSpace: 'nowrap' }}>{t.rating ? '★'.repeat(t.rating) + '☆'.repeat(5 - t.rating) : '—'}</td>
+                    <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono' }}>{t.display_order}</td>
+                    <td style={{ padding: '10px 14px' }}>
+                      <button
+                        onClick={() => togglePublish(t)}
+                        style={{ ...badge(t.is_published ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.15)', t.is_published ? '#10B981' : '#64748B'), cursor: 'pointer', border: 'none' }}
+                      >
+                        {t.is_published ? 'Published' : 'Draft'}
+                      </button>
+                    </td>
+                    <td style={{ padding: '10px 14px' }}>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button onClick={() => openEdit(t)} style={{ padding: '5px 9px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>Edit</button>
+                        <button onClick={() => remove(t.id)} title="Delete" style={{ display: 'flex', alignItems: 'center', padding: '5px 9px', borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#EF4444', cursor: 'pointer' }}>
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {modalOpen && (
+        <div
+          onClick={() => setModalOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 24, maxWidth: 480, width: '100%', maxHeight: '85vh', overflowY: 'auto' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>{editing ? 'Edit testimonial' : 'Add testimonial'}</h2>
+              <button onClick={() => setModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <label style={testimonialLabelStyle}>Customer name</label>
+            <input value={form.customer_name} onChange={e => setForm({ ...form, customer_name: e.target.value })} style={testimonialInputStyle} />
+
+            <label style={testimonialLabelStyle}>Title / company (optional)</label>
+            <input value={form.customer_title} onChange={e => setForm({ ...form, customer_title: e.target.value })} placeholder="e.g. Owner, Sunset Properties" style={testimonialInputStyle} />
+
+            <label style={testimonialLabelStyle}>Quote</label>
+            <textarea value={form.quote_text} onChange={e => setForm({ ...form, quote_text: e.target.value })} style={{ ...testimonialInputStyle, minHeight: 90, resize: 'vertical' }} />
+
+            <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <label style={testimonialLabelStyle}>Rating (optional)</label>
+                <select value={form.rating} onChange={e => setForm({ ...form, rating: e.target.value })} style={testimonialInputStyle}>
+                  <option value="">No rating</option>
+                  {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} star{n > 1 ? 's' : ''}</option>)}
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={testimonialLabelStyle}>Display order</label>
+                <input type="number" value={form.display_order} onChange={e => setForm({ ...form, display_order: Number(e.target.value) })} style={testimonialInputStyle} />
+              </div>
+            </div>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, marginBottom: 18, cursor: 'pointer' }}>
+              <input type="checkbox" checked={form.is_published} onChange={e => setForm({ ...form, is_published: e.target.checked })} />
+              <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>Published (visible on the public site)</span>
+            </label>
+
+            <button
+              onClick={save}
+              disabled={saving}
+              style={{ width: '100%', padding: '10px', borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', fontSize: 13, border: 'none', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}
+            >
+              {saving ? 'Saving...' : editing ? 'Save changes' : 'Add testimonial'}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
