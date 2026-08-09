@@ -10,6 +10,7 @@ Workflow (configurable per organization, defaults from the spec):
 Every recommendation is rule-based (not a trained model) and carries an
 explanation of which threshold triggered it.
 """
+import logging
 from datetime import date
 from sqlalchemy.orm import Session
 
@@ -18,6 +19,8 @@ from models.tenant import Lease
 from models.property import Unit, Property
 from models.user import Organization
 from models.collections import CollectionsAction, CollectionsActionType, STAGE_ORDER
+
+logger = logging.getLogger(__name__)
 
 OVERDUE_STATUSES = [PaymentStatus.pending, PaymentStatus.late, PaymentStatus.partial, PaymentStatus.missed]
 
@@ -106,6 +109,58 @@ def compute_collections_queue(db: Session, org: Organization, property_id=None) 
 
     results.sort(key=lambda r: r["days_overdue"], reverse=True)
     return results
+
+
+def check_overdue_payment_workflows(db: Session) -> dict:
+    """Fires WorkflowTrigger.payment_overdue exactly once per payment, the
+    first time it's found overdue -- 'Payment Overdue' was a selectable
+    trigger in the no-code workflow builder that silently never fired,
+    since nothing anywhere ever called run_workflows for it. Meant to be
+    hit periodically by the same free external scheduler already driving
+    the other /internal/cron/* jobs (process-outreach-queue,
+    finance-reconcile, trial-activation-emails); idempotent via
+    RentPayment.overdue_workflow_fired regardless of how often it runs."""
+    from models.workflow import WorkflowTrigger
+    from services.workflow_engine import run_workflows
+
+    today = date.today()
+    overdue_payments = (
+        db.query(RentPayment)
+        .join(Lease, RentPayment.lease_id == Lease.id)
+        .join(Unit).join(Property)
+        .filter(
+            RentPayment.status.in_(OVERDUE_STATUSES),
+            RentPayment.due_date < today,
+            RentPayment.overdue_workflow_fired == False,
+        )
+        .all()
+    )
+
+    fired_count = 0
+    for payment in overdue_payments:
+        org = payment.lease.unit.property.organization if payment.lease and payment.lease.unit and payment.lease.unit.property else None
+        if not org:
+            continue
+        try:
+            run_workflows(db, org, WorkflowTrigger.payment_overdue, {
+                "tenant_name": payment.tenant_name,
+                "property_name": payment.property_name,
+                "unit_number": payment.unit_number,
+                "amount": payment.amount,
+                "due_date": str(payment.due_date),
+                "days_overdue": (today - payment.due_date).days,
+            })
+            fired_count += 1
+        except Exception as e:
+            # A broken rule for one org must never block the rest of the
+            # batch -- but silently swallowing the error entirely (an
+            # earlier version of this line did) means a real bug (e.g. a
+            # malformed rule.conditions) fails with zero visibility, ever.
+            logger.warning(f"payment_overdue workflow check failed for org {org.id}, payment {payment.id}: {e}")
+        payment.overdue_workflow_fired = True
+
+    db.commit()
+    return {"checked": len(overdue_payments), "fired": fired_count}
 
 
 def collections_summary(queue: list) -> dict:

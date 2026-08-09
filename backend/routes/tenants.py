@@ -4,15 +4,18 @@ from datetime import date
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, File, Form
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from database.session import get_db
 from models.user import User, PlanType, UserRole
 from models.tenant import Tenant, Lease, LeaseStatus
 from models.property import Unit, Property
+from models.workflow import WorkflowTrigger
 from schemas.tenant import TenantCreate, TenantUpdate, TenantResponse, LeaseCreate
 from schemas.import_schemas import ImportResult, ImportRowError
 from services.import_service import parse_uploaded_table, row_get
+from services.workflow_engine import run_workflows
 from middleware.auth import get_current_user
 from middleware.plan_gate import require_plan, require_role
 
@@ -48,6 +51,21 @@ async def create_tenant(
     db.add(tenant)
     db.commit()
     db.refresh(tenant)
+
+    try:
+        # "New Tenant Added" was a selectable trigger in the no-code
+        # workflow builder that silently never fired -- create_tenant
+        # never called run_workflows at all. Same pattern as leads.py's
+        # lead_created trigger: run off the event loop since a matching
+        # rule can send email/SMS synchronously.
+        await run_in_threadpool(run_workflows, db, current_user.organization, WorkflowTrigger.tenant_created, {
+            "name": tenant.full_name,
+            "email": tenant.email,
+            "phone": tenant.phone,
+        })
+    except Exception as e:
+        logger.warning(f"Workflow evaluation failed for tenant {tenant.id}: {e}")
+
     return tenant
 
 

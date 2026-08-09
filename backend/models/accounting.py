@@ -1,7 +1,7 @@
 import builtins
 import uuid
 from datetime import datetime, date
-from sqlalchemy import Column, String, Float, DateTime, Date, ForeignKey, Text, Enum as SAEnum
+from sqlalchemy import Column, String, Float, Boolean, DateTime, Date, ForeignKey, Text, Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import enum
@@ -47,6 +47,14 @@ class RentPayment(Base):
     payment_method = Column(SAEnum(PaymentMethod), nullable=True)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    # "Payment Overdue" was a selectable trigger in the no-code workflow
+    # builder that silently never fired -- nothing anywhere ever called
+    # run_workflows(..., WorkflowTrigger.payment_overdue, ...). Fixed via
+    # a periodic cron check (services/collections_agent.py's
+    # check_overdue_payment_workflows, routes/internal_cron.py); this flag
+    # is what makes that idempotent -- fires once per payment the moment
+    # it first goes overdue, never again on later cron runs.
+    overdue_workflow_fired = Column(Boolean, default=False, nullable=False)
 
     lease = relationship("Lease", back_populates="rent_payments")
     collections_actions = relationship("CollectionsAction", back_populates="rent_payment", cascade="all, delete-orphan")

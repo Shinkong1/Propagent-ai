@@ -29,8 +29,21 @@ async def evaluate_tenant(
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
-    # Use a default monthly_rent of 0 if no active lease yet
-    monthly_rent = 1500.0  # Default estimate
+    # Real gap found and fixed: this used to hardcode monthly_rent = 1500.0
+    # for every applicant regardless of the actual unit's real rent, which
+    # directly fed the income-to-rent-ratio math in evaluate_screening
+    # (services/tenant_service.py) -- silently wrong rent in means a
+    # silently wrong approve/decline decision out. Use the tenant's real
+    # active lease rent; if they don't have one yet, this endpoint can't
+    # produce a meaningful score at all, so it says so instead of guessing.
+    active_lease = tenant.active_lease
+    if not active_lease:
+        raise HTTPException(
+            status_code=400,
+            detail="This tenant has no active lease yet, so there's no real rent to screen against. "
+                   "Create a lease first, or use the rental-inquiry screening flow (which takes rent directly) before converting an applicant to a tenant.",
+        )
+    monthly_rent = active_lease.monthly_rent
 
     result = await run_full_screening(
         tenant_id=str(payload.tenant_id),

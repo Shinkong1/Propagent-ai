@@ -83,3 +83,17 @@ async def trial_activation_emails_endpoint(db: Session = Depends(get_db)):
     from services.trial_activation_service import run_trial_activation_emails
     result = await run_in_threadpool(run_trial_activation_emails, db)
     return result
+
+
+@router.post("/payment-overdue-workflows", dependencies=[Depends(_require_cron_secret)])
+async def payment_overdue_workflows_endpoint(db: Session = Depends(get_db)):
+    """Fires the 'Payment Overdue' workflow-builder trigger for every rent
+    payment that's newly overdue -- previously a selectable trigger in the
+    no-code workflow builder (frontend/pages/dashboard/workflows.tsx) that
+    silently never fired for any organization, ever. Idempotent per payment
+    via RentPayment.overdue_workflow_fired, so safe to hit every few hours
+    on the same free external scheduler already driving the other
+    /internal/cron/* jobs -- it's date-based, not time-critical."""
+    from services.collections_agent import check_overdue_payment_workflows
+    result = await run_in_threadpool(check_overdue_payment_workflows, db)
+    return result

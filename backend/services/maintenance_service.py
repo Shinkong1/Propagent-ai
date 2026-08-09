@@ -14,6 +14,36 @@ CATEGORY_VENDOR_MAP = {
 }
 
 
+def _notify_vendor(vendor: Vendor, ticket: MaintenanceTicket) -> bool:
+    """Actually contacts the assigned vendor by email -- previously this
+    was entirely missing (see the comment at the call site). Returns True
+    only if the send genuinely succeeded, so vendor_notified stays an
+    honest signal instead of a flag that's always True regardless of
+    whether anyone was actually reached."""
+    if not vendor.email:
+        logger.warning(f"Vendor {vendor.id} ({vendor.name}) has no email on file -- can't notify, leaving vendor_notified=False.")
+        return False
+
+    from services.communication_agent import send_email
+
+    subject = f"New maintenance job: {ticket.title}"
+    body = (
+        f"Hi {vendor.name},\n\n"
+        f"You've been assigned a new maintenance request:\n\n"
+        f"Property: {ticket.property_name or 'Unknown'}"
+        + (f", Unit {ticket.unit_number}" if ticket.unit_number else "") + "\n"
+        f"Category: {ticket.category.value if ticket.category else 'other'}\n"
+        f"Priority: {ticket.priority.value if ticket.priority else 'medium'}\n\n"
+        f"Description:\n{ticket.description}\n\n"
+        f"Please reach out to the property manager to coordinate access and scheduling."
+    )
+    status, error = send_email(vendor.email, subject, body)
+    if status != "sent":
+        logger.warning(f"Vendor notification email to {vendor.email} did not send (status={status}): {error}")
+        return False
+    return True
+
+
 async def auto_assign_vendor(ticket: MaintenanceTicket, db: Session) -> None:
     """Automatically find and assign best vendor for ticket category"""
     try:
@@ -49,9 +79,16 @@ async def auto_assign_vendor(ticket: MaintenanceTicket, db: Session) -> None:
         
         if best_vendor:
             ticket.vendor_id = best_vendor.id
-            ticket.vendor_notified = True
+            # Real gap found and fixed: this used to set vendor_notified=True
+            # unconditionally the moment a vendor was matched, without ever
+            # actually contacting them -- no email, no SMS, nothing. The AI
+            # (agents/agents/maintenance_agent.py, reachable from both the
+            # Twilio voice line and in-app chat) would then tell the tenant
+            # a vendor was being dispatched, which was never true. Now the
+            # flag only flips once a real send actually succeeds.
+            ticket.vendor_notified = _notify_vendor(best_vendor, ticket)
             db.commit()
-            logger.info(f"Assigned vendor {best_vendor.name} to ticket {ticket.id}")
+            logger.info(f"Assigned vendor {best_vendor.name} to ticket {ticket.id} (notified={ticket.vendor_notified})")
     except Exception as e:
         logger.error(f"Vendor auto-assign failed: {e}")
 

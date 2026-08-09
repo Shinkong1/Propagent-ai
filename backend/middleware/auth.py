@@ -110,4 +110,18 @@ async def get_org_from_api_key(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             detail="This organization's trial has ended. Subscribe to a plan to keep using the API.",
         )
+    # Real gap found and fixed: the public API is marketed as an
+    # Enterprise-only feature (frontend/pages/pricing.tsx, api-docs.tsx,
+    # compare.tsx all say so), but nothing anywhere actually enforced that
+    # -- any Starter org could generate and fully use a key. Checked here
+    # (not just at key-generation time in routes/auth.py) so a key
+    # generated before this fix, or by an org that later downgrades,
+    # stops working too, not just new key generation.
+    from models.user import PlanType
+    from middleware.plan_gate import PLAN_RANK
+    if PLAN_RANK.get(org.plan, 0) < PLAN_RANK[PlanType.enterprise]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The public API is an Enterprise-plan feature. Upgrade to unlock it.",
+        )
     return org

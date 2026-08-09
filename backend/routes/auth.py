@@ -7,7 +7,7 @@ from jose import JWTError
 from sqlalchemy.orm import Session
 
 from database.session import get_db
-from models.user import User, Organization, UserRole
+from models.user import User, Organization, UserRole, PlanType
 from schemas.auth import (
     SignupRequest, LoginRequest, TokenResponse, LanguageUpdate,
     ThemeUpdate, OrganizationUpdate, PasswordChangeRequest,
@@ -15,7 +15,7 @@ from schemas.auth import (
     ProfileUpdateRequest,
 )
 from middleware.auth import hash_password, verify_password, create_access_token, decode_token, get_current_user
-from middleware.plan_gate import require_role
+from middleware.plan_gate import require_role, require_plan
 from middleware.rate_limit import limiter
 from datetime import datetime, timedelta
 from config import settings
@@ -309,6 +309,7 @@ async def update_organization(
 async def get_organization_api_key(
     current_user: User = Depends(get_current_user),
     _=Depends(require_role(UserRole.owner)),
+    __=Depends(require_plan(PlanType.enterprise)),
 ):
     org = current_user.organization
     if not org:
@@ -321,6 +322,7 @@ async def regenerate_organization_api_key(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     _=Depends(require_role(UserRole.owner)),
+    __=Depends(require_plan(PlanType.enterprise)),
 ):
     import secrets
     org = current_user.organization

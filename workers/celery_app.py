@@ -12,7 +12,6 @@ celery_app = Celery(
     include=[
         "workers.tasks.lead_scraping",
         "workers.tasks.email_campaigns",
-        "workers.tasks.maintenance_dispatch",
     ]
 )
 
