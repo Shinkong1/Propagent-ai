@@ -95,6 +95,14 @@ class Settings(BaseSettings):
     # NOT fall back to fake/demo leads).
     GOOGLE_PLACES_API_KEY: str = ""
 
+    # Comma-separated target markets for automated daily lead scraping, e.g.
+    # "Austin, TX,Dallas, TX,Phoenix, AZ" -- read by the
+    # /internal/cron/lead-scrape endpoint (routes/internal_cron.py). Empty
+    # by default: workers/tasks/lead_scraping.py deliberately refuses to
+    # invent a default search location rather than fabricate one, so this
+    # must be set explicitly before automated scraping does anything.
+    LEAD_SCRAPE_LOCATIONS: str = ""
+
     # Meta Graph API (Facebook Login for Business) -- powers automated
     # Facebook Page + Instagram Business Account posting in routes/social.py
     # and services/social_posting_service.py. Create an app at

@@ -568,15 +568,29 @@ export default function OwnerAdmin() {
                 </div>
               </div>
               <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Cpu size={20} color={platform.health.celery_workers_online ? '#10B981' : '#EF4444'} />
+                <Cpu size={20} color={
+                  platform.health.celery_workers_online ? '#10B981'
+                    : platform.health.cron_scheduler_configured ? '#64748B'
+                    : '#EF4444'
+                } />
                 <div>
                   <div style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 600 }}>{t('admin.workers')}</div>
-                  <div style={{ fontSize: 11, color: platform.health.celery_workers_online ? '#10B981' : '#EF4444' }}>
-                    {platform.health.celery_workers_online !== null ? `${platform.health.celery_workers_online} ${t('admin.online')}` : t('admin.unknown')}
+                  <div style={{ fontSize: 11, color: platform.health.celery_workers_online ? '#10B981' : platform.health.cron_scheduler_configured ? '#64748B' : '#EF4444' }}>
+                    {platform.health.celery_workers_online
+                      ? `${platform.health.celery_workers_online} ${t('admin.online')}`
+                      : platform.health.cron_scheduler_configured
+                      ? 'Not deployed — using free cron scheduler'
+                      : 'Not configured — nothing is automated'}
                   </div>
                 </div>
               </div>
             </div>
+            {!platform.health.celery_workers_online && (
+              <p style={{ fontSize: 11, color: '#64748B', marginTop: -10, marginBottom: 20, lineHeight: 1.6 }}>
+                No paid background-worker service is deployed, so this tile shows 0 by design — that's expected, not a malfunction. Scheduled jobs (outreach sending, lead re-engagement, trial nurture emails, billing reconciliation, and lead research) instead run via <code>/internal/cron/*</code> endpoints, meant to be hit periodically by a free external scheduler like cron-job.org.
+                {!platform.health.cron_scheduler_configured && ' CRON_SECRET is not set, though, so none of those scheduled jobs can actually run yet — set it, then point a free scheduler at each /internal/cron/* endpoint.'}
+              </p>
+            )}
 
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Plug size={16} color="#FBC02D" /> {t('admin.integrations')}

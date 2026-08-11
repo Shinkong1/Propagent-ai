@@ -99,6 +99,44 @@ async def payment_overdue_workflows_endpoint(db: Session = Depends(get_db)):
     return result
 
 
+@router.post("/lead-scrape", dependencies=[Depends(_require_cron_secret)])
+async def lead_scrape_endpoint(db: Session = Depends(get_db)):
+    """Automated daily lead RESEARCH (finding new prospects), as opposed to
+    /process-outreach-queue which only sends to leads that already exist.
+    This is the free-cron equivalent of workers/tasks/lead_scraping.py's
+    daily_scrape() Celery-beat task -- that task was never actually running
+    in production (no paid background worker is deployed -- see
+    config.py's CRON_SECRET comment, and it's the same reason the Admin ->
+    Platform "Celery workers" tile shows 0/red), and even if a worker were
+    deployed, daily_scrape() itself is a deliberate no-op until
+    LEAD_SCRAPE_LOCATIONS is configured, rather than inventing a default
+    search location. Scrapes each configured location for every org with an
+    active is_master user (PropAgent's own B2B sales org), same lookup
+    daily_scrape() used. Meant to be hit once a day by the same free
+    external scheduler already driving the other /internal/cron/* jobs."""
+    from config import settings
+    from models.user import User
+    from workers.tasks.lead_scraping import scrape_leads_task
+
+    if not settings.GOOGLE_PLACES_API_KEY:
+        return {"status": "skipped", "reason": "GOOGLE_PLACES_API_KEY not configured"}
+    locations = [loc.strip() for loc in settings.LEAD_SCRAPE_LOCATIONS.split(",") if loc.strip()]
+    if not locations:
+        return {"status": "skipped", "reason": "LEAD_SCRAPE_LOCATIONS not configured"}
+
+    owners = db.query(User).filter(User.is_master == True, User.is_active == True).all()
+    if not owners:
+        return {"status": "skipped", "reason": "no active is_master user found"}
+    org_ids = sorted({str(o.organization_id) for o in owners})
+
+    ran = []
+    for org_id in org_ids:
+        for location in locations:
+            await run_in_threadpool(scrape_leads_task, org_id=org_id, source="google_maps", location=location)
+            ran.append({"org_id": org_id, "location": location})
+    return {"status": "ok", "scraped": ran}
+
+
 @router.post("/lead-reengagement", dependencies=[Depends(_require_cron_secret)])
 async def lead_reengagement_endpoint(db: Session = Depends(get_db)):
     """Re-engagement step for stale leads in PropAgent's own sales pipeline --

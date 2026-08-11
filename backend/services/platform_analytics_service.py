@@ -225,10 +225,21 @@ async def platform_health(db: Session) -> dict:
         # preferred Resend path or the SMTP fallback is configured.
         "email": bool(settings.RESEND_API_KEY or (settings.SMTP_USER and settings.SMTP_PASSWORD)),
         "google_oauth": bool(settings.GOOGLE_CLIENT_ID and settings.GOOGLE_CLIENT_SECRET),
+        "automated_lead_research": bool(settings.GOOGLE_PLACES_API_KEY and settings.LEAD_SCRAPE_LOCATIONS and settings.CRON_SECRET),
     }
 
     return {
         "database_ok": db_ok, "redis_ok": redis_ok, "celery_workers_online": celery_workers,
+        # No paid background worker is deployed by design (see config.py's
+        # CRON_SECRET comment) -- celery_workers_online being 0 is therefore
+        # NOT itself a problem, but the raw number alone can't tell the
+        # owner that. These two flags let the UI show "using the free cron
+        # scheduler instead" rather than a permanently alarming red
+        # "offline", and only actually warn when nothing is automating at
+        # all (real report: "my background workers is always red, how can
+        # I have consistent background research/outreach").
+        "cron_scheduler_configured": bool(settings.CRON_SECRET),
+        "lead_scrape_configured": bool(settings.GOOGLE_PLACES_API_KEY and settings.LEAD_SCRAPE_LOCATIONS),
         "integrations": integrations,
     }
 
