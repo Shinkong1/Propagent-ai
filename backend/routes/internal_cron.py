@@ -116,13 +116,17 @@ async def lead_scrape_endpoint(db: Session = Depends(get_db)):
     external scheduler already driving the other /internal/cron/* jobs."""
     from config import settings
     from models.user import User
-    from workers.tasks.lead_scraping import scrape_leads_task
+    from workers.tasks.lead_scraping import scrape_leads_task, todays_scrape_locations
 
     if not settings.GOOGLE_PLACES_API_KEY:
         return {"status": "skipped", "reason": "GOOGLE_PLACES_API_KEY not configured"}
-    locations = [loc.strip() for loc in settings.LEAD_SCRAPE_LOCATIONS.split(",") if loc.strip()]
-    if not locations:
+    if not settings.LEAD_SCRAPE_LOCATIONS.strip():
         return {"status": "skipped", "reason": "LEAD_SCRAPE_LOCATIONS not configured"}
+    # Handles both an explicit "City, ST,City, ST" list and the special
+    # "nationwide" value (today's rotating slice of US_TOP_METROS) --
+    # see todays_scrape_locations()'s docstring for why it rotates rather
+    # than querying the whole list every run.
+    locations = todays_scrape_locations(settings.LEAD_SCRAPE_LOCATIONS)
 
     owners = db.query(User).filter(User.is_master == True, User.is_active == True).all()
     if not owners:

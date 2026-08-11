@@ -9,7 +9,8 @@ call regardless of the requested location) was the bug this file replaces.
 """
 import logging
 import re
-from typing import Optional, Tuple
+from datetime import date
+from typing import List, Optional, Tuple
 from uuid import UUID
 
 import requests
@@ -23,6 +24,65 @@ PLACES_SEARCH_URL = "https://places.googleapis.com/v1/places:searchText"
 # Places API (New) bills/limits by which field groups you request, so this is
 # kept to only what scrape_leads_task actually uses.
 PLACES_FIELD_MASK = "places.displayName,places.formattedAddress,places.internationalPhoneNumber,places.websiteUri"
+
+# There's no single Places query that searches "the whole USA" -- Text
+# Search returns at most ~20 results per call regardless of query scope, so
+# a literal "property management company in USA" search would only ever
+# surface ~20 businesses nationwide, then nothing new ever again. Real
+# national coverage means one query per metro area. This is a real,
+# genuinely national list (all major regions, not just a few states) that
+# LEAD_SCRAPE_LOCATIONS="nationwide" rotates through -- see
+# todays_scrape_locations() below for why it's a rotating subset, not all
+# ~100 in one run.
+US_TOP_METROS = [
+    "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Phoenix, AZ",
+    "Philadelphia, PA", "San Antonio, TX", "San Diego, CA", "Dallas, TX", "Austin, TX",
+    "Jacksonville, FL", "Fort Worth, TX", "San Jose, CA", "Columbus, OH", "Charlotte, NC",
+    "Indianapolis, IN", "San Francisco, CA", "Seattle, WA", "Denver, CO", "Oklahoma City, OK",
+    "Nashville, TN", "El Paso, TX", "Washington, DC", "Boston, MA", "Las Vegas, NV",
+    "Portland, OR", "Detroit, MI", "Louisville, KY", "Memphis, TN", "Baltimore, MD",
+    "Milwaukee, WI", "Albuquerque, NM", "Tucson, AZ", "Fresno, CA", "Sacramento, CA",
+    "Mesa, AZ", "Kansas City, MO", "Atlanta, GA", "Omaha, NE", "Colorado Springs, CO",
+    "Raleigh, NC", "Miami, FL", "Long Beach, CA", "Virginia Beach, VA", "Oakland, CA",
+    "Minneapolis, MN", "Tulsa, OK", "Tampa, FL", "Arlington, TX", "New Orleans, LA",
+    "Wichita, KS", "Cleveland, OH", "Bakersfield, CA", "Aurora, CO", "Anaheim, CA",
+    "Honolulu, HI", "Santa Ana, CA", "Riverside, CA", "Corpus Christi, TX", "Lexington, KY",
+    "Stockton, CA", "Henderson, NV", "St. Paul, MN", "St. Louis, MO", "Cincinnati, OH",
+    "Pittsburgh, PA", "Greensboro, NC", "Anchorage, AK", "Plano, TX", "Lincoln, NE",
+    "Orlando, FL", "Irvine, CA", "Newark, NJ", "Toledo, OH", "Durham, NC",
+    "Chula Vista, CA", "Fort Wayne, IN", "Jersey City, NJ", "St. Petersburg, FL", "Laredo, TX",
+    "Madison, WI", "Chandler, AZ", "Buffalo, NY", "Lubbock, TX", "Scottsdale, AZ",
+    "Reno, NV", "Glendale, AZ", "Gilbert, AZ", "Winston-Salem, NC", "North Las Vegas, NV",
+    "Norfolk, VA", "Chesapeake, VA", "Garland, TX", "Irving, TX", "Hialeah, FL",
+    "Fremont, CA", "Boise, ID", "Richmond, VA", "Baton Rouge, LA", "Spokane, WA",
+    "Des Moines, IA", "Tacoma, WA", "San Bernardino, CA", "Modesto, CA", "Fayetteville, NC",
+]
+
+
+def todays_scrape_locations(configured: str, daily_count: int = 10) -> List[str]:
+    """Resolves LEAD_SCRAPE_LOCATIONS into the actual list of search
+    locations for today's run.
+
+    If it's the literal value "nationwide" (case-insensitive), rotates
+    through US_TOP_METROS -- `daily_count` metros per day, cycling back to
+    the start once the list is exhausted, so the full ~100-metro list gets
+    covered roughly every `len(US_TOP_METROS) / daily_count` days rather
+    than hitting the Places API for all ~100 in a single run (each Text
+    Search call is billed -- querying the whole list daily is both wasteful
+    and unnecessary, since most metros won't have new property managers
+    show up day to day). Deterministic by day-of-year, so this needs no
+    extra database state to remember where it left off.
+
+    Otherwise, treated as the existing explicit comma-separated list
+    (unchanged behavior) -- e.g. "Austin, TX,Dallas, TX".
+    """
+    if configured.strip().lower() == "nationwide":
+        n = len(US_TOP_METROS)
+        start = (date.today().timetuple().tm_yday * daily_count) % n
+        if start + daily_count <= n:
+            return US_TOP_METROS[start:start + daily_count]
+        return US_TOP_METROS[start:] + US_TOP_METROS[:(start + daily_count) - n]
+    return [loc.strip() for loc in configured.split(",") if loc.strip()]
 
 # Best-effort email-discovery heuristic (see _discover_email below).
 _MAILTO_RE = re.compile(r'mailto:([^"\'?<>\s]+)', re.IGNORECASE)

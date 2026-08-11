@@ -95,12 +95,18 @@ class Settings(BaseSettings):
     # NOT fall back to fake/demo leads).
     GOOGLE_PLACES_API_KEY: str = ""
 
-    # Comma-separated target markets for automated daily lead scraping, e.g.
-    # "Austin, TX,Dallas, TX,Phoenix, AZ" -- read by the
-    # /internal/cron/lead-scrape endpoint (routes/internal_cron.py). Empty
-    # by default: workers/tasks/lead_scraping.py deliberately refuses to
-    # invent a default search location rather than fabricate one, so this
-    # must be set explicitly before automated scraping does anything.
+    # Target markets for automated daily lead scraping -- read by the
+    # /internal/cron/lead-scrape endpoint (routes/internal_cron.py). Either:
+    #   - "Austin, TX,Dallas, TX,Phoenix, AZ" -- an explicit comma-separated
+    #     list, searched in full every run, or
+    #   - "nationwide" -- rotates through workers/tasks/lead_scraping.py's
+    #     US_TOP_METROS (~100 major US metros across every region), a
+    #     handful per day, so real nationwide coverage builds up over
+    #     roughly 10 days without hitting the (billed) Places API for the
+    #     whole country in one run.
+    # Empty by default: workers/tasks/lead_scraping.py deliberately refuses
+    # to invent a default search location rather than fabricate one, so
+    # this must be set explicitly before automated scraping does anything.
     LEAD_SCRAPE_LOCATIONS: str = ""
 
     # Meta Graph API (Facebook Login for Business) -- powers automated
