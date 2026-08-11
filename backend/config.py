@@ -73,7 +73,14 @@ class Settings(BaseSettings):
     # services/communication_agent.py send_email().
     RESEND_API_KEY: str = ""
 
-    ALLOWED_ORIGINS: list = ["http://localhost:3000", "https://app.propagent.ai"]
+    # "app.propagent.ai" here was never the real production domain -- the
+    # actual frontend has always been at propagent.app (confirmed via DNS/MX
+    # records, the live API docs page, and everywhere else this session
+    # referenced the real domain). Production presumably already overrides
+    # this via Render's env vars (the site works, so CORS isn't actually
+    # blocking it) -- fixing the fallback here so it's not silently wrong
+    # for any new environment that relies on the default.
+    ALLOWED_ORIGINS: list = ["http://localhost:3000", "https://propagent.app"]
 
     # Google OAuth2/OIDC login — feature is simply hidden (never faked) until both
     # are configured with a real Google Cloud OAuth client.

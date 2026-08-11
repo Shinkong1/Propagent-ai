@@ -17,6 +17,7 @@ export default function Leads() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [scraping, setScraping] = useState(false);
+  const [scrapeLocation, setScrapeLocation] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState(EMPTY_LEAD_FORM);
   const [saving, setSaving] = useState(false);
@@ -79,12 +80,20 @@ export default function Leads() {
     }
   };
 
-  const triggerScrape = async (source: string) => {
+  const triggerScrape = async () => {
+    if (!scrapeLocation.trim()) { toast.error('Enter a city to search, e.g. "Austin, TX"'); return; }
     setScraping(true);
     try {
-      await leadsApi.scrape({ source, location: 'Austin, TX' });
-      toast.success(`Scraping ${source} for new leads...`);
-      setTimeout(() => { leadsApi.list().then(r => setLeadList(r.data || [])); setScraping(false); }, 3000);
+      // Only Google Places is actually implemented -- the backend always
+      // searches Google regardless of what "source" is passed, using it
+      // only to LABEL the resulting leads. This used to offer LinkedIn and
+      // Zillow buttons too, which silently ran the identical Google search
+      // and mislabeled the results as if they'd come from those platforms.
+      // Real, no-fabrication scrape source only, until LinkedIn/Zillow
+      // scraping is actually built.
+      await leadsApi.scrape({ source: 'google_maps', location: scrapeLocation.trim() });
+      toast.success(`Scraping Google Maps for new leads in ${scrapeLocation.trim()}...`);
+      setTimeout(() => { leadsApi.list().then(r => setLeadList(r.data || [])).catch(() => {}); setScraping(false); }, 3000);
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || 'Scrape failed');
       setScraping(false);
@@ -130,12 +139,18 @@ export default function Leads() {
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', border: 'none', borderRadius: 8, color: 'var(--bg-app)', fontSize: 12, fontFamily: 'Syne', fontWeight: 700, cursor: 'pointer' }}>
               <Plus size={13} /> Add Lead
             </button>
-            {['google_maps', 'linkedin', 'zillow'].map(s => (
-              <button key={s} onClick={() => triggerScrape(s)} disabled={scraping}
-                style={{ padding: '8px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'IBM Plex Mono', cursor: 'pointer', textTransform: 'capitalize' }}>
-                {scraping ? '⟳' : '+'} {s.replace('_',' ')}
-              </button>
-            ))}
+            <input
+              value={scrapeLocation}
+              onChange={e => setScrapeLocation(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && triggerScrape()}
+              placeholder="City, ST (e.g. Austin, TX)"
+              spellCheck={false} autoCorrect="off"
+              style={{ padding: '8px 12px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 12, fontFamily: 'IBM Plex Sans', outline: 'none', width: 170 }}
+            />
+            <button onClick={() => triggerScrape()} disabled={scraping} title="Searches Google Maps for property management companies in this city"
+              style={{ padding: '8px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+              {scraping ? '⟳ Scraping...' : '+ Scrape Google Maps'}
+            </button>
           </div>
         </div>
 
