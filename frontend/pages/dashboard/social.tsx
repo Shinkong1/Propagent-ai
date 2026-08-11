@@ -145,7 +145,7 @@ export default function SocialMedia() {
           <Share2 size={24} color="#FBC02D" />
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 26, color: 'var(--text-primary)' }}>Social Media</h1>
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>
           Connect your Facebook Page, Instagram Business account, and LinkedIn Company Page to post
           your own listings and updates. New listings can also post automatically the moment they go public.
         </p>
@@ -213,7 +213,7 @@ export default function SocialMedia() {
               <XCircle size={18} color="#64748B" />
               <span style={{ fontWeight: 700, fontFamily: 'Syne', fontSize: 14, color: 'var(--text-primary)' }}>X / Twitter</span>
             </div>
-            <p style={{ fontSize: 12, color: '#64748B' }}>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
               Not available yet. X's API requires a paid tier that hasn't been purchased —
               this isn't a bug, it's a pending business decision.
             </p>
@@ -242,7 +242,7 @@ export default function SocialMedia() {
           </div>
 
           {activeConnections.length === 0 ? (
-            <p style={{ fontSize: 13, color: '#64748B' }}>Connect an account above before you can post.</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Connect an account above before you can post.</p>
           ) : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
               {activeConnections.map(c => {
@@ -277,7 +277,7 @@ export default function SocialMedia() {
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                   {['Platform', 'Message', 'Status', 'Trigger', 'Date'].map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -287,7 +287,7 @@ export default function SocialMedia() {
                 ) : posts.length === 0 ? (
                   <tr><td colSpan={5} style={{ textAlign: 'center', padding: '50px', color: '#475569' }}>No posts yet.</td></tr>
                 ) : posts.map(p => {
-                  const meta = PLATFORM_META[p.platform || ''] || { label: p.platform, icon: Share2, color: '#64748B' };
+                  const meta = PLATFORM_META[p.platform || ''] || { label: p.platform, icon: Share2, color: 'var(--text-muted)' };
                   return (
                     <tr key={p.id} style={{ borderBottom: '1px solid var(--border-subtle)' }} title={p.error_message || ''}>
                       <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-primary)' }}>
@@ -302,8 +302,8 @@ export default function SocialMedia() {
                           {p.status}
                         </span>
                       </td>
-                      <td style={{ padding: '10px 14px', fontSize: 11, color: '#64748B' }}>{p.trigger === 'auto_listing' ? 'Auto (new listing)' : 'Manual'}</td>
-                      <td style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', whiteSpace: 'nowrap' }}>{new Date(p.created_at).toLocaleString()}</td>
+                      <td style={{ padding: '10px 14px', fontSize: 11, color: 'var(--text-muted)' }}>{p.trigger === 'auto_listing' ? 'Auto (new listing)' : 'Manual'}</td>
+                      <td style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{new Date(p.created_at).toLocaleString()}</td>
                     </tr>
                   );
                 })}
@@ -327,7 +327,7 @@ function ConnectedRow({ conn, onDisconnect }: { conn: Connection; onDisconnect: 
         <CheckCircle2 size={13} color="#10B981" />
         <span style={{ fontSize: 12, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{conn.page_name || conn.page_id}</span>
       </div>
-      <button onClick={onDisconnect} title="Disconnect" style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', display: 'flex', padding: 2 }}>
+      <button onClick={onDisconnect} title="Disconnect" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', padding: 2 }}>
         <Unlink size={13} />
       </button>
     </div>
@@ -338,7 +338,7 @@ function NotConnectedRow() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderRadius: 8, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', marginBottom: 6 }}>
       <XCircle size={13} color="#64748B" />
-      <span style={{ fontSize: 12, color: '#64748B' }}>Not connected</span>
+      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Not connected</span>
     </div>
   );
 }

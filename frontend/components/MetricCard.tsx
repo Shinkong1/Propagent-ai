@@ -33,7 +33,7 @@ export default function MetricCard({ label, value, subtext, trend, color = '#FBC
       }} />
       
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-        <span style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '1px', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase' }}>
           {label}
         </span>
         {icon && (
@@ -60,7 +60,7 @@ export default function MetricCard({ label, value, subtext, trend, color = '#FBC
           </span>
         )}
         {subtext && (
-          <span style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Sans' }}>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>
             {subtext}
           </span>
         )}

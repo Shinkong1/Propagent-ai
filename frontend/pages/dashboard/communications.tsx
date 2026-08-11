@@ -95,7 +95,7 @@ export default function Communications() {
           <MessageSquare size={24} color="#FBC02D" />
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 26, color: 'var(--text-primary)' }}>{t('communications.title')}</h1>
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('communications.subtitle')}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('communications.subtitle')}</p>
 
         <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 20, marginBottom: 24 }}>
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
@@ -179,7 +179,7 @@ export default function Communications() {
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                   {[t('communications.recipient'), t('communications.channel'), t('communications.template'), t('compliance.status'), t('inspections.date')].map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -198,7 +198,7 @@ export default function Communications() {
                         {t(`communications.statusLabel.${item.status}`)}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', whiteSpace: 'nowrap' }}>{new Date(item.created_at).toLocaleString()}</td>
+                    <td style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{new Date(item.created_at).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>

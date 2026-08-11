@@ -10,7 +10,7 @@ import { parseLocalDate } from '../../lib/date';
 
 const STATUS_STYLE: Record<string, { color: string; icon: any; label: string }> = {
   paid: { color: '#10B981', icon: CheckCircle, label: 'Paid' },
-  pending: { color: '#64748B', icon: Clock, label: 'Pending' },
+  pending: { color: 'var(--text-muted)', icon: Clock, label: 'Pending' },
   late: { color: '#EF4444', icon: AlertCircle, label: 'Late' },
   partial: { color: '#FBC02D', icon: AlertCircle, label: 'Partial' },
   missed: { color: '#EF4444', icon: AlertCircle, label: 'Missed' },
@@ -50,9 +50,9 @@ export default function TenantPayments() {
       <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text-primary)', marginBottom: 20 }}>Payments</h1>
 
       {loading ? (
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>Loading...</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>Loading...</div>
       ) : payments.length === 0 ? (
-        <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 40, textAlign: 'center', color: '#64748B', fontSize: 14 }}>
+        <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
           No payments on file yet.
         </div>
       ) : (
@@ -65,7 +65,7 @@ export default function TenantPayments() {
               <div key={p.id} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'Syne', color: 'var(--text-primary)', marginBottom: 4 }}>{formatMoney(p.amount)}</div>
-                  <div style={{ fontSize: 12, color: '#64748B' }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                     Due {parseLocalDate(p.due_date).toLocaleDateString()}
                     {p.paid_date ? ` · Paid ${parseLocalDate(p.paid_date).toLocaleDateString()}` : ''}
                     {p.property_name ? ` · ${p.property_name}${p.unit_number ? ` #${p.unit_number}` : ''}` : ''}

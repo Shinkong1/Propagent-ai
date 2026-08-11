@@ -39,7 +39,7 @@ export default function ContactUs() {
           <Mail size={26} color="#FBC02D" />
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)' }}>{t('contact.title')}</h1>
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('contact.subtitle')}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('contact.subtitle')}</p>
 
         <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 24 }}>
           <label style={lbl}>{t('contact.subjectLabel')}</label>

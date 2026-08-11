@@ -265,7 +265,7 @@ export default function ApiDocs() {
             </div>
           </Section>
 
-          <p style={{ fontSize: 13, lineHeight: 1.7, color: '#64748B', marginTop: 40 }}>
+          <p style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--text-muted)', marginTop: 40 }}>
             Questions or need a higher-volume integration? Reach us via{' '}
             <Link href="/contact" style={{ color: '#FBC02D' }}>Contact</Link>, or see our{' '}
             <Link href="/security" style={{ color: '#FBC02D' }}>Security &amp; Data Handling</Link> page for how
@@ -324,10 +324,10 @@ function EndpointCard({ ep }: { ep: Endpoint }) {
         <FieldTable label="Request body (JSON)" fields={ep.body} />
       )}
 
-      <div style={{ marginTop: 14, marginBottom: 6, fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Example request</div>
+      <div style={{ marginTop: 14, marginBottom: 6, fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Example request</div>
       <CodeBlock>{ep.curl}</CodeBlock>
 
-      <div style={{ marginTop: 14, marginBottom: 6, fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      <div style={{ marginTop: 14, marginBottom: 6, fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
         Example response{ep.responseIsArray ? ' (array)' : ''}
       </div>
       <CodeBlock>{ep.exampleResponse}</CodeBlock>
@@ -340,7 +340,7 @@ function EndpointCard({ ep }: { ep: Endpoint }) {
 function FieldTable({ label, fields, collapsedTop }: { label: string; fields: Field[]; collapsedTop?: boolean }) {
   return (
     <div style={{ marginTop: collapsedTop ? 14 : 0, marginBottom: collapsedTop ? 0 : 14 }}>
-      <div style={{ marginBottom: 6, fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
+      <div style={{ marginBottom: 6, fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
       <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 8, overflow: 'hidden' }}>
         {fields.map((f, i) => (
           <div key={f.name} style={{
@@ -349,7 +349,7 @@ function FieldTable({ label, fields, collapsedTop }: { label: string; fields: Fi
             fontFamily: 'IBM Plex Mono',
           }}>
             <span style={{ color: '#FBC02D', minWidth: 130 }}>{f.name}</span>
-            <span style={{ color: '#64748B', minWidth: 100 }}>{f.type}</span>
+            <span style={{ color: 'var(--text-muted)', minWidth: 100 }}>{f.type}</span>
             {f.note && <span style={{ color: 'var(--text-secondary)', fontFamily: 'IBM Plex Sans' }}>{f.note}</span>}
           </div>
         ))}

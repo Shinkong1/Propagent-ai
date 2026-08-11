@@ -197,14 +197,14 @@ export default function Sidebar() {
         {isMobile ? (
           <button onClick={() => setMobileOpen(false)} title={t('nav.close')} style={{
             width: 28, height: 28, borderRadius: 6, border: '1px solid var(--border-strong)', background: 'transparent',
-            color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
             <X size={15} />
           </button>
         ) : !collapsed && (
           <button onClick={toggleCollapsed} title={t('nav.collapse')} style={{
             width: 24, height: 24, borderRadius: 6, border: '1px solid var(--border-strong)', background: 'transparent',
-            color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
             <ChevronLeft size={13} />
           </button>
@@ -214,7 +214,7 @@ export default function Sidebar() {
       {!isMobile && collapsed && (
         <button onClick={toggleCollapsed} title={t('nav.expand')} style={{
           width: 28, height: 28, borderRadius: 6, border: '1px solid var(--border-strong)', background: 'var(--bg-surface)',
-          color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '10px auto 0',
         }}>
           <ChevronRight size={14} />
@@ -346,7 +346,7 @@ export default function Sidebar() {
                 maxHeight: 'calc(100vh - 16px)', overflowY: 'auto',
               }}
             >
-              <div style={{ padding: '6px 10px 8px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              <div style={{ padding: '6px 10px 8px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                 {t(group.labelKey)}
               </div>
               {group.items.map(item => {
@@ -413,7 +413,7 @@ export default function Sidebar() {
         })}
         <button onClick={handleLogout} title={effectiveCollapsed ? t('nav.signOut') : undefined} style={{
           width: '100%', padding: effectiveCollapsed ? '8px 0' : '8px 12px', borderRadius: 8,
-          background: 'transparent', border: 'none', color: '#64748B',
+          background: 'transparent', border: 'none', color: 'var(--text-muted)',
           fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
           justifyContent: effectiveCollapsed ? 'center' : 'flex-start',
         }}>

@@ -113,7 +113,7 @@ export default function Compliance() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
       </DashboardLayout>
     );
   }
@@ -140,12 +140,12 @@ export default function Compliance() {
             <Plus size={16} /> {t('compliance.addItem')}
           </button>
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('compliance.subtitle')}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('compliance.subtitle')}</p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 28 }}>
           {kpis.map(k => (
             <div key={k.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '14px 16px' }}>
-              <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
+              <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
               <div style={{ fontSize: 22, fontFamily: 'IBM Plex Mono', fontWeight: 600, color: k.warn ? '#EF4444' : 'var(--text-primary)' }}>{k.value}</div>
             </div>
           ))}
@@ -157,7 +157,7 @@ export default function Compliance() {
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                   {[t('portfolio.property'), t('compliance.category'), t('compliance.itemTitle'), t('compliance.expirationDate'), t('compliance.daysRemaining'), t('compliance.status'), t('compliance.actions')].map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -204,7 +204,7 @@ export default function Compliance() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('compliance.addItem')}</h2>
-                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
@@ -263,7 +263,7 @@ export default function Compliance() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{editingItem.title}</h2>
-                <button onClick={() => setEditingItem(null)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setEditingItem(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ marginBottom: 14 }}>
                 <label style={lbl}>{t('compliance.itemTitle')}</label>

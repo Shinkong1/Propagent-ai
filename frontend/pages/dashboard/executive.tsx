@@ -25,7 +25,7 @@ function DataTable({ data }: { data: any }) {
           <thead>
             <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
               {columns.map(c => (
-                <th key={c} style={{ padding: '6px 10px', textAlign: 'left', color: '#64748B', fontFamily: 'IBM Plex Mono', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                <th key={c} style={{ padding: '6px 10px', textAlign: 'left', color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', fontWeight: 500, whiteSpace: 'nowrap' }}>
                   {c.replace(/_/g, ' ')}
                 </th>
               ))}
@@ -54,7 +54,7 @@ function DataTable({ data }: { data: any }) {
       <div style={{ marginTop: 10, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
         {Object.entries(data).map(([k, v]) => (
           <div key={k} style={{ fontSize: 11 }}>
-            <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{k.replace(/_/g, ' ')}</div>
+            <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{k.replace(/_/g, ' ')}</div>
             <div style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{String(v)}</div>
           </div>
         ))}
@@ -114,7 +114,7 @@ export default function ExecutiveAssistant() {
             <Lock size={26} color="#FBC02D" />
           </div>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text-primary)', marginBottom: 10 }}>{t('executive.title')}</h1>
-          <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('executive.locked')}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('executive.locked')}</p>
           <Link href="/pricing" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', borderRadius: 8, fontWeight: 700, fontFamily: 'Syne', fontSize: 14, textDecoration: 'none' }}>
             {t('executive.upgradeCta')}
           </Link>
@@ -130,12 +130,12 @@ export default function ExecutiveAssistant() {
           <Sparkles size={24} color="#FBC02D" />
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 26, color: 'var(--text-primary)' }}>{t('executive.title')}</h1>
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 18 }}>{t('executive.subtitle')}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 18 }}>{t('executive.subtitle')}</p>
 
         <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 20, marginBottom: 14 }}>
           {messages.length === 0 && (
             <div>
-              <div style={{ fontSize: 12, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 10 }}>{t('executive.examples')}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 10 }}>{t('executive.examples')}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {suggestions.map(s => (
                   <button key={s} onClick={() => send(s)} style={{ padding: '8px 14px', borderRadius: 20, background: 'rgba(var(--accent-rgb),0.08)', border: '1px solid rgba(var(--accent-rgb),0.25)', color: '#FBC02D', fontSize: 12, fontFamily: 'IBM Plex Sans', cursor: 'pointer' }}>
@@ -164,7 +164,7 @@ export default function ExecutiveAssistant() {
                   {m.role === 'assistant' && (m.confidence !== undefined || m.explanation) && (
                     <div style={{ marginTop: 6, fontSize: 11, color: '#475569' }}>
                       {m.confidence !== undefined && (
-                        <span style={{ marginRight: 10, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>
+                        <span style={{ marginRight: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>
                           {t('executive.confidence')}: {Math.round(m.confidence * 100)}%
                         </span>
                       )}
@@ -182,7 +182,7 @@ export default function ExecutiveAssistant() {
               <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Sparkles size={14} color="var(--bg-app)" />
               </div>
-              <div style={{ padding: '10px 14px', borderRadius: 12, background: 'var(--border-subtle)', color: '#64748B', fontSize: 13 }}>...</div>
+              <div style={{ padding: '10px 14px', borderRadius: 12, background: 'var(--border-subtle)', color: 'var(--text-muted)', fontSize: 13 }}>...</div>
             </div>
           )}
         </div>

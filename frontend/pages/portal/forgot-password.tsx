@@ -34,7 +34,7 @@ export default function TenantForgotPassword() {
             </div>
             <div>
               <div style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 17, color: 'var(--text-primary)', lineHeight: 1.1 }}>PropAgent AI</div>
-              <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>TENANT PORTAL</div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>TENANT PORTAL</div>
             </div>
           </div>
 
@@ -43,15 +43,15 @@ export default function TenantForgotPassword() {
               <div style={{ textAlign: 'center', padding: '8px 0' }}>
                 <MailCheck size={28} color="#10B981" style={{ marginBottom: 12 }} />
                 <p style={{ color: 'var(--text-primary)', fontSize: 14, fontFamily: 'IBM Plex Sans', marginBottom: 4 }}>Check your inbox</p>
-                <p style={{ color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>If <b>{email}</b> has a tenant portal account, a reset link is on its way — it expires in 1 hour.</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>If <b>{email}</b> has a tenant portal account, a reset link is on its way — it expires in 1 hour.</p>
               </div>
             ) : (
               <>
                 <h1 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 20, color: 'var(--text-primary)', marginBottom: 8, textAlign: 'center' }}>Reset your password</h1>
-                <p style={{ fontSize: 13, color: '#64748B', textAlign: 'center', marginBottom: 20 }}>We'll email you a link to set a new one.</p>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', marginBottom: 20 }}>We'll email you a link to set a new one.</p>
                 <label style={lbl}>Email</label>
                 <div style={{ position: 'relative', marginBottom: 20 }}>
-                  <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
+                  <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()}
                     spellCheck={false} autoCorrect="off" autoCapitalize="off" autoFocus
                     style={{ ...inp, paddingLeft: 34 }} />

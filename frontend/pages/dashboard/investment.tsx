@@ -30,7 +30,7 @@ export default function InvestmentAnalysis() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
       </DashboardLayout>
     );
   }
@@ -38,7 +38,7 @@ export default function InvestmentAnalysis() {
   if (!data) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B' }}>{t('investment.error')}</div>
+        <div style={{ color: 'var(--text-muted)' }}>{t('investment.error')}</div>
       </DashboardLayout>
     );
   }
@@ -58,12 +58,12 @@ export default function InvestmentAnalysis() {
           <TrendingUp size={24} color="#FBC02D" />
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 26, color: 'var(--text-primary)' }}>{t('investment.title')}</h1>
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('investment.subtitle')}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('investment.subtitle')}</p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
           {kpis.map(k => (
             <div key={k.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '14px 16px' }}>
-              <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
+              <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
               <div style={{ fontSize: 22, fontFamily: 'IBM Plex Mono', fontWeight: 600, color: k.warn ? '#EF4444' : 'var(--text-primary)' }}>{k.value}</div>
             </div>
           ))}
@@ -95,32 +95,32 @@ export default function InvestmentAnalysis() {
                 </div>
 
                 {p.insufficient_data ? (
-                  <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.5 }}>{p.explanation}</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>{p.explanation}</p>
                 ) : (
                   <>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                       <div>
-                        <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.capRate')}</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.capRate')}</div>
                         <div style={{ fontSize: 16, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono', fontWeight: 600 }}>{p.cap_rate}%</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.dscr')}</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.dscr')}</div>
                         <div style={{ fontSize: 16, color: p.dscr < 1 ? '#EF4444' : 'var(--text-primary)', fontFamily: 'IBM Plex Mono', fontWeight: 600 }}>{p.dscr}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.noi')}</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.noi')}</div>
                         <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono' }}>{fmtMoney(p.noi)}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.cashFlow')}</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.cashFlow')}</div>
                         <div style={{ fontSize: 14, color: p.annual_cash_flow < 0 ? '#EF4444' : '#10B981', fontFamily: 'IBM Plex Mono' }}>{fmtMoney(p.annual_cash_flow)}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.roi')}</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.roi')}</div>
                         <div style={{ fontSize: 14, color: p.roi < 0 ? '#EF4444' : 'var(--text-secondary)', fontFamily: 'IBM Plex Mono' }}>{p.roi}%</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.purchasePrice')}</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.purchasePrice')}</div>
                         <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono' }}>{fmtMoney(p.purchase_price)}</div>
                       </div>
                     </div>

@@ -247,7 +247,7 @@ export default function Tenants() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Tenants</h1>
-            <p style={{ color: '#64748B', fontSize: 14 }}>{tenantList.length} active tenants</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{tenantList.length} active tenants</p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <select value={propertyFilter} onChange={e => changePropertyFilter(e.target.value)}
@@ -293,7 +293,7 @@ export default function Tenants() {
                       }}>
                         {f.severity.toUpperCase()}
                       </span>
-                      <span style={{ fontSize: 12, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{f.type.replace(/_/g, ' ')}</span>
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{f.type.replace(/_/g, ' ')}</span>
                     </div>
                     <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>{f.explanation}</p>
                   </div>
@@ -309,7 +309,7 @@ export default function Tenants() {
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                 {['Tenant', 'Property', 'Contact', 'Employment', 'Income', 'Screening', 'Status', 'Contract', 'Portal', 'Actions'].map(h => (
-                  <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', fontWeight: 500 }}>{h}</th>
+                  <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', fontWeight: 500 }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -329,7 +329,7 @@ export default function Tenants() {
                       </div>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans' }}>{t.first_name} {t.last_name}</div>
-                        <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>ID: {t.id?.slice(0,8)}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>ID: {t.id?.slice(0,8)}</div>
                       </div>
                     </div>
                   </td>
@@ -344,7 +344,7 @@ export default function Tenants() {
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t.email || '—'}</div>
-                    <div style={{ fontSize: 12, color: '#64748B' }}>{t.phone || ''}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t.phone || ''}</div>
                   </td>
                   <td style={{ padding: '14px 16px', fontSize: 12, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{t.employment_status || '—'}</td>
                   <td style={{ padding: '14px 16px', fontSize: 13, fontFamily: 'IBM Plex Mono', color: 'var(--text-primary)' }}>
@@ -353,7 +353,7 @@ export default function Tenants() {
                   <td style={{ padding: '14px 16px' }}>
                     {t.screening_approved === true && <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#10B981', fontSize: 12 }}><CheckCircle size={13} /> Approved</div>}
                     {t.screening_approved === false && <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#EF4444', fontSize: 12 }}><XCircle size={13} /> Declined</div>}
-                    {t.screening_approved === null && <div style={{ color: '#64748B', fontSize: 12 }}>Pending</div>}
+                    {t.screening_approved === null && <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>Pending</div>}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: t.is_active ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)', color: t.is_active ? '#10B981' : '#EF4444', fontFamily: 'IBM Plex Mono' }}>
@@ -370,7 +370,7 @@ export default function Tenants() {
                           <FileText size={11} /> {downloadingLease === t.active_lease_id ? '...' : 'Generate'}
                         </button>
                       ) : (
-                        <Link href="/pricing" title="Upgrade to Professional to generate rental contracts" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 6, background: 'rgba(100,116,139,0.1)', border: '1px solid var(--border-strong)', color: '#64748B', fontSize: 11, fontFamily: 'IBM Plex Mono', textDecoration: 'none', width: 'fit-content' }}>
+                        <Link href="/pricing" title="Upgrade to Professional to generate rental contracts" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 6, background: 'rgba(100,116,139,0.1)', border: '1px solid var(--border-strong)', color: 'var(--text-muted)', fontSize: 11, fontFamily: 'IBM Plex Mono', textDecoration: 'none', width: 'fit-content' }}>
                           <Lock size={11} /> Upgrade
                         </Link>
                       )
@@ -415,7 +415,7 @@ export default function Tenants() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Add Tenant</h2>
-                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
@@ -444,7 +444,7 @@ export default function Tenants() {
                 </div>
               </div>
               {form.property_id && unitsForProperty.length === 0 && (
-                <div style={{ fontSize: 11, color: '#64748B', marginTop: -6, marginBottom: 14 }}>No vacant units at this property right now.</div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: -6, marginBottom: 14 }}>No vacant units at this property right now.</div>
               )}
               {[['email', 'Email'], ['phone', 'Phone'], ['employer', 'Employer'], ['annual_income', `Annual Income (${symbol})`]].map(([k, l]) => (
                 <div key={k} style={{ marginBottom: 14 }}>
@@ -471,7 +471,7 @@ export default function Tenants() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Edit {editingTenant.first_name} {editingTenant.last_name}</h2>
-                <button onClick={() => setEditingTenant(null)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setEditingTenant(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>

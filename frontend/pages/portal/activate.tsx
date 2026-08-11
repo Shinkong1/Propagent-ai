@@ -51,23 +51,23 @@ export default function TenantActivate() {
             </div>
             <div>
               <div style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 17, color: 'var(--text-primary)', lineHeight: 1.1 }}>PropAgent AI</div>
-              <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>TENANT PORTAL</div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>TENANT PORTAL</div>
             </div>
           </div>
 
           <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28 }}>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 20, color: 'var(--text-primary)', marginBottom: 6, textAlign: 'center' }}>Set your password</h1>
-            <p style={{ fontSize: 13, color: '#64748B', textAlign: 'center', marginBottom: 20 }}>Create a password to finish setting up your account.</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', marginBottom: 20 }}>Create a password to finish setting up your account.</p>
 
             <label style={lbl}>New Password</label>
             <div style={{ position: 'relative', marginBottom: 14 }}>
-              <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
+              <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={{ ...inp, paddingLeft: 34 }} />
             </div>
 
             <label style={lbl}>Confirm Password</label>
             <div style={{ position: 'relative', marginBottom: 20 }}>
-              <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
+              <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()}
                 style={{ ...inp, paddingLeft: 34 }} />
             </div>

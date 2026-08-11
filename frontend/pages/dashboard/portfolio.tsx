@@ -27,7 +27,7 @@ export default function PortfolioDashboard() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
       </DashboardLayout>
     );
   }
@@ -35,7 +35,7 @@ export default function PortfolioDashboard() {
   if (!data) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B' }}>{t('portfolio.error')}</div>
+        <div style={{ color: 'var(--text-muted)' }}>{t('portfolio.error')}</div>
       </DashboardLayout>
     );
   }
@@ -65,12 +65,12 @@ export default function PortfolioDashboard() {
           </div>
           <ExportButtons onExport={(format) => portfolioApi.exportDashboard(format)} filenameBase="portfolio_dashboard" />
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('portfolio.subtitle')}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('portfolio.subtitle')}</p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 28 }}>
           {kpis.map(k => (
             <div key={k.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '14px 16px' }}>
-              <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
+              <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
               <div style={{ fontSize: 19, fontFamily: 'IBM Plex Mono', fontWeight: 600, color: k.warn ? '#EF4444' : 'var(--text-primary)' }}>{k.value}</div>
             </div>
           ))}
@@ -84,7 +84,7 @@ export default function PortfolioDashboard() {
                 <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                   {[t('portfolio.property'), t('portfolio.units'), t('portfolio.vacancyRate'), t('portfolio.revenueMrr'),
                     t('portfolio.cashFlow30d'), t('portfolio.delinquent'), t('portfolio.maintenanceBacklog'), t('portfolio.healthScore')].map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -116,7 +116,7 @@ export default function PortfolioDashboard() {
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                             {row.health_factors.map((f: any) => (
                               <div key={f.name}>
-                                <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', textTransform: 'uppercase', marginBottom: 3 }}>{t(`portfolio.factor.${f.name}`)}</div>
+                                <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', textTransform: 'uppercase', marginBottom: 3 }}>{t(`portfolio.factor.${f.name}`)}</div>
                                 <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono', marginBottom: 2 }}>{f.score}/100</div>
                                 <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{f.detail}</div>
                               </div>

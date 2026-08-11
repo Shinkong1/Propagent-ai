@@ -71,7 +71,7 @@ export default function Pricing() {
           )}
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 44, color: 'var(--text-primary)', marginBottom: 14 }}>Simple Pricing</h1>
-            <p style={{ color: '#64748B', fontSize: 17, fontFamily: 'IBM Plex Sans' }}>Scale your property management AI at any portfolio size</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 17, fontFamily: 'IBM Plex Sans' }}>Scale your property management AI at any portfolio size</p>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 }}>
@@ -91,7 +91,7 @@ export default function Pricing() {
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 20, color: 'var(--text-primary)', marginBottom: 4 }}>{plan.name}</h2>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 20 }}>
                   <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 38, fontWeight: 600, color: plan.popular ? '#FBC02D' : 'var(--text-primary)' }}>${plan.price}</span>
-                  <span style={{ color: '#64748B', fontSize: 14 }}>/mo</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>/mo</span>
                 </div>
                 <div style={{ marginBottom: 24 }}>
                   {plan.features.map(f => (

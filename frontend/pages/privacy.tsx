@@ -24,7 +24,7 @@ export default function Privacy() {
 
         <div style={{ maxWidth: 780, margin: '0 auto', padding: '48px 24px 80px' }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 32, color: 'var(--text-primary)', marginBottom: 8 }}>Privacy Policy</h1>
-          <p style={{ color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Mono', marginBottom: 24 }}>Last updated: {LAST_UPDATED}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Mono', marginBottom: 24 }}>Last updated: {LAST_UPDATED}</p>
 
           <div style={{ display: 'flex', gap: 12, background: 'rgba(251,192,45,0.08)', border: '1px solid rgba(251,192,45,0.25)', borderRadius: 12, padding: '16px 18px', marginBottom: 32 }}>
             <AlertTriangle size={20} color="#FBC02D" style={{ flexShrink: 0, marginTop: 2 }} />

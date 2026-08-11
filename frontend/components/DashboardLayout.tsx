@@ -105,7 +105,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             }}>
               {resending ? 'Sending...' : 'Resend email'}
             </button>
-            <button onClick={dismissBanner} aria-label="Dismiss" style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4, flexShrink: 0 }}>
+            <button onClick={dismissBanner} aria-label="Dismiss" style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4, flexShrink: 0 }}>
               <X size={14} />
             </button>
           </div>

@@ -223,13 +223,13 @@ export default function PropertyDetail() {
 
   if (loading) return (
     <DashboardLayout>
-      <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono', padding: 40 }}>Loading property...</div>
+      <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', padding: 40 }}>Loading property...</div>
     </DashboardLayout>
   );
 
   if (error || !property) return (
     <DashboardLayout>
-      <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono', padding: 40 }}>
+      <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', padding: 40 }}>
         Property not found. <Link href="/dashboard/properties" style={{ color: '#FBC02D' }}>Back to Properties</Link>
       </div>
     </DashboardLayout>
@@ -240,7 +240,7 @@ export default function PropertyDetail() {
   return (
     <DashboardLayout>
       <div style={{ maxWidth: 1100 }}>
-        <Link href="/dashboard/properties" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Sans', textDecoration: 'none', marginBottom: 20 }}>
+        <Link href="/dashboard/properties" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Sans', textDecoration: 'none', marginBottom: 20 }}>
           <ArrowLeft size={14} /> Back to Properties
         </Link>
 
@@ -252,7 +252,7 @@ export default function PropertyDetail() {
             </div>
             <div>
               <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 26, color: 'var(--text-primary)', marginBottom: 4 }}>{property.name}</h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>
                 <MapPin size={13} />
                 {property.address}, {property.city}, {property.state} {property.zip_code}
               </div>
@@ -302,14 +302,14 @@ export default function PropertyDetail() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
             <div>
-              <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 8 }}>RECENT PAYMENTS</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 8 }}>RECENT PAYMENTS</div>
               {recentPayments.length === 0 ? <Empty text="No payments recorded." /> : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {recentPayments.map((p: any) => (
                     <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--bg-app)', borderRadius: 8, fontSize: 12 }}>
                       <div>
                         <div style={{ color: '#E2E8F0' }}>{p.tenant_name || 'Unknown tenant'}</div>
-                        <div style={{ color: '#64748B', fontSize: 11 }}>{p.due_date}{p.unit_number ? ` · Unit ${p.unit_number}` : ''}</div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>{p.due_date}{p.unit_number ? ` · Unit ${p.unit_number}` : ''}</div>
                       </div>
                       <span style={{ color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono' }}>{formatMoney(p.amount)}</span>
                     </div>
@@ -318,7 +318,7 @@ export default function PropertyDetail() {
               )}
             </div>
             <div>
-              <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 8 }}>RECENT EXPENSES</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 8 }}>RECENT EXPENSES</div>
               {recentExpenses.length === 0 ? <Empty text="No expenses recorded." /> : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {recentExpenses.map((e: any) => (
@@ -352,16 +352,16 @@ export default function PropertyDetail() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                         <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 12, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>Unit {u.unit_number}</span>
-                        <span style={{ fontSize: 11, color: '#64748B', whiteSpace: 'nowrap' }}>{u.bedrooms}bd / {u.bathrooms}ba</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{u.bedrooms}bd / {u.bathrooms}ba</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                         <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 12, color: 'var(--text-secondary)' }}>{formatMoney(Number(u.monthly_rent))}/mo</span>
                         {u.is_occupied ? (
                           <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#10B981' }}><CheckCircle size={12} /> Occupied</span>
                         ) : (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#64748B' }}><XCircle size={12} /> Vacant</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-muted)' }}><XCircle size={12} /> Vacant</span>
                         )}
-                        <button onClick={() => openEditUnit(u)} title="Edit unit" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: 5, background: 'transparent', border: '1px solid var(--border-strong)', color: '#64748B', cursor: 'pointer' }}>
+                        <button onClick={() => openEditUnit(u)} title="Edit unit" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: 5, background: 'transparent', border: '1px solid var(--border-strong)', color: 'var(--text-muted)', cursor: 'pointer' }}>
                           <Pencil size={11} />
                         </button>
                         {!u.is_occupied && (
@@ -372,7 +372,7 @@ export default function PropertyDetail() {
                       </div>
                     </div>
                     {u.description && (
-                      <div style={{ marginTop: 6, fontSize: 12, color: '#64748B' }}>{u.description}</div>
+                      <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-muted)' }}>{u.description}</div>
                     )}
                     {u.is_occupied && (
                       <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#8B5CF6' }}>
@@ -396,7 +396,7 @@ export default function PropertyDetail() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.first_name} {t.last_name}</div>
-                      <div style={{ fontSize: 11, color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.email || '—'}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.email || '—'}</div>
                     </div>
                     {t.active_lease_id && (
                       canGenerateContracts ? (
@@ -407,7 +407,7 @@ export default function PropertyDetail() {
                           <FileText size={11} /> {downloadingLease === t.active_lease_id ? 'Generating...' : 'Contract'}
                         </button>
                       ) : (
-                        <Link href="/pricing" title="Upgrade to Professional to generate rental contracts" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 6, background: 'rgba(100,116,139,0.1)', border: '1px solid var(--border-strong)', color: '#64748B', fontSize: 11, fontFamily: 'IBM Plex Mono', textDecoration: 'none' }}>
+                        <Link href="/pricing" title="Upgrade to Professional to generate rental contracts" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 6, background: 'rgba(100,116,139,0.1)', border: '1px solid var(--border-strong)', color: 'var(--text-muted)', fontSize: 11, fontFamily: 'IBM Plex Mono', textDecoration: 'none' }}>
                           <Lock size={11} /> Contract
                         </Link>
                       )
@@ -429,7 +429,7 @@ export default function PropertyDetail() {
                         <span style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans', fontWeight: 600 }}>{t.title}</span>
                         <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: `${STATUS_COLOR[t.status]}20`, color: STATUS_COLOR[t.status] }}>{t.status?.replace('_', ' ')}</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>
                         <Building2 size={11} /> {t.property_name}{t.unit_number ? ` · Unit ${t.unit_number}` : ' · Unit unspecified'}
                       </div>
                       <div style={{ display: 'flex', gap: 6 }}>
@@ -456,7 +456,7 @@ export default function PropertyDetail() {
                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', cursor: 'pointer' }}>
                         <div>
                           <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans' }}>{v.name}</div>
-                          <div style={{ fontSize: 11, color: '#64748B' }}>{v.company} · {(v.specialties || []).join(', ')}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{v.company} · {(v.specialties || []).join(', ')}</div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           {v.rating && (
@@ -480,7 +480,7 @@ export default function PropertyDetail() {
                             </a>
                           )}
                           {v.hourly_rate && (
-                            <div style={{ fontSize: 12, color: '#64748B' }}>{formatMoney(v.hourly_rate)}/hr</div>
+                            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{formatMoney(v.hourly_rate)}/hr</div>
                           )}
                         </div>
                       )}
@@ -497,7 +497,7 @@ export default function PropertyDetail() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 480, maxHeight: '85vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Edit Property</h2>
-                <button onClick={() => setShowEditProperty(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowEditProperty(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
 
               <label style={mlbl}>Name</label>
@@ -560,7 +560,7 @@ export default function PropertyDetail() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 420 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Edit Unit {editingUnit.unit_number}</h2>
-                <button onClick={() => setEditingUnit(null)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setEditingUnit(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
@@ -615,7 +615,7 @@ export default function PropertyDetail() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 420 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Add Unit</h2>
-                <button onClick={() => setShowAddUnit(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowAddUnit(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
@@ -685,7 +685,7 @@ export default function PropertyDetail() {
 function MiniStat({ label, value, negative }: { label: string; value: string; negative?: boolean }) {
   return (
     <div style={{ background: 'var(--bg-app)', borderRadius: 8, padding: 12 }}>
-      <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 4 }}>{label.toUpperCase()}</div>
+      <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 4 }}>{label.toUpperCase()}</div>
       <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'Syne', color: negative ? '#EF4444' : 'var(--text-primary)' }}>{value}</div>
     </div>
   );
@@ -696,10 +696,10 @@ function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: s
     <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         {icon}
-        <span style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono', letterSpacing: '0.5px' }}>{label.toUpperCase()}</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', letterSpacing: '0.5px' }}>{label.toUpperCase()}</span>
       </div>
       <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'Syne' }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{sub}</div>}
     </div>
   );
 }

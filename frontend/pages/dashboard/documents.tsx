@@ -168,7 +168,7 @@ export default function Documents() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
       </DashboardLayout>
     );
   }
@@ -195,7 +195,7 @@ export default function Documents() {
               </button>
             ) : (
               <Link href="/pricing" style={{ textDecoration: 'none' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', color: '#64748B', borderRadius: 8, fontWeight: 700, fontFamily: 'Syne', fontSize: 14, cursor: 'pointer' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', color: 'var(--text-muted)', borderRadius: 8, fontWeight: 700, fontFamily: 'Syne', fontSize: 14, cursor: 'pointer' }}>
                   <Lock size={13} /> {t('documents.generateDocument')}
                 </div>
               </Link>
@@ -205,11 +205,11 @@ export default function Documents() {
             </button>
           </div>
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 20 }}>{t('documents.subtitle')}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>{t('documents.subtitle')}</p>
 
         <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
           <div style={{ position: 'relative', flex: 1, maxWidth: 400 }}>
-            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
+            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
@@ -222,7 +222,7 @@ export default function Documents() {
             {searching ? '...' : t('documents.search')}
           </button>
           {searchResults !== null && (
-            <button onClick={() => { setSearchResults(null); setSearchQuery(''); }} style={{ padding: '9px 16px', background: 'transparent', border: 'none', color: '#64748B', fontSize: 13, cursor: 'pointer' }}>
+            <button onClick={() => { setSearchResults(null); setSearchQuery(''); }} style={{ padding: '9px 16px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer' }}>
               {t('documents.clearSearch')}
             </button>
           )}
@@ -245,7 +245,7 @@ export default function Documents() {
                       </span>
                     </div>
                     {doc.property_name && (
-                      <div style={{ fontSize: 12, color: '#64748B', marginBottom: 8 }}>{doc.property_name}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{doc.property_name}</div>
                     )}
                     {searchResults !== null ? (
                       <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, fontFamily: 'IBM Plex Mono' }}>{doc.snippet}</p>
@@ -260,7 +260,7 @@ export default function Documents() {
                           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 6 }}>
                             {Object.entries(doc.extracted_fields).map(([key, value]) => (
                               <div key={key}>
-                                <div style={{ fontSize: 9, color: '#64748B', fontFamily: 'IBM Plex Mono', textTransform: 'uppercase' }}>{t(`documents.field.${FIELD_LABELS[key] || key}`)}</div>
+                                <div style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', textTransform: 'uppercase' }}>{t(`documents.field.${FIELD_LABELS[key] || key}`)}</div>
                                 <div style={{ fontSize: 12, color: 'var(--text-hover)', fontFamily: 'IBM Plex Mono' }}>{String(value)}</div>
                               </div>
                             ))}
@@ -291,7 +291,7 @@ export default function Documents() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('documents.upload')}</h2>
-                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ marginBottom: 14 }}>
                 <label style={lbl}>{t('documents.file')}</label>
@@ -330,7 +330,7 @@ export default function Documents() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('documents.generateDocument')}</h2>
-                <button onClick={() => { setShowGenerateModal(false); setGenErrors(new Set()); }} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => { setShowGenerateModal(false); setGenErrors(new Set()); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
 
               <div style={{ marginBottom: 14 }}>
@@ -391,9 +391,9 @@ export default function Documents() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 520, maxHeight: '85vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('documents.templates')}</h2>
-                <button onClick={() => setShowTemplatesModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowTemplatesModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
-              <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18, lineHeight: 1.5 }}>{t('documents.templatesSubtitle')}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18, lineHeight: 1.5 }}>{t('documents.templatesSubtitle')}</p>
               {GENERATE_TYPES.map(ty => (
                 <div key={ty} style={{ marginBottom: 16 }}>
                   <label style={lbl}>{t(`documents.generateType.${ty}`)}</label>

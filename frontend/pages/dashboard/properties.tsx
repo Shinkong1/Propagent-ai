@@ -89,7 +89,7 @@ export default function Properties() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Properties</h1>
-            <p style={{ color: '#64748B', fontSize: 14 }}>{props.length} properties in portfolio</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{props.length} properties in portfolio</p>
           </div>
           <button onClick={() => setShowModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', border: 'none', borderRadius: 8, fontWeight: 700, fontFamily: 'Syne', fontSize: 14, cursor: 'pointer' }}>
             <Plus size={16} /> Add Property
@@ -117,7 +117,7 @@ export default function Properties() {
                     </span>
                   </div>
                   <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 6 }}>{p.name}</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748B', fontSize: 12, fontFamily: 'IBM Plex Sans', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 12, fontFamily: 'IBM Plex Sans', marginBottom: 12 }}>
                     <MapPin size={12} />
                     {p.city}, {p.state}
                   </div>
@@ -148,7 +148,7 @@ export default function Properties() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Add Property</h2>
-                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               {[
                 { k: 'name', label: 'Property Name', ph: 'Sunset Apartments' },
@@ -211,12 +211,12 @@ export default function Properties() {
                             "Beds"/"Baths" hint text could never appear. Real report: a
                             user couldn't tell which box was which. Persistent label
                             above the input instead, so it's always visible. */}
-                        <label style={{ display: 'block', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 3 }}>Beds</label>
+                        <label style={{ display: 'block', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', marginBottom: 3 }}>Beds</label>
                         <input type="number" min={0} value={u.bedrooms} onChange={e => updateUnitRow(i, 'bedrooms', e.target.value)}
                           style={{ width: '100%', padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
                       </div>
                       <div style={{ width: 70 }}>
-                        <label style={{ display: 'block', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 3 }}>Baths</label>
+                        <label style={{ display: 'block', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', marginBottom: 3 }}>Baths</label>
                         <input type="number" step="0.5" min={0} value={u.bathrooms} onChange={e => updateUnitRow(i, 'bathrooms', e.target.value)}
                           style={{ width: '100%', padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
                       </div>

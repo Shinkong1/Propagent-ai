@@ -53,9 +53,9 @@ export default function SalesChatWidget() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 13, color: 'var(--text-primary)' }}>PropAgent Sales</div>
-              <div style={{ fontSize: 11, color: '#64748B' }}>Usually replies instantly</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Usually replies instantly</div>
             </div>
-            <button onClick={() => setOpen(false)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
+            <button onClick={() => setOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}>
               <X size={16} />
             </button>
           </div>
@@ -73,7 +73,7 @@ export default function SalesChatWidget() {
               </div>
             ))}
             {sending && (
-              <div style={{ alignSelf: 'flex-start', fontSize: 12, color: '#64748B', fontFamily: 'IBM Plex Mono', padding: '4px 12px' }}>...</div>
+              <div style={{ alignSelf: 'flex-start', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', padding: '4px 12px' }}>...</div>
             )}
           </div>
 

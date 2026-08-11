@@ -78,7 +78,7 @@ export default function Login() {
           <h1 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 24, color: 'var(--text-primary)', marginBottom: 6 }}>
             {mfaToken ? t('login.mfaTitle') : t('login.title')}
           </h1>
-          <p style={{ color: '#64748B', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>
             {mfaToken ? t('login.mfaSubtitle') : t('login.subtitle')}
           </p>
         </div>
@@ -94,13 +94,13 @@ export default function Login() {
                 autoFocus
               />
             </div>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 12, textAlign: 'center' }}>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, textAlign: 'center' }}>
               {t('login.mfaBackupHint')}
             </p>
             <button type="submit" disabled={loading || mfaCode.length < 6} style={btnStyle}>
               {loading ? '...' : t('login.mfaSubmit')}
             </button>
-            <button type="button" onClick={() => { setMfaToken(null); setMfaCode(''); }} style={{ width: '100%', marginTop: 12, background: 'none', border: 'none', color: '#64748B', fontSize: 13, cursor: 'pointer', fontFamily: 'IBM Plex Sans' }}>
+            <button type="button" onClick={() => { setMfaToken(null); setMfaCode(''); }} style={{ width: '100%', marginTop: 12, background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer', fontFamily: 'IBM Plex Sans' }}>
               {t('login.mfaBack')}
             </button>
           </form>
@@ -133,14 +133,14 @@ export default function Login() {
                 style={{
                   position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
                   background: 'none', border: 'none', padding: 4, cursor: 'pointer',
-                  color: '#64748B', display: 'flex', alignItems: 'center',
+                  color: 'var(--text-muted)', display: 'flex', alignItems: 'center',
                 }}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
             <div style={{ textAlign: 'right', marginTop: 8 }}>
-              <Link href="/forgot-password" style={{ fontSize: 12.5, color: '#64748B', textDecoration: 'none' }}>Forgot password?</Link>
+              <Link href="/forgot-password" style={{ fontSize: 12.5, color: 'var(--text-muted)', textDecoration: 'none' }}>Forgot password?</Link>
             </div>
           </div>
           <button type="submit" disabled={loading} style={btnStyle}>
@@ -151,7 +151,7 @@ export default function Login() {
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '18px 0' }}>
                 <div style={{ flex: 1, height: 1, background: 'var(--border-strong)' }} />
-                <span style={{ fontSize: 12, color: '#64748B', fontFamily: 'IBM Plex Sans' }}>{t('login.orDivider')}</span>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>{t('login.orDivider')}</span>
                 <div style={{ flex: 1, height: 1, background: 'var(--border-strong)' }} />
               </div>
               <button
@@ -178,7 +178,7 @@ export default function Login() {
         )}
 
         {!mfaToken && (
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: '#64748B', fontFamily: 'IBM Plex Sans' }}>
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>
           {t('login.noAccount')}{' '}
           <Link href="/signup" style={{ color: '#FBC02D', textDecoration: 'none', fontWeight: 600 }}>{t('login.signupLink')}</Link>
         </p>

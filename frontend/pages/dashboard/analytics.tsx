@@ -110,7 +110,7 @@ export default function Analytics() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
       </DashboardLayout>
     );
   }
@@ -118,7 +118,7 @@ export default function Analytics() {
   if (!data) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B' }}>{t('analytics.error')}</div>
+        <div style={{ color: 'var(--text-muted)' }}>{t('analytics.error')}</div>
       </DashboardLayout>
     );
   }
@@ -138,16 +138,16 @@ export default function Analytics() {
       <div style={{ maxWidth: 1100 }}>
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>{t('analytics.title')}</h1>
-          <p style={{ color: '#64748B', fontSize: 14 }}>{t('analytics.subtitle')}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t('analytics.subtitle')}</p>
         </div>
 
         {/* KPIs */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 28 }}>
           {kpis.map(({ label, value, sub }) => (
             <div key={label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '18px 20px' }}>
-              <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 8, letterSpacing: '0.5px' }}>{label.toUpperCase()}</div>
+              <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', marginBottom: 8, letterSpacing: '0.5px' }}>{label.toUpperCase()}</div>
               <div style={{ fontSize: 24, fontFamily: 'IBM Plex Mono', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>{value}</div>
-              <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B' }}>{sub}</div>
+              <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)' }}>{sub}</div>
             </div>
           ))}
         </div>
@@ -217,8 +217,8 @@ export default function Analytics() {
             </LineChart>
           </ResponsiveContainer>
           <div style={{ display: 'flex', gap: 20, marginTop: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 12, height: 2, background: '#EF4444' }} /><span style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Sans' }}>{t('analytics.opened')}</span></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 12, height: 2, background: '#10B981' }} /><span style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Sans' }}>{t('analytics.resolved')}</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 12, height: 2, background: '#EF4444' }} /><span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>{t('analytics.opened')}</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><div style={{ width: 12, height: 2, background: '#10B981' }} /><span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>{t('analytics.resolved')}</span></div>
           </div>
         </div>
       </div>

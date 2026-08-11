@@ -66,7 +66,7 @@ export default function OnboardingTour() {
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             {!isLast && (
-              <button onClick={skip} style={{ padding: '9px 16px', background: 'transparent', border: 'none', color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Sans', cursor: 'pointer' }}>
+              <button onClick={skip} style={{ padding: '9px 16px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Sans', cursor: 'pointer' }}>
                 {t('tour.skip')}
               </button>
             )}

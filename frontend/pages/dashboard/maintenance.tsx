@@ -188,7 +188,7 @@ export default function Maintenance() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Maintenance</h1>
-            <p style={{ color: '#64748B', fontSize: 14 }}>{tickets.filter(t => t.status !== 'completed').length} active tickets</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{tickets.filter(t => t.status !== 'completed').length} active tickets</p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <select value={propertyFilter} onChange={e => changePropertyFilter(e.target.value)}
@@ -244,11 +244,11 @@ export default function Maintenance() {
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; }}>
                   <div style={{ fontSize: 12, color: '#E2E8F0', fontFamily: 'IBM Plex Sans', fontWeight: 600, marginBottom: 4, lineHeight: 1.3 }}>{t.title}</div>
                   {t.property_name && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8, color: '#64748B', fontSize: 10, fontFamily: 'IBM Plex Mono' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8, color: 'var(--text-muted)', fontSize: 10, fontFamily: 'IBM Plex Mono' }}>
                       <Building2 size={10} /> {t.property_name}{t.unit_number ? ` · Unit ${t.unit_number}` : ''}
                     </div>
                   )}
-                  <div style={{ fontSize: 11, color: '#64748B', marginBottom: 10, lineHeight: 1.4, fontFamily: 'IBM Plex Sans' }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10, lineHeight: 1.4, fontFamily: 'IBM Plex Sans' }}>
                     {t.description?.slice(0, 60)}{t.description?.length > 60 ? '...' : ''}
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -282,7 +282,7 @@ export default function Maintenance() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Create Ticket</h2>
-                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
@@ -337,9 +337,9 @@ export default function Maintenance() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 460 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{selectedTicket.title}</h2>
-                <button onClick={() => setSelectedTicket(null)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setSelectedTicket(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16, color: '#64748B', fontSize: 12, fontFamily: 'IBM Plex Mono' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16, color: 'var(--text-muted)', fontSize: 12, fontFamily: 'IBM Plex Mono' }}>
                 <Home size={12} /> {selectedTicket.property_name}{selectedTicket.unit_number ? ` · Unit ${selectedTicket.unit_number}` : ' · Unit unspecified'}
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: 13, fontFamily: 'IBM Plex Sans', lineHeight: 1.5, marginBottom: 18 }}>{selectedTicket.description}</p>
@@ -359,7 +359,7 @@ export default function Maintenance() {
                     {vendorList.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
                   </select>
                   {vendorList.length === 0 && (
-                    <div style={{ fontSize: 11, color: '#64748B', marginTop: 6 }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
                       No vendors yet — add one from "Manage Vendors" above.
                     </div>
                   )}
@@ -388,7 +388,7 @@ export default function Maintenance() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 560, maxHeight: '88vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Manage Vendors</h2>
-                <button onClick={() => setShowVendorModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowVendorModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
 
               {/* Existing vendors */}
@@ -401,7 +401,7 @@ export default function Maintenance() {
                         <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans', fontWeight: 600 }}>
                           {v.name}{v.company ? ` — ${v.company}` : ''}
                         </div>
-                        <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono', marginTop: 2 }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginTop: 2 }}>
                           {[v.phone, v.email, v.hourly_rate ? `$${v.hourly_rate}/hr` : null].filter(Boolean).join(' · ') || 'No contact info'}
                         </div>
                         {v.specialties?.length > 0 && (
@@ -420,7 +420,7 @@ export default function Maintenance() {
                   ))}
                 </div>
               ) : (
-                <p style={{ fontSize: 12, color: '#64748B', marginBottom: 22 }}>No vendors yet — add your first one below.</p>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 22 }}>No vendors yet — add your first one below.</p>
               )}
 
               {/* Add vendor form */}

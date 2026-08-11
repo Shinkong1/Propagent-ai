@@ -137,7 +137,7 @@ export default function TutorialWalkthrough() {
           <Icon size={20} color={current.color} />
         </div>
         <div>
-          <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>STEP {step + 1} OF {STEPS.length}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>STEP {step + 1} OF {STEPS.length}</div>
           <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{current.title}</h3>
         </div>
       </div>
@@ -191,7 +191,7 @@ function PreviewCard({ title, sub, color }: { title: string; sub: string; color:
     <div style={{ flex: 1, background: 'var(--bg-surface)', border: `1px solid ${color}40`, borderRadius: 8, padding: 10 }}>
       <div style={{ width: 20, height: 20, borderRadius: 5, background: `${color}25`, marginBottom: 8 }} />
       <div style={{ fontSize: 12, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans', fontWeight: 600 }}>{title}</div>
-      <div style={{ fontSize: 10, color: '#64748B' }}>{sub}</div>
+      <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{sub}</div>
     </div>
   );
 }
@@ -204,7 +204,7 @@ function PreviewStat({ label, value, color }: { label: string; value: string; co
   return (
     <div style={{ flex: 1, textAlign: 'center' }}>
       <div style={{ fontSize: 16, fontWeight: 700, color, fontFamily: 'Syne' }}>{value}</div>
-      <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{label.toUpperCase()}</div>
+      <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{label.toUpperCase()}</div>
     </div>
   );
 }

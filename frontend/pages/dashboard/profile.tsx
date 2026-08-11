@@ -56,7 +56,7 @@ export default function Profile() {
       <div style={{ maxWidth: 1100 }}>
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Profile</h1>
-          <p style={{ color: '#64748B', fontSize: 14 }}>Your account, and a quick tour of what PropAgent AI can do.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Your account, and a quick tour of what PropAgent AI can do.</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '340px 1fr', gap: 24, alignItems: 'start' }}>
@@ -69,7 +69,7 @@ export default function Profile() {
                 </div>
                 <div>
                   <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>{me.full_name || 'Loading...'}</div>
-                  <div style={{ fontSize: 12, color: '#64748B', textTransform: 'capitalize' }}>{me.role || ''}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'capitalize' }}>{me.role || ''}</div>
                 </div>
               </div>
 
@@ -86,7 +86,7 @@ export default function Profile() {
               {currentPlan ? (
                 <>
                   <div style={{ fontSize: 20, fontWeight: 700, color: '#FBC02D', fontFamily: 'Syne', marginBottom: 4 }}>{currentPlan.name}</div>
-                  <div style={{ fontSize: 13, color: '#64748B', marginBottom: 14 }}>${currentPlan.price}/mo</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>${currentPlan.price}/mo</div>
                   <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {currentPlan.features?.slice(0, 4).map((f: string) => (
                       <li key={f} style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Sans' }}>· {f}</li>
@@ -94,7 +94,7 @@ export default function Profile() {
                   </ul>
                 </>
               ) : (
-                <div style={{ fontSize: 13, color: '#64748B' }}>Loading plan...</div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Loading plan...</div>
               )}
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
                 <a href="/pricing" style={{ flex: 1, display: 'block', textAlign: 'center', padding: '9px', borderRadius: 8, background: 'rgba(var(--accent-rgb),0.1)', border: '1px solid rgba(var(--accent-rgb),0.3)', color: '#FBC02D', fontSize: 13, fontFamily: 'Syne', fontWeight: 600, textDecoration: 'none' }}>
@@ -108,7 +108,7 @@ export default function Profile() {
                   {openingPortal ? '...' : 'Manage Subscription'}
                 </button>
               </div>
-              <p style={{ fontSize: 11, color: '#64748B', marginTop: 8, textAlign: 'center' }}>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8, textAlign: 'center' }}>
                 Manage Subscription lets you change plans, update your payment method, or cancel — handled securely by Stripe.
               </p>
             </div>
@@ -120,11 +120,11 @@ export default function Profile() {
               </div>
               {referral ? (
                 <>
-                  <p style={{ fontSize: 12.5, color: '#64748B', marginBottom: 14, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.5 }}>
                     Share your link. When someone signs up and converts to a paid plan, you earn a free-month credit.
                   </p>
                   <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', marginBottom: 4 }}>YOUR REFERRAL CODE</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 4 }}>YOUR REFERRAL CODE</div>
                     <div style={{ fontSize: 16, fontWeight: 700, color: '#FBC02D', fontFamily: 'IBM Plex Mono', letterSpacing: 1 }}>{referral.referral_code}</div>
                   </div>
                   <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
@@ -148,7 +148,7 @@ export default function Profile() {
                   </div>
                 </>
               ) : (
-                <div style={{ fontSize: 13, color: '#64748B' }}>Loading your referral link...</div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Loading your referral link...</div>
               )}
             </div>
 
@@ -158,7 +158,7 @@ export default function Profile() {
                   <Globe size={18} color="#FBC02D" />
                   <div>
                     <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>Language</div>
-                    <div style={{ fontSize: 12, color: '#64748B' }}>{currentLang?.flag} {currentLang?.nativeName}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{currentLang?.flag} {currentLang?.nativeName}</div>
                   </div>
                 </div>
                 <ChevronRight size={16} color="#64748B" />
@@ -184,9 +184,9 @@ export default function Profile() {
 function InfoRow({ icon, label, value, capitalize }: { icon: React.ReactNode; label: string; value?: string; capitalize?: boolean }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: '1px solid var(--border-subtle)' }}>
-      <span style={{ color: '#64748B' }}>{icon}</span>
+      <span style={{ color: 'var(--text-muted)' }}>{icon}</span>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{label.toUpperCase()}</div>
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{label.toUpperCase()}</div>
         <div style={{ fontSize: 13, color: '#E2E8F0', fontFamily: 'IBM Plex Sans', textTransform: capitalize ? 'capitalize' : 'none' }}>{value || '—'}</div>
       </div>
     </div>

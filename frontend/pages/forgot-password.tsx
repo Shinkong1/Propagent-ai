@@ -41,7 +41,7 @@ export default function ForgotPassword() {
               <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 20, color: 'var(--text-primary)' }}>PropAgent AI</span>
             </div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 24, color: 'var(--text-primary)', marginBottom: 6 }}>Reset your password</h1>
-            <p style={{ color: '#64748B', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>We'll email you a link to set a new one.</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>We'll email you a link to set a new one.</p>
           </div>
 
           <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28 }}>
@@ -49,7 +49,7 @@ export default function ForgotPassword() {
               <div style={{ textAlign: 'center', padding: '8px 0' }}>
                 <MailCheck size={28} color="#10B981" style={{ marginBottom: 12 }} />
                 <p style={{ color: 'var(--text-primary)', fontSize: 14, fontFamily: 'IBM Plex Sans', marginBottom: 4 }}>Check your inbox</p>
-                <p style={{ color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>
                   If <b>{email}</b> has a PropAgent AI account, a reset link is on its way — it expires in 30 minutes.
                 </p>
               </div>
@@ -70,7 +70,7 @@ export default function ForgotPassword() {
             )}
           </div>
 
-          <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: '#64748B', fontFamily: 'IBM Plex Sans' }}>
+          <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>
             <Link href="/login" style={{ color: '#FBC02D', textDecoration: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
               <ArrowLeft size={13} /> Back to sign in
             </Link>

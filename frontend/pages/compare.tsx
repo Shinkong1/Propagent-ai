@@ -114,7 +114,7 @@ export default function Compare() {
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 40, color: 'var(--text-primary)', marginBottom: 14 }}>
               PropAgent AI vs. Traditional Property Management
             </h1>
-            <p style={{ color: '#64748B', fontSize: 16, fontFamily: 'IBM Plex Sans', maxWidth: 680, margin: '0 auto', lineHeight: 1.7 }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: 16, fontFamily: 'IBM Plex Sans', maxWidth: 680, margin: '0 auto', lineHeight: 1.7 }}>
               A straight comparison of what&apos;s actually built into PropAgent AI today against what&apos;s
               generally true of legacy property management platforms (like AppFolio and Buildium) — and against
               running a portfolio on spreadsheets and email.
@@ -182,7 +182,7 @@ export default function Compare() {
             </div>
           </div>
 
-          <p style={{ fontSize: 13, lineHeight: 1.7, color: '#64748B', textAlign: 'center' }}>
+          <p style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--text-muted)', textAlign: 'center' }}>
             Questions about a specific feature? <Link href="/contact" style={{ color: '#FBC02D' }}>Contact us</Link> or
             check the <Link href="/api-docs" style={{ color: '#FBC02D' }}>API Docs</Link> for integration details.
           </p>
@@ -199,7 +199,7 @@ function CellIcon({ cell, highlight }: { cell: Cell; highlight?: boolean }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
       <Icon size={16} color={color} strokeWidth={2.5} />
-      {cell.note && <span style={{ fontSize: 10.5, color: '#64748B', fontFamily: 'IBM Plex Sans', lineHeight: 1.4, maxWidth: 150, textAlign: 'center' }}>{cell.note}</span>}
+      {cell.note && <span style={{ fontSize: 10.5, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans', lineHeight: 1.4, maxWidth: 150, textAlign: 'center' }}>{cell.note}</span>}
     </div>
   );
 }

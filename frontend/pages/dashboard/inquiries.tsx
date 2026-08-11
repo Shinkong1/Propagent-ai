@@ -125,7 +125,7 @@ export default function Inquiries() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Rental Inquiries</h1>
-            <p style={{ color: '#64748B', fontSize: 14 }}>{inquiryList.length} inquiries from your public listing pages</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{inquiryList.length} inquiries from your public listing pages</p>
           </div>
           <select value={propertyFilter} onChange={e => changeFilter(e.target.value)}
             style={{ padding: '9px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none' }}>
@@ -136,7 +136,7 @@ export default function Inquiries() {
 
         {propertyList.length > 0 && (
           <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '14px 18px', marginBottom: 20 }}>
-            <div style={{ fontSize: 12, color: '#64748B', marginBottom: 10 }}>Share a property's public listing page to start collecting inquiries:</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>Share a property's public listing page to start collecting inquiries:</div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {propertyList.map(p => (
                 <button key={p.id} onClick={() => copyListingLink(p.id)}
@@ -149,7 +149,7 @@ export default function Inquiries() {
         )}
 
         {loading ? (
-          <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>Loading...</div>
+          <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>Loading...</div>
         ) : (
           <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ overflowX: 'auto' }}>
@@ -157,7 +157,7 @@ export default function Inquiries() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                     {['Prospect', 'Priority', 'Property / Unit', 'Contact', 'Move-in', 'Status', 'Screening', 'Actions'].map(h => (
-                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', fontWeight: 500 }}>{h}</th>
+                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', fontWeight: 500 }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -171,7 +171,7 @@ export default function Inquiries() {
                     <tr key={i.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                       <td style={{ padding: '14px 16px' }}>
                         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans' }}>{i.first_name} {i.last_name}</div>
-                        {i.message && <div style={{ fontSize: 11, color: '#64748B', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={i.message}>{i.message}</div>}
+                        {i.message && <div style={{ fontSize: 11, color: 'var(--text-muted)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={i.message}>{i.message}</div>}
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         {i.priority_label ? (
@@ -190,7 +190,7 @@ export default function Inquiries() {
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         {i.email && <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-secondary)' }}><Mail size={11} /> {i.email}</div>}
-                        {i.phone && <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#64748B' }}><Phone size={11} /> {i.phone}</div>}
+                        {i.phone && <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-muted)' }}><Phone size={11} /> {i.phone}</div>}
                       </td>
                       <td style={{ padding: '14px 16px', fontSize: 12, color: 'var(--text-secondary)' }}>
                         {i.desired_move_in ? (
@@ -216,7 +216,7 @@ export default function Inquiries() {
                           </button>
                         ) : (
                           <button onClick={() => openScreen(i)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: '#64748B', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+                            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-muted)', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
                             <ShieldQuestion size={12} /> Screen
                           </button>
                         )}
@@ -255,9 +255,9 @@ export default function Inquiries() {
               <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>
                 Screen {screeningInquiry.first_name} {screeningInquiry.last_name}
               </h2>
-              <button onClick={() => setScreeningInquiry(null)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={16} /></button>
+              <button onClick={() => setScreeningInquiry(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={16} /></button>
             </div>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>Run before converting to a tenant — score is based on income-to-rent ratio and credit.</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>Run before converting to a tenant — score is based on income-to-rent ratio and credit.</p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
               <ScreenField label="Annual income ($)" value={screenForm.annual_income} onChange={v => setScreenForm(p => ({ ...p, annual_income: v }))} />

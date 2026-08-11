@@ -49,13 +49,13 @@ export default function TenantDashboard() {
     <PortalLayout>
       <Head><title>Tenant Portal — Dashboard</title></Head>
       {loading ? (
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>Loading...</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>Loading...</div>
       ) : (
         <>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text-primary)', marginBottom: 4 }}>
             Welcome, {me?.first_name}
           </h1>
-          <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{me?.organization_name}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{me?.organization_name}</p>
 
           {me?.active_lease ? (
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
@@ -63,7 +63,7 @@ export default function TenantDashboard() {
                 <Home size={18} color="#FBC02D" />
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>{me.active_lease.property_name}</h2>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748B', fontSize: 13, marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>
                 <MapPin size={13} /> {me.active_lease.property_address}{me.active_lease.unit_number ? ` · Unit ${me.active_lease.unit_number}` : ''}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14 }}>
@@ -73,7 +73,7 @@ export default function TenantDashboard() {
               </div>
             </div>
           ) : (
-            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 24, marginBottom: 20, textAlign: 'center', color: '#64748B', fontSize: 13 }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 24, marginBottom: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
               No active lease on file. Contact your property manager if this looks wrong.
             </div>
           )}
@@ -84,7 +84,7 @@ export default function TenantDashboard() {
                 <PenLine size={15} color="#3B82F6" />
                 <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>Your lease needs a signature</span>
               </div>
-              <p style={{ fontSize: 12.5, color: '#64748B', marginBottom: 12 }}>
+              <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 12 }}>
                 Type your full legal name below to sign — this records your name, the time, and your IP address as your acceptance.
               </p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -118,7 +118,7 @@ export default function TenantDashboard() {
                   <CreditCard size={18} color="#FBC02D" />
                   <div>
                     <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>Payments</div>
-                    <div style={{ fontSize: 12, color: '#64748B' }}>{unpaid.length > 0 ? `${unpaid.length} due` : 'All caught up'}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{unpaid.length > 0 ? `${unpaid.length} due` : 'All caught up'}</div>
                   </div>
                 </div>
                 <ArrowRight size={16} color="#64748B" />
@@ -130,7 +130,7 @@ export default function TenantDashboard() {
                   <Wrench size={18} color="#FBC02D" />
                   <div>
                     <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>Maintenance</div>
-                    <div style={{ fontSize: 12, color: '#64748B' }}>Submit or view requests</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Submit or view requests</div>
                   </div>
                 </div>
                 <ArrowRight size={16} color="#64748B" />
@@ -148,7 +148,7 @@ function MiniStat({ icon, label, value, negative }: { icon: React.ReactNode; lab
     <div style={{ background: 'var(--bg-app)', borderRadius: 10, padding: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
         {icon}
-        <span style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', letterSpacing: '0.5px' }}>{label.toUpperCase()}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', letterSpacing: '0.5px' }}>{label.toUpperCase()}</span>
       </div>
       <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'Syne', color: negative ? '#EF4444' : 'var(--text-primary)' }}>{value}</div>
     </div>

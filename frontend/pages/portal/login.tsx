@@ -42,7 +42,7 @@ export default function TenantLogin() {
             </div>
             <div>
               <div style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 17, color: 'var(--text-primary)', lineHeight: 1.1 }}>PropAgent AI</div>
-              <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>TENANT PORTAL</div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>TENANT PORTAL</div>
             </div>
           </div>
 
@@ -51,7 +51,7 @@ export default function TenantLogin() {
 
             <label style={lbl}>Email</label>
             <div style={{ position: 'relative', marginBottom: 14 }}>
-              <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
+              <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()}
                 spellCheck={false} autoCorrect="off" autoCapitalize="off"
                 style={{ ...inp, paddingLeft: 34 }} />
@@ -59,12 +59,12 @@ export default function TenantLogin() {
 
             <label style={lbl}>Password</label>
             <div style={{ position: 'relative', marginBottom: 8 }}>
-              <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
+              <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()}
                 style={{ ...inp, paddingLeft: 34 }} />
             </div>
             <div style={{ textAlign: 'right', marginBottom: 20 }}>
-              <Link href="/portal/forgot-password" style={{ fontSize: 12, color: '#64748B', textDecoration: 'none' }}>Forgot password?</Link>
+              <Link href="/portal/forgot-password" style={{ fontSize: 12, color: 'var(--text-muted)', textDecoration: 'none' }}>Forgot password?</Link>
             </div>
 
             <button onClick={submit} disabled={loading} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', fontSize: 14, border: 'none', borderRadius: 8, cursor: 'pointer' }}>

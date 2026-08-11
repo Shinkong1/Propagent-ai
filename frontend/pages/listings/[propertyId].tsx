@@ -52,12 +52,12 @@ export default function PublicListing() {
   };
 
   if (loading) {
-    return <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', fontFamily: 'IBM Plex Mono' }}>Loading...</div>;
+    return <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>Loading...</div>;
   }
 
   if (error || !listing) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', textAlign: 'center', padding: 20 }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>
         This listing isn't available — it may have been removed or the link is incorrect.
       </div>
     );
@@ -81,7 +81,7 @@ export default function PublicListing() {
 
         <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 20px 80px' }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 32, color: 'var(--text-primary)', marginBottom: 8 }}>{listing.name}</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748B', fontSize: 14, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>
             <MapPin size={14} />
             {listing.address}, {listing.city}, {listing.state} {listing.zip_code}
           </div>
@@ -94,7 +94,7 @@ export default function PublicListing() {
           </h2>
 
           {listing.units.length === 0 ? (
-            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 24, textAlign: 'center', color: '#64748B', fontSize: 14, marginBottom: 32 }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 24, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14, marginBottom: 32 }}>
               No vacant units right now — check back soon, or submit an inquiry below to be notified.
             </div>
           ) : (
@@ -110,7 +110,7 @@ export default function PublicListing() {
                     <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>Unit {u.unit_number}</span>
                     <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 18, fontWeight: 600, color: '#FBC02D' }}>${u.monthly_rent.toLocaleString()}/mo</span>
                   </div>
-                  <div style={{ display: 'flex', gap: 16, fontSize: 12, color: '#64748B', marginBottom: u.description ? 8 : 0 }}>
+                  <div style={{ display: 'flex', gap: 16, fontSize: 12, color: 'var(--text-muted)', marginBottom: u.description ? 8 : 0 }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Home size={12} /> {u.bedrooms} bd / {u.bathrooms} ba</span>
                     {u.square_feet && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Maximize2 size={12} /> {u.square_feet} sqft</span>}
                   </div>
@@ -129,7 +129,7 @@ export default function PublicListing() {
             <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 14, padding: 28, textAlign: 'center' }}>
               <CheckCircle size={28} color="#10B981" style={{ marginBottom: 10 }} />
               <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 6 }}>Thanks — you're all set!</h3>
-              <p style={{ fontSize: 13, color: '#64748B' }}>The property manager has been notified and will reach out soon.</p>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>The property manager has been notified and will reach out soon.</p>
             </div>
           ) : (
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 24 }}>

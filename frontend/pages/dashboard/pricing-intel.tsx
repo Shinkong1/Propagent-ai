@@ -30,7 +30,7 @@ export default function PricingIntelligence() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
       </DashboardLayout>
     );
   }
@@ -38,7 +38,7 @@ export default function PricingIntelligence() {
   if (!data) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B' }}>{t('pricingIntel.error')}</div>
+        <div style={{ color: 'var(--text-muted)' }}>{t('pricingIntel.error')}</div>
       </DashboardLayout>
     );
   }
@@ -61,12 +61,12 @@ export default function PricingIntelligence() {
           <LineChart size={24} color="#FBC02D" />
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 26, color: 'var(--text-primary)' }}>{t('pricingIntel.title')}</h1>
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('pricingIntel.subtitle')}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('pricingIntel.subtitle')}</p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 24 }}>
           {kpis.map(k => (
             <div key={k.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '14px 16px' }}>
-              <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
+              <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
               <div style={{ fontSize: 22, fontFamily: 'IBM Plex Mono', fontWeight: 600, color: k.warn ? '#EF4444' : 'var(--text-primary)' }}>{k.value}</div>
             </div>
           ))}
@@ -75,7 +75,7 @@ export default function PricingIntelligence() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20, marginBottom: 24 }}>
           <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 24 }}>
             <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 6 }}>{t('pricingIntel.seasonalDemand')}</h3>
-            <p style={{ fontSize: 11, color: '#64748B', marginBottom: 16 }}>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 16 }}>
               {seasonal_demand_sample_size > 0
                 ? t('pricingIntel.seasonalNote').replace('{n}', seasonal_demand_sample_size)
                 : t('pricingIntel.noLeaseHistory')}
@@ -93,7 +93,7 @@ export default function PricingIntelligence() {
         </div>
 
         <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('pricingIntel.recommendations')}</h2>
-        <p style={{ fontSize: 12, color: '#64748B', marginBottom: 12 }}>{t('pricingIntel.recommendationsSubtitle')}</p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>{t('pricingIntel.recommendationsSubtitle')}</p>
 
         {actionable.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px', color: '#475569', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, marginBottom: 20 }}>
@@ -115,7 +115,7 @@ export default function PricingIntelligence() {
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   <div style={{ fontSize: 18, fontFamily: 'IBM Plex Mono', fontWeight: 600, color: 'var(--text-primary)' }}>{fmtMoney(u.monthly_rent)}</div>
-                  <div style={{ fontSize: 11, color: '#64748B' }}>{t('pricingIntel.cohortAvg')}: {fmtMoney(u.cohort_avg)}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('pricingIntel.cohortAvg')}: {fmtMoney(u.cohort_avg)}</div>
                 </div>
               </div>
             ))}
@@ -129,7 +129,7 @@ export default function PricingIntelligence() {
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                   {[t('portfolio.property'), t('pricingIntel.unit'), t('pricingIntel.bedrooms'), t('pricingIntel.rent'), t('pricingIntel.cohortAvg'), t('pricingIntel.deviation'), t('pricingIntel.position')].map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -140,7 +140,7 @@ export default function PricingIntelligence() {
                     <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)' }}>{u.unit_number}</td>
                     <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)' }}>{u.bedrooms}</td>
                     <td style={{ padding: '10px 14px', fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-primary)' }}>{fmtMoney(u.monthly_rent)}</td>
-                    <td style={{ padding: '10px 14px', fontSize: 12, fontFamily: 'IBM Plex Mono', color: '#64748B' }}>{u.cohort_avg ? fmtMoney(u.cohort_avg) : '—'}</td>
+                    <td style={{ padding: '10px 14px', fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)' }}>{u.cohort_avg ? fmtMoney(u.cohort_avg) : '—'}</td>
                     <td style={{ padding: '10px 14px', fontSize: 12, fontFamily: 'IBM Plex Mono', color: u.deviation_pct > 0 ? '#10B981' : u.deviation_pct < 0 ? '#EF4444' : 'var(--text-secondary)' }}>
                       {u.deviation_pct !== null ? `${u.deviation_pct > 0 ? '+' : ''}${u.deviation_pct}%` : '—'}
                     </td>

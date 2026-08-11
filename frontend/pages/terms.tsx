@@ -24,7 +24,7 @@ export default function Terms() {
 
         <div style={{ maxWidth: 780, margin: '0 auto', padding: '48px 24px 80px' }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 32, color: 'var(--text-primary)', marginBottom: 8 }}>Terms of Service</h1>
-          <p style={{ color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Mono', marginBottom: 24 }}>Last updated: {LAST_UPDATED}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Mono', marginBottom: 24 }}>Last updated: {LAST_UPDATED}</p>
 
           <Section title="1. Agreement to Terms">
             These Terms of Service ("Terms") govern access to and use of PropAgent AI (the "Service"), operated by NamaStay LLC ("Company", "we", "us"). By creating an account or using the Service, you ("Customer", "you") agree to be bound by these Terms. If you are entering into these Terms on behalf of a company or other legal entity, you represent that you have authority to bind that entity.

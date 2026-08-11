@@ -152,12 +152,12 @@ export default function WorkflowsPage() {
           <Plus size={14} style={{ marginRight: 6, verticalAlign: -2 }} />{t('workflows.newRule')}
         </button>
       </div>
-      <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('workflows.subtitle')}</p>
+      <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('workflows.subtitle')}</p>
 
       {loading ? (
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
       ) : rules.length === 0 ? (
-        <div style={{ padding: 40, textAlign: 'center', color: '#64748B', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12 }}>
+        <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12 }}>
           {t('workflows.empty')}
         </div>
       ) : (
@@ -169,7 +169,7 @@ export default function WorkflowsPage() {
             }}>
               <div>
                 <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>{rule.name}</div>
-                <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                   {meta?.triggers?.[rule.trigger]?.label || rule.trigger} · {rule.conditions.length} {t('workflows.conditionsLabel')} · {rule.actions.length} {t('workflows.actionsLabel')}
                   {rule.run_count > 0 && ` · ${t('workflows.ranTimes').replace('{n}', String(rule.run_count))}`}
                 </div>
@@ -182,7 +182,7 @@ export default function WorkflowsPage() {
                 }}>
                   {rule.is_active ? t('workflows.active') : t('workflows.inactive')}
                 </span>
-                <button onClick={() => deleteRule(rule.id)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}>
+                <button onClick={() => deleteRule(rule.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -198,7 +198,7 @@ export default function WorkflowsPage() {
               <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>
                 {editingId ? t('workflows.editRule') : t('workflows.newRule')}
               </h2>
-              <button onClick={closeBuilder} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+              <button onClick={closeBuilder} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
             </div>
 
             <label style={lbl}>{t('workflows.ruleName')}</label>
@@ -224,7 +224,7 @@ export default function WorkflowsPage() {
                     {(meta?.operators || []).map(op => <option key={op} value={op}>{t(`workflows.op.${op}`)}</option>)}
                   </select>
                   <input value={cond.value} onChange={e => setConditions(cs => cs.map((c, ci) => ci === i ? { ...c, value: e.target.value } : c))} style={inp} placeholder={t('workflows.value')} />
-                  <button onClick={() => setConditions(cs => cs.filter((_, ci) => ci !== i))} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={16} /></button>
+                  <button onClick={() => setConditions(cs => cs.filter((_, ci) => ci !== i))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={16} /></button>
                 </div>
               ))}
             </div>
@@ -244,7 +244,7 @@ export default function WorkflowsPage() {
                     >
                       {(meta?.action_types || []).map(at => <option key={at} value={at}>{t(`workflows.actionType.${at}`)}</option>)}
                     </select>
-                    <button onClick={() => setActions(as => as.filter((_, ai) => ai !== i))} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', marginLeft: 8 }}><X size={16} /></button>
+                    <button onClick={() => setActions(as => as.filter((_, ai) => ai !== i))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginLeft: 8 }}><X size={16} /></button>
                   </div>
                   {(action.type === 'send_email' || action.type === 'send_sms') && (
                     <input

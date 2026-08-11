@@ -394,7 +394,7 @@ export default function SettingsPage() {
             <HelpCircle size={14} /> {t('tour.replay')}
           </button>
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('settings.subtitle')}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('settings.subtitle')}</p>
 
         <div style={{ display: 'flex', gap: 6, marginBottom: 28, borderBottom: '1px solid var(--border-strong)', flexWrap: 'wrap' }}>
           {TABS.map(tb => {
@@ -417,7 +417,7 @@ export default function SettingsPage() {
         {tab === 'appearance' && (
           <div>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.appearanceTitle')}</h2>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('settings.appearanceSubtitle')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>{t('settings.appearanceSubtitle')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, maxWidth: 480 }}>
               {(['dark', 'light'] as const).map(mode => {
                 const isActive = theme === mode;
@@ -444,7 +444,7 @@ export default function SettingsPage() {
         {tab === 'language' && (
           <div>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('language.title')}</h2>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('language.subtitle')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>{t('language.subtitle')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 20 }}>
               {LANGUAGES.map(lang => {
                 const isActive = language === lang.code;
@@ -463,7 +463,7 @@ export default function SettingsPage() {
                       <span style={{ fontSize: 26 }}>{lang.flag}</span>
                       <div>
                         <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>{lang.nativeName}</div>
-                        <div style={{ fontSize: 12, color: '#64748B' }}>{lang.name}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{lang.name}</div>
                       </div>
                     </div>
                     {isActive && (
@@ -481,7 +481,7 @@ export default function SettingsPage() {
         {tab === 'currency' && (
           <div>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.currencyTitle')}</h2>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('settings.currencySubtitle')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>{t('settings.currencySubtitle')}</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, maxWidth: 560 }}>
               {CURRENCIES.map(cur => {
                 const isActive = currency === cur.code;
@@ -500,7 +500,7 @@ export default function SettingsPage() {
                       <span style={{ fontSize: 20, fontFamily: 'IBM Plex Mono', fontWeight: 700, color: isActive ? '#FBC02D' : 'var(--text-secondary)', width: 32 }}>{cur.symbol}</span>
                       <div>
                         <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>{cur.code}</div>
-                        <div style={{ fontSize: 12, color: '#64748B' }}>{cur.name}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{cur.name}</div>
                       </div>
                     </div>
                     {isActive && <Check size={16} color="#FBC02D" />}
@@ -515,7 +515,7 @@ export default function SettingsPage() {
         {tab === 'organization' && (
           <div style={{ maxWidth: 420 }}>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.organizationTitle')}</h2>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('settings.organizationSubtitle')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>{t('settings.organizationSubtitle')}</p>
             <label style={lbl}>{t('settings.organizationName')}</label>
             <input value={orgName} onChange={e => setOrgName(e.target.value)} spellCheck autoCorrect="on" autoCapitalize="words" style={inp} />
             <label style={{ ...lbl, marginTop: 14 }}>{t('settings.timezone')}</label>
@@ -531,7 +531,7 @@ export default function SettingsPage() {
         {tab === 'team' && (
           <div style={{ maxWidth: 640 }}>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('team.title')}</h2>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('team.subtitle')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>{t('team.subtitle')}</p>
 
             {canInvite && (
               <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 20, marginBottom: 24 }}>
@@ -582,9 +582,9 @@ export default function SettingsPage() {
                 }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans' }}>
-                      {m.first_name} {m.last_name} {m.id === currentUserId && <span style={{ color: '#64748B', fontWeight: 400 }}>({t('team.you')})</span>}
+                      {m.first_name} {m.last_name} {m.id === currentUserId && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({t('team.you')})</span>}
                     </div>
-                    <div style={{ fontSize: 12, color: '#64748B' }}>{m.email}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{m.email}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     {canChangeRole && m.role !== 'owner' && m.id !== currentUserId ? (
@@ -616,7 +616,7 @@ export default function SettingsPage() {
                 </div>
               ))}
               {!loadingMembers && members.length === 0 && (
-                <div style={{ padding: 20, textAlign: 'center', fontSize: 13, color: '#64748B' }}>—</div>
+                <div style={{ padding: 20, textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>—</div>
               )}
             </div>
             <p style={{ fontSize: 11, color: '#475569', marginTop: 16 }}>{t('team.permissionNote')}</p>
@@ -626,7 +626,7 @@ export default function SettingsPage() {
         {tab === 'notifications' && (
           <div style={{ maxWidth: 480 }}>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.notificationsTitle')}</h2>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('settings.notificationsSubtitle')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>{t('settings.notificationsSubtitle')}</p>
 
             <ToggleRow
               label={t('settings.notifyEmail')}
@@ -649,11 +649,11 @@ export default function SettingsPage() {
         {tab === 'security' && (
           <div style={{ maxWidth: 420 }}>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.securityTitle')}</h2>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('settings.securitySubtitle')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>{t('settings.securitySubtitle')}</p>
 
             <div style={{ marginBottom: 28, paddingBottom: 28, borderBottom: '1px solid var(--border-strong)' }}>
               <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 2 }}>Login email</h3>
-              <p style={{ fontSize: 11.5, color: '#64748B', marginBottom: 14 }}>
+              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginBottom: 14 }}>
                 This is what you sign in with — currently <b style={{ color: 'var(--text-secondary)' }}>{getUser()?.email}</b>. Changing it requires your current password and re-verification.
               </p>
               <label style={lbl}>New email</label>
@@ -677,7 +677,7 @@ export default function SettingsPage() {
 
             <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--border-strong)' }}>
               <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.mfaTitle')}</h2>
-              <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('settings.mfaSubtitle')}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>{t('settings.mfaSubtitle')}</p>
 
               {newBackupCodes && (
                 <div style={{ maxWidth: 420, background: 'var(--bg-app)', border: '1px solid #F59E0B', borderRadius: 10, padding: 18, marginBottom: 20 }}>
@@ -785,7 +785,7 @@ export default function SettingsPage() {
         {tab === 'payments' && (
           <div style={{ maxWidth: 560 }}>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>Online Rent Payments</h2>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18, lineHeight: 1.6 }}>
               Connect a Stripe account so your tenants can pay rent online, directly into your own bank account — PropAgent never holds or touches the money.
             </p>
 
@@ -796,7 +796,7 @@ export default function SettingsPage() {
                 <CheckCircle size={18} color="#10B981" />
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Connected and ready</div>
-                  <div style={{ fontSize: 12, color: '#64748B' }}>Tenants you invite to the portal can now pay rent online.</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Tenants you invite to the portal can now pay rent online.</div>
                 </div>
               </div>
             ) : (
@@ -817,7 +817,7 @@ export default function SettingsPage() {
 
             <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--border-strong)' }}>
               <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 8 }}>How it works</h3>
-              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#64748B', lineHeight: 1.9 }}>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.9 }}>
                 <li>Connect your Stripe account here (one-time setup).</li>
                 <li>Invite tenants to the portal from the Tenants page.</li>
                 <li>Tenants pay by card or bank transfer — funds go straight to your account.</li>
@@ -830,8 +830,8 @@ export default function SettingsPage() {
         {tab === 'api' && (
           <div style={{ maxWidth: 560 }}>
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('settings.apiTitle')}</h2>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 10, lineHeight: 1.6 }}>{t('settings.apiSubtitle')}</p>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18, lineHeight: 1.6 }}>{t('settings.apiZapierNote')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10, lineHeight: 1.6 }}>{t('settings.apiSubtitle')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18, lineHeight: 1.6 }}>{t('settings.apiZapierNote')}</p>
 
             {loadingApiKey ? (
               <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('nav.loading')}</p>
@@ -865,7 +865,7 @@ export default function SettingsPage() {
 
             <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--border-strong)' }}>
               <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 8 }}>{t('settings.apiDocsTitle')}</h3>
-              <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.6, marginBottom: 10 }}>{t('settings.apiDocsSubtitle')}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 10 }}>{t('settings.apiDocsSubtitle')}</p>
               <p style={{ fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>
                 {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/docs
               </p>
@@ -894,7 +894,7 @@ function ToggleRow({ label, description, checked, disabled, onChange }: { label:
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--border-subtle)' }}>
       <div style={{ paddingRight: 16 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans' }}>{label}</div>
-        <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{description}</div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{description}</div>
       </div>
       <div
         onClick={() => !disabled && onChange(!checked)}

@@ -68,7 +68,7 @@ export default function ResetPassword() {
                       spellCheck={false} autoCorrect="off" autoCapitalize="off" autoComplete="new-password" autoFocus
                     />
                     <button type="button" onClick={() => setShowPassword(p => !p)} aria-label="Toggle password visibility"
-                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', padding: 4, cursor: 'pointer', color: '#64748B', display: 'flex', alignItems: 'center' }}>
+                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', padding: 4, cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
@@ -89,7 +89,7 @@ export default function ResetPassword() {
           </div>
 
           {!done && (
-            <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: '#64748B', fontFamily: 'IBM Plex Sans' }}>
+            <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>
               <Link href="/login" style={{ color: '#FBC02D', textDecoration: 'none', fontWeight: 600 }}>Back to sign in</Link>
             </p>
           )}

@@ -69,7 +69,7 @@ export default function Signup() {
             <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 20, color: 'var(--text-primary)' }}>PropAgent AI</span>
           </div>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 24, color: 'var(--text-primary)', marginBottom: 6 }}>{t('signup.title')}</h1>
-          <p style={{ color: '#64748B', fontSize: 14 }}>{t('signup.subtitle')}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t('signup.subtitle')}</p>
         </div>
 
         {referralCode && (
@@ -127,7 +127,7 @@ export default function Signup() {
           </p>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: '#64748B' }}>
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--text-muted)' }}>
           {t('signup.haveAccount')}{' '}
           <Link href="/login" style={{ color: '#FBC02D', textDecoration: 'none', fontWeight: 600 }}>{t('signup.loginLink')}</Link>
         </p>

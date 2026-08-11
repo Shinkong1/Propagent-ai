@@ -80,7 +80,7 @@ export default function MarketingHub() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', textAlign: 'center', gap: 12 }}>
           <ShieldAlert size={32} color="#EF4444" />
           <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Owner access only</h2>
-          <p style={{ color: '#64748B', fontSize: 14, maxWidth: 360 }}>The Marketing Hub is for the platform owner — it's about marketing PropAgent AI itself, not your own listings.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, maxWidth: 360 }}>The Marketing Hub is for the platform owner — it's about marketing PropAgent AI itself, not your own listings.</p>
         </div>
       </DashboardLayout>
     );
@@ -92,7 +92,7 @@ export default function MarketingHub() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 8 }}>
           <div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Marketing Hub</h1>
-            <p style={{ color: '#64748B', fontSize: 14 }}>Everything to start marketing PropAgent AI on Google, social, and rental listing sites.</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Everything to start marketing PropAgent AI on Google, social, and rental listing sites.</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 10, background: 'var(--bg-surface)', border: '1px solid var(--border-strong)' }}>
             <CheckCircle2 size={14} color="#10B981" />
@@ -114,7 +114,7 @@ export default function MarketingHub() {
           <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 16, display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 240 }}>
               <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 13.5, color: 'var(--text-primary)', marginBottom: 4 }}>Self-playing product walkthrough</div>
-              <div style={{ fontSize: 12.5, color: '#64748B', marginBottom: 10, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 10, lineHeight: 1.5 }}>
                 A 6-scene, self-advancing tour built from real demo-account data — AI Workforce, Voice Receptionist, Maintenance, Leasing &amp; screening.
                 Send this link instead of walking a prospect through it live. It's automatically kept up to date whenever the demo data is refreshed.
               </div>
@@ -139,11 +139,11 @@ export default function MarketingHub() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
                     <span style={{ fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>{demoCreds.login_email}</span>
-                    <button onClick={() => copy(demoCreds.login_email, 'Email copied')} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', padding: 2 }}><Copy size={12} /></button>
+                    <button onClick={() => copy(demoCreds.login_email, 'Email copied')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 2 }}><Copy size={12} /></button>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                     <span style={{ fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-primary)' }}>{demoCreds.login_password}</span>
-                    <button onClick={() => copy(demoCreds.login_password, 'Password copied')} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', padding: 2 }}><Copy size={12} /></button>
+                    <button onClick={() => copy(demoCreds.login_password, 'Password copied')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 2 }}><Copy size={12} /></button>
                   </div>
                 </div>
               )}
@@ -192,7 +192,7 @@ export default function MarketingHub() {
 
         {/* Listing syndication */}
         <Section icon={Building2} title="Rental listing sites">
-          <div style={{ fontSize: 12.5, color: '#64748B', marginBottom: 12, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.6 }}>
             Zillow and Apartments.com don't offer a self-serve API — getting listings onto them means applying as an ILS
             (Internet Listing Service) partner, a business process rather than a code change. Worth doing once you have
             real listings live; start the applications below when you're ready.
@@ -237,7 +237,7 @@ function Card({ title, body, action, copyable, done, onToggle }: {
       </button>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 13.5, color: 'var(--text-primary)', marginBottom: 4 }}>{title}</div>
-        <div style={{ fontSize: 12.5, color: '#64748B', marginBottom: 10, lineHeight: 1.5 }}>{body}</div>
+        <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 10, lineHeight: 1.5 }}>{body}</div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <a href={action.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', color: '#FBC02D', fontSize: 11.5, fontFamily: 'Syne', fontWeight: 600 }}>

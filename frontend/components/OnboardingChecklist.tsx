@@ -42,11 +42,11 @@ export default function OnboardingChecklist({ stats }: { stats: any }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <Sparkles size={15} color="#FBC02D" />
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>Get set up</h2>
-            <span style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B' }}>{doneCount}/{steps.length}</span>
+            <span style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)' }}>{doneCount}/{steps.length}</span>
           </div>
-          <p style={{ fontSize: 12.5, color: '#64748B', margin: 0 }}>A few steps to get your portfolio live and your AI workforce actually doing something.</p>
+          <p style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: 0 }}>A few steps to get your portfolio live and your AI workforce actually doing something.</p>
         </div>
-        <button onClick={dismiss} aria-label="Dismiss" style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4, flexShrink: 0 }}>
+        <button onClick={dismiss} aria-label="Dismiss" style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4, flexShrink: 0 }}>
           <X size={15} />
         </button>
       </div>

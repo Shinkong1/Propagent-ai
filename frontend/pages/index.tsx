@@ -148,7 +148,7 @@ export default function Home() {
           <p style={{ color: 'var(--text-secondary)', fontSize: 18, lineHeight: 1.6, marginBottom: 16, fontFamily: 'IBM Plex Sans' }}>
             {t('landing.subtitle')}
           </p>
-          <p style={{ color: '#64748B', fontSize: 14, lineHeight: 1.6, marginBottom: 36, fontFamily: 'IBM Plex Sans', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.6, marginBottom: 36, fontFamily: 'IBM Plex Sans', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' }}>
             Not a chatbot bolted onto your PMS — <span style={{ color: 'var(--text-secondary)' }}>a multi-agent AI platform that runs full workflows end-to-end: triage, dispatch, follow-up, and reporting, autonomously.</span>
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -184,7 +184,7 @@ export default function Home() {
           {[['15hrs', 'Saved/week avg'], ['94%', 'Response rate'], ['3x', 'Faster maintenance'], ['47%', 'Less vacancy'], ['8', 'Languages supported']].map(([v, l]) => (
             <div key={l} style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 28, fontWeight: 600, color: '#FBC02D' }}>{v}</div>
-              <div style={{ fontSize: 12, color: '#64748B', fontFamily: 'IBM Plex Sans', marginTop: 4 }}>{l}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans', marginTop: 4 }}>{l}</div>
             </div>
           ))}
         </section>
@@ -239,7 +239,7 @@ export default function Home() {
           <h2 style={{ textAlign: 'center', fontFamily: 'Syne', fontWeight: 800, fontSize: 36, color: 'var(--text-primary)', marginBottom: 12 }}>
             Everything Automated
           </h2>
-          <p style={{ textAlign: 'center', color: '#64748B', marginBottom: 48, fontFamily: 'IBM Plex Sans' }}>
+          <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: 48, fontFamily: 'IBM Plex Sans' }}>
             Seven specialized AI agents handle every aspect of property management
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 }}>
@@ -255,7 +255,7 @@ export default function Home() {
                   <Icon size={20} color="#FBC02D" />
                 </div>
                 <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 8 }}>{title}</div>
-                <div style={{ fontSize: 13, color: '#64748B', lineHeight: 1.5, fontFamily: 'IBM Plex Sans' }}>{desc}</div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5, fontFamily: 'IBM Plex Sans' }}>{desc}</div>
               </div>
             ))}
           </div>
@@ -286,7 +286,7 @@ export default function Home() {
                   <div style={{ fontSize: 13, fontFamily: 'Syne', fontWeight: 700, color: 'var(--text-primary)' }}>
                     {tst.customer_name}
                     {tst.customer_title && (
-                      <span style={{ fontWeight: 400, color: '#64748B' }}> — {tst.customer_title}</span>
+                      <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}> — {tst.customer_title}</span>
                     )}
                   </div>
                 </div>

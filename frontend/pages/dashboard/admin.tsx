@@ -63,10 +63,10 @@ function KpiCard({ label, value, sub, icon: Icon, onClick }: { label: string; va
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         <Icon size={14} color="#FBC02D" />
-        <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px' }}>{label.toUpperCase()}</div>
+        <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>{label.toUpperCase()}</div>
       </div>
       <div style={{ fontSize: 22, fontFamily: 'IBM Plex Mono', fontWeight: 600, color: 'var(--text-primary)' }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{sub}</div>}
       {onClick && <div style={{ fontSize: 10, color: '#FBC02D', marginTop: 6 }}>View breakdown →</div>}
     </div>
   );
@@ -84,7 +84,7 @@ function MiniBarChart({ data, valueKey, labelKey }: { data: any[]; valueKey: str
             height: Math.max(3, (d[valueKey] / max) * 80),
             background: 'linear-gradient(180deg, #FBC02D, #F57F17)',
           }} />
-          <div style={{ fontSize: 9, color: '#64748B', fontFamily: 'IBM Plex Mono', whiteSpace: 'nowrap' }}>{d[labelKey]}</div>
+          <div style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', whiteSpace: 'nowrap' }}>{d[labelKey]}</div>
         </div>
       ))}
     </div>
@@ -270,7 +270,7 @@ export default function OwnerAdmin() {
             <ShieldAlert size={26} color="#EF4444" />
           </div>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text-primary)', marginBottom: 10 }}>{t('admin.title')}</h1>
-          <p style={{ color: '#64748B', fontSize: 14 }}>{t('admin.unauthorized')}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t('admin.unauthorized')}</p>
         </div>
       </DashboardLayout>
     );
@@ -279,7 +279,7 @@ export default function OwnerAdmin() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
       </DashboardLayout>
     );
   }
@@ -300,7 +300,7 @@ export default function OwnerAdmin() {
           <Crown size={24} color="#FBC02D" />
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 26, color: 'var(--text-primary)' }}>{t('admin.title')}</h1>
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 20 }}>{t('admin.subtitle')}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>{t('admin.subtitle')}</p>
 
         <div style={{ display: 'flex', gap: 6, marginBottom: 24, borderBottom: '1px solid var(--border-strong)', flexWrap: 'wrap' }}>
           {TABS.map(tb => {
@@ -363,7 +363,7 @@ export default function OwnerAdmin() {
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                       {[t('admin.name'), t('admin.planCol'), t('admin.usersCol'), t('admin.propertiesCol'), t('admin.unitsCol'), t('admin.aiCallsCol'), t('admin.statusCol'), t('admin.createdCol'), t('admin.activityCol')].map(h => (
-                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -396,7 +396,7 @@ export default function OwnerAdmin() {
                             {o.is_active ? t('admin.active') : t('admin.inactive')}
                           </button>
                         </td>
-                        <td style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', whiteSpace: 'nowrap' }}>{new Date(o.created_at).toLocaleDateString()}</td>
+                        <td style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{new Date(o.created_at).toLocaleDateString()}</td>
                         <td style={{ padding: '10px 14px' }}>
                           <button
                             onClick={() => openActivity(o)}
@@ -421,7 +421,7 @@ export default function OwnerAdmin() {
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                       {[t('admin.name'), t('admin.emailCol'), t('admin.organizationCol'), t('admin.roleCol'), t('admin.statusCol')].map(h => (
-                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -454,14 +454,14 @@ export default function OwnerAdmin() {
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
               <MessageSquare size={16} color="#FBC02D" /> {t('admin.messagesTable')}
             </h2>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 12 }}>{t('admin.messagesSubtitle')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>{t('admin.messagesSubtitle')}</p>
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden' }}>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                       {[t('admin.sourceCol'), t('admin.senderCol'), t('admin.organizationCol'), t('admin.subjectCol'), t('admin.emailStatusCol'), t('admin.createdCol')].map(h => (
-                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -483,7 +483,7 @@ export default function OwnerAdmin() {
                         </td>
                         <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-primary)' }}>
                           {m.sender_name || '—'}
-                          <div style={{ fontSize: 11, color: '#64748B' }}>{m.sender_email || ''}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{m.sender_email || ''}</div>
                         </td>
                         <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)' }}>{m.organization_name || '—'}</td>
                         <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -495,7 +495,7 @@ export default function OwnerAdmin() {
                             {t(`admin.emailStatus.${m.email_status}`)}
                           </span>
                         </td>
-                        <td style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', whiteSpace: 'nowrap' }}>{new Date(m.created_at).toLocaleString()}</td>
+                        <td style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{new Date(m.created_at).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -516,7 +516,7 @@ export default function OwnerAdmin() {
               <KpiCard label={t('admin.churnRate')} value={revenue.churn_rate_30d !== null ? `${revenue.churn_rate_30d}%` : '—'} sub={revenue.churn_note || t('admin.churnSub')} icon={Repeat} />
               <KpiCard label={t('admin.ltv')} value={revenue.ltv !== null ? formatMoney(revenue.ltv) : '—'} sub={t('admin.ltvSub')} icon={Gift} />
             </div>
-            <p style={{ fontSize: 12, color: '#64748B' }}>{t('admin.revenueNote')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('admin.revenueNote')}</p>
           </>
         )}
 
@@ -537,15 +537,15 @@ export default function OwnerAdmin() {
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 12 }}>{t('admin.referralLeaderboard')}</h2>
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden', marginBottom: 16 }}>
               {growth.referral_leaderboard.length === 0 ? (
-                <div style={{ padding: 24, textAlign: 'center', color: '#64748B', fontSize: 13 }}>{t('admin.noReferrals')}</div>
+                <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>{t('admin.noReferrals')}</div>
               ) : growth.referral_leaderboard.map((r: any, i: number) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 16px', borderTop: i === 0 ? 'none' : '1px solid var(--border-subtle)' }}>
                   <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{r.organization_name}</span>
-                  <span style={{ fontSize: 12, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{r.referred_count} {t('admin.referrals')}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{r.referred_count} {t('admin.referrals')}</span>
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: 12, color: '#64748B' }}>{t('admin.marketingNote')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('admin.marketingNote')}</p>
           </>
         )}
 
@@ -586,7 +586,7 @@ export default function OwnerAdmin() {
               </div>
             </div>
             {!platform.health.celery_workers_online && (
-              <p style={{ fontSize: 11, color: '#64748B', marginTop: -10, marginBottom: 20, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: -10, marginBottom: 20, lineHeight: 1.6 }}>
                 No paid background-worker service is deployed, so this tile shows 0 by design — that's expected, not a malfunction. Scheduled jobs (outreach sending, lead re-engagement, trial nurture emails, billing reconciliation, and lead research) instead run via <code>/internal/cron/*</code> endpoints, meant to be hit periodically by a free external scheduler like cron-job.org.
                 {!platform.health.cron_scheduler_configured && ' CRON_SECRET is not set, though, so none of those scheduled jobs can actually run yet — set it, then point a free scheduler at each /internal/cron/* endpoint.'}
               </p>
@@ -613,12 +613,12 @@ export default function OwnerAdmin() {
             </h2>
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden' }}>
               {platform.recent_errors.length === 0 ? (
-                <div style={{ padding: 24, textAlign: 'center', color: '#64748B', fontSize: 13 }}>{t('admin.noErrors')}</div>
+                <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>{t('admin.noErrors')}</div>
               ) : platform.recent_errors.map((e: any) => (
                 <div key={e.id} style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: 12, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono' }}>{e.method} {e.path}</div>
                   <div style={{ fontSize: 11, color: '#EF4444' }}>{e.error_message}</div>
-                  <div style={{ fontSize: 10, color: '#64748B' }}>{new Date(e.created_at).toLocaleString()}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{new Date(e.created_at).toLocaleString()}</div>
                 </div>
               ))}
             </div>
@@ -630,7 +630,7 @@ export default function OwnerAdmin() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
               <div>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 2 }}>Everything you need to run this platform</h2>
-                <p style={{ fontSize: 12.5, color: '#64748B' }}>Every dashboard you'll actually log into, plus the links worth sharing.</p>
+                <p style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>Every dashboard you'll actually log into, plus the links worth sharing.</p>
               </div>
               <Link href="/dashboard/marketing" style={{ textDecoration: 'none' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', borderRadius: 8, background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', color: '#FBC02D', fontSize: 12.5, fontFamily: 'Syne', fontWeight: 700 }}>
@@ -650,7 +650,7 @@ export default function OwnerAdmin() {
                         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'Syne' }}>{svc.name}</span>
                         <ExternalLink size={11} color="#64748B" />
                       </div>
-                      <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 2 }}>{svc.role}</div>
+                      <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>{svc.role}</div>
                     </div>
                   </div>
                 </a>
@@ -662,16 +662,16 @@ export default function OwnerAdmin() {
             </h3>
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden', marginBottom: 28 }}>
               {!platform ? (
-                <div style={{ padding: 20, textAlign: 'center', color: '#64748B', fontSize: 13 }}>Loading...</div>
+                <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Loading...</div>
               ) : platform.recent_errors.length === 0 ? (
-                <div style={{ padding: 20, textAlign: 'center', color: '#64748B', fontSize: 13 }}>No recent errors — nothing to fix right now.</div>
+                <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>No recent errors — nothing to fix right now.</div>
               ) : (
                 <>
                   {platform.recent_errors.slice(0, 3).map((e: any) => (
                     <div key={e.id} style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
                       <div style={{ fontSize: 12, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono' }}>{e.method} {e.path}</div>
                       <div style={{ fontSize: 11, color: '#EF4444' }}>{e.error_message}</div>
-                      <div style={{ fontSize: 10, color: '#64748B' }}>{new Date(e.created_at).toLocaleString()}</div>
+                      <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{new Date(e.created_at).toLocaleString()}</div>
                     </div>
                   ))}
                   <button onClick={() => goTab('platform')} style={{ width: '100%', padding: '10px', background: 'none', border: 'none', borderTop: '1px solid var(--border-subtle)', color: '#FBC02D', fontSize: 12, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer' }}>
@@ -687,7 +687,7 @@ export default function OwnerAdmin() {
                 <div key={l.url} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)' }}>{l.label}</div>
-                    <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.url}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.url}</div>
                   </div>
                   <button onClick={() => copyLink(l.url)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 6, background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', color: '#FBC02D', fontSize: 11.5, fontFamily: 'IBM Plex Mono', cursor: 'pointer', flexShrink: 0 }}>
                     <Copy size={11} /> Copy
@@ -699,7 +699,7 @@ export default function OwnerAdmin() {
             <h3 style={{ ...sectionTitle, marginTop: 28 }}>
               <ShieldCheck size={14} color="#FBC02D" /> Site verification files
             </h3>
-            <p style={{ fontSize: 12, color: '#64748B', marginBottom: 12, marginTop: -6 }}>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, marginTop: -6 }}>
               Google Search Console, Bing Webmaster Tools, and similar services confirm domain ownership by asking you to host a
               specific file at your site's root. Add it here — it goes live immediately, no deploy needed.
             </p>
@@ -714,7 +714,7 @@ export default function OwnerAdmin() {
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Star size={16} color="#FBC02D" /> Testimonials
                 </h2>
-                <p style={{ fontSize: 12.5, color: '#64748B', maxWidth: 560 }}>
+                <p style={{ fontSize: 12.5, color: 'var(--text-muted)', maxWidth: 560 }}>
                   Add real testimonials only, as you actually collect them from real customers with their permission.
                   New entries start as drafts (unpublished) so you can review before anything goes live on the public site.
                 </p>
@@ -775,39 +775,39 @@ export default function OwnerAdmin() {
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
               <div>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 17, color: 'var(--text-primary)', marginBottom: 4 }}>{activityOrg.name}</h2>
-                <div style={{ fontSize: 12, color: '#64748B' }}>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                   {t(`admin.plan.${activityOrg.plan}`)} · {activityOrg.user_count} {t('admin.usersCol').toLowerCase()} · {activityOrg.property_count} {t('admin.propertiesCol').toLowerCase()}
                 </div>
               </div>
-              <button onClick={() => setActivityOrg(null)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
+              <button onClick={() => setActivityOrg(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}>
                 <X size={18} />
               </button>
             </div>
 
             {loadingActivity ? (
-              <p style={{ fontSize: 13, color: '#64748B' }}>{t('admin.loading')}</p>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('admin.loading')}</p>
             ) : orgActivity ? (
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
                   <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 12 }}>
                     <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'Syne', color: '#FBC02D' }}>{orgActivity.voice_calls_last_30d}</div>
-                    <div style={{ fontSize: 11, color: '#64748B' }}>{t('admin.voiceCalls30d')}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('admin.voiceCalls30d')}</div>
                   </div>
                   <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 12 }}>
                     <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'Syne', color: '#FBC02D' }}>{orgActivity.maintenance_tickets_last_30d}</div>
-                    <div style={{ fontSize: 11, color: '#64748B' }}>{t('admin.tickets30d')}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('admin.tickets30d')}</div>
                   </div>
                 </div>
 
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 8, letterSpacing: '0.5px' }}>{t('admin.usersTable').toUpperCase()}</div>
+                  <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', marginBottom: 8, letterSpacing: '0.5px' }}>{t('admin.usersTable').toUpperCase()}</div>
                   {orgActivity.users.map((u: any) => (
                     <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border-subtle)', fontSize: 12 }}>
                       <div>
                         <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{u.full_name}</span>
-                        <span style={{ color: '#64748B', marginLeft: 6 }}>{u.email}</span>
+                        <span style={{ color: 'var(--text-muted)', marginLeft: 6 }}>{u.email}</span>
                       </div>
-                      <span style={{ color: '#64748B', fontFamily: 'IBM Plex Mono', fontSize: 11 }}>
+                      <span style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', fontSize: 11 }}>
                         {u.last_login_at ? new Date(u.last_login_at).toLocaleDateString() : t('admin.neverLoggedIn')}
                       </span>
                     </div>
@@ -815,15 +815,15 @@ export default function OwnerAdmin() {
                 </div>
 
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 8, letterSpacing: '0.5px' }}>{t('admin.billingHistory').toUpperCase()}</div>
+                  <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', marginBottom: 8, letterSpacing: '0.5px' }}>{t('admin.billingHistory').toUpperCase()}</div>
                   {orgActivity.events.length === 0 ? (
-                    <p style={{ fontSize: 12, color: '#64748B' }}>{t('admin.noEvents')}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('admin.noEvents')}</p>
                   ) : orgActivity.events.map((e: any, i: number) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--border-subtle)', fontSize: 12 }}>
                       <span style={{ color: 'var(--text-primary)' }}>
                         {e.type}{e.from_plan && e.to_plan ? ` (${e.from_plan} → ${e.to_plan})` : ''}
                       </span>
-                      <span style={{ color: '#64748B', fontFamily: 'IBM Plex Mono', fontSize: 11 }}>{new Date(e.created_at).toLocaleDateString()}</span>
+                      <span style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', fontSize: 11 }}>{new Date(e.created_at).toLocaleDateString()}</span>
                     </div>
                   ))}
                 </div>
@@ -837,7 +837,7 @@ export default function OwnerAdmin() {
                 </button>
               </>
             ) : (
-              <p style={{ fontSize: 13, color: '#64748B' }}>{t('admin.actionFailed')}</p>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('admin.actionFailed')}</p>
             )}
           </div>
         </div>
@@ -855,7 +855,7 @@ export default function OwnerAdmin() {
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 17, color: 'var(--text-primary)', marginBottom: 4 }}>{selectedMessage.subject}</h2>
-                <div style={{ fontSize: 12, color: '#64748B' }}>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                   {selectedMessage.sender_name || '—'} · {selectedMessage.sender_email || 'no email on file'}
                   {selectedMessage.organization_name && ` · ${selectedMessage.organization_name}`}
                 </div>
@@ -875,7 +875,7 @@ export default function OwnerAdmin() {
                 }} title="Delete message" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#EF4444', cursor: 'pointer', padding: 6, borderRadius: 6, display: 'flex', alignItems: 'center' }}>
                   <Trash2 size={14} />
                 </button>
-                <button onClick={() => setSelectedMessage(null)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
+                <button onClick={() => setSelectedMessage(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}>
                   <X size={18} />
                 </button>
               </div>
@@ -898,7 +898,7 @@ export default function OwnerAdmin() {
 
             {selectedMessage.reply_body && (
               <div style={{ marginBottom: 18 }}>
-                <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6, letterSpacing: '0.5px' }}>
+                <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '0.5px' }}>
                   YOUR REPLY {selectedMessage.replied_at && `· ${new Date(selectedMessage.replied_at).toLocaleString()}`}
                   {selectedMessage.reply_status && selectedMessage.reply_status !== 'sent' && (
                     <span style={{ color: '#EF4444', marginLeft: 6 }}>(not delivered — {selectedMessage.reply_status})</span>
@@ -941,7 +941,7 @@ export default function OwnerAdmin() {
                 </button>
               </div>
             ) : (
-              <p style={{ fontSize: 12, color: '#64748B', fontStyle: 'italic' }}>No sender email on file — can't reply directly to this message.</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>No sender email on file — can't reply directly to this message.</p>
             )}
           </div>
         </div>
@@ -960,7 +960,7 @@ export default function OwnerAdmin() {
               <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 17, color: 'var(--text-primary)' }}>
                 {revenueModal === 'mrr' ? 'MRR Breakdown' : revenueModal === 'arr' ? 'ARR Breakdown' : 'ARPU Breakdown'}
               </h2>
-              <button onClick={() => setRevenueModal(null)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
+              <button onClick={() => setRevenueModal(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}>
                 <X size={18} />
               </button>
             </div>
@@ -972,7 +972,7 @@ export default function OwnerAdmin() {
                     <thead>
                       <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                         {['Plan', 'Orgs', 'Price / org', 'Subtotal'].map(h => (
-                          <th key={h} style={{ padding: '8px 12px', textAlign: h === 'Plan' ? 'left' : 'right', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px' }}>{h}</th>
+                          <th key={h} style={{ padding: '8px 12px', textAlign: h === 'Plan' ? 'left' : 'right', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -994,7 +994,7 @@ export default function OwnerAdmin() {
                     </tfoot>
                   </table>
                 </div>
-                <p style={{ fontSize: 11, color: '#64748B', lineHeight: 1.6 }}>{revenue.mrr_methodology_note}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6 }}>{revenue.mrr_methodology_note}</p>
               </>
             )}
 
@@ -1002,13 +1002,13 @@ export default function OwnerAdmin() {
               <>
                 <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 18, marginBottom: 14, textAlign: 'center' }}>
                   <div style={{ fontSize: 15, fontFamily: 'IBM Plex Mono', color: 'var(--text-primary)' }}>
-                    {formatMoney(revenue.mrr)} <span style={{ color: '#64748B' }}>MRR</span> × 12 months
+                    {formatMoney(revenue.mrr)} <span style={{ color: 'var(--text-muted)' }}>MRR</span> × 12 months
                   </div>
                   <div style={{ fontSize: 22, fontFamily: 'IBM Plex Mono', fontWeight: 700, color: '#FBC02D', marginTop: 8 }}>
                     = {formatMoney(revenue.arr)}
                   </div>
                 </div>
-                <p style={{ fontSize: 11, color: '#64748B', lineHeight: 1.6 }}>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6 }}>
                   ARR is Monthly Recurring Revenue annualized — it assumes the current MRR holds steady for 12 months, so it moves exactly in step with MRR. See the MRR card for how that figure itself is built up.
                 </p>
               </>
@@ -1018,13 +1018,13 @@ export default function OwnerAdmin() {
               <>
                 <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 18, marginBottom: 14, textAlign: 'center' }}>
                   <div style={{ fontSize: 15, fontFamily: 'IBM Plex Mono', color: 'var(--text-primary)' }}>
-                    {formatMoney(revenue.mrr)} <span style={{ color: '#64748B' }}>MRR</span> ÷ {revenue.active_subscriber_count} active org{revenue.active_subscriber_count === 1 ? '' : 's'}
+                    {formatMoney(revenue.mrr)} <span style={{ color: 'var(--text-muted)' }}>MRR</span> ÷ {revenue.active_subscriber_count} active org{revenue.active_subscriber_count === 1 ? '' : 's'}
                   </div>
                   <div style={{ fontSize: 22, fontFamily: 'IBM Plex Mono', fontWeight: 700, color: '#FBC02D', marginTop: 8 }}>
                     = {formatMoney(revenue.arpu)}
                   </div>
                 </div>
-                <p style={{ fontSize: 11, color: '#64748B', lineHeight: 1.6 }}>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.6 }}>
                   ARPU (Average Revenue Per User/org) is total MRR spread evenly across every currently active organization, regardless of which plan each one is actually on.
                 </p>
               </>
@@ -1076,15 +1076,15 @@ function VerificationFilesPanel() {
   return (
     <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden' }}>
       {loading ? (
-        <div style={{ padding: 20, textAlign: 'center', color: '#64748B', fontSize: 13 }}>Loading...</div>
+        <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Loading...</div>
       ) : files.length === 0 && !showAdd ? (
-        <div style={{ padding: 20, textAlign: 'center', color: '#64748B', fontSize: 13 }}>No verification files yet.</div>
+        <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>No verification files yet.</div>
       ) : (
         files.map(f => (
           <div key={f.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono' }}>{f.filename}</div>
-              <div style={{ fontSize: 11, color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{SITE_URL}/{f.filename}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{SITE_URL}/{f.filename}</div>
             </div>
             <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
               <button onClick={() => copyLink(`${SITE_URL}/${f.filename}`)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 11.5, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
@@ -1100,10 +1100,10 @@ function VerificationFilesPanel() {
 
       {showAdd ? (
         <div style={{ padding: 16, borderTop: files.length > 0 ? '1px solid var(--border-subtle)' : 'none' }}>
-          <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B' }}>Filename (e.g. google1234567890.html)</label>
+          <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)' }}>Filename (e.g. google1234567890.html)</label>
           <input value={filename} onChange={e => setFilename(e.target.value)} placeholder="google1234567890.html"
             style={{ width: '100%', padding: '8px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Mono', outline: 'none', boxSizing: 'border-box', marginBottom: 12 }} />
-          <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B' }}>File contents (paste exactly what the service gave you)</label>
+          <label style={{ display: 'block', marginBottom: 5, fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)' }}>File contents (paste exactly what the service gave you)</label>
           <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="google-site-verification: google1234567890.html"
             style={{ width: '100%', height: 70, padding: '8px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 12.5, fontFamily: 'IBM Plex Mono', outline: 'none', boxSizing: 'border-box', resize: 'none', marginBottom: 12 }} />
           <div style={{ display: 'flex', gap: 8 }}>
@@ -1124,7 +1124,7 @@ function VerificationFilesPanel() {
   );
 }
 
-const testimonialLabelStyle: React.CSSProperties = { display: 'block', marginBottom: 5, marginTop: 12, fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B' };
+const testimonialLabelStyle: React.CSSProperties = { display: 'block', marginBottom: 5, marginTop: 12, fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)' };
 const testimonialInputStyle: React.CSSProperties = { width: '100%', padding: '9px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none', boxSizing: 'border-box' };
 
 const emptyTestimonialForm = { customer_name: '', customer_title: '', quote_text: '', rating: '', display_order: 0, is_published: false };
@@ -1224,9 +1224,9 @@ function TestimonialsPanel() {
 
       <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 20, textAlign: 'center', color: '#64748B', fontSize: 13 }}>Loading...</div>
+          <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Loading...</div>
         ) : testimonials.length === 0 ? (
-          <div style={{ padding: 24, textAlign: 'center', color: '#64748B', fontSize: 13 }}>
+          <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
             No testimonials yet. Add one once you have a real quote from a real customer, with their permission.
           </div>
         ) : (
@@ -1235,7 +1235,7 @@ function TestimonialsPanel() {
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                   {['Customer', 'Quote', 'Rating', 'Order', 'Status', ''].map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -1244,7 +1244,7 @@ function TestimonialsPanel() {
                   <tr key={t.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                     <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>
                       {t.customer_name}
-                      {t.customer_title && <div style={{ fontSize: 11, color: '#64748B', fontWeight: 400 }}>{t.customer_title}</div>}
+                      {t.customer_title && <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 400 }}>{t.customer_title}</div>}
                     </td>
                     <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)', maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.quote_text}</td>
                     <td style={{ padding: '10px 14px', fontSize: 12, color: '#FBC02D', whiteSpace: 'nowrap' }}>{t.rating ? '★'.repeat(t.rating) + '☆'.repeat(5 - t.rating) : '—'}</td>
@@ -1284,7 +1284,7 @@ function TestimonialsPanel() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
               <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>{editing ? 'Edit testimonial' : 'Add testimonial'}</h2>
-              <button onClick={() => setModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
+              <button onClick={() => setModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}>
                 <X size={18} />
               </button>
             </div>

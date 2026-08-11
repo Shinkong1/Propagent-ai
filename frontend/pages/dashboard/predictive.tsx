@@ -41,10 +41,10 @@ export default function PredictiveInsights() {
         <Radar size={26} color="#FBC02D" />
         <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)' }}>{t('predictive.title')}</h1>
       </div>
-      <p style={{ color: '#64748B', fontSize: 14, marginBottom: 28 }}>{t('predictive.subtitle')}</p>
+      <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 28 }}>{t('predictive.subtitle')}</p>
 
       {loading ? (
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
@@ -52,7 +52,7 @@ export default function PredictiveInsights() {
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>{t('predictive.maintenanceTitle')}</h2>
           </div>
           {maintenance.length === 0 ? (
-            <div style={{ padding: 24, textAlign: 'center', color: '#64748B', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, marginBottom: 28 }}>
+            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, marginBottom: 28 }}>
               {t('predictive.maintenanceEmpty')}
             </div>
           ) : (
@@ -64,7 +64,7 @@ export default function PredictiveInsights() {
                       <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>
                         {s.property_name} — {s.category}
                       </div>
-                      <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono', marginTop: 2 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginTop: 2 }}>
                         {t('predictive.confidence')}: {Math.round(s.confidence * 100)}%
                       </div>
                     </div>
@@ -86,7 +86,7 @@ export default function PredictiveInsights() {
             <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>{t('predictive.renewalTitle')}</h2>
           </div>
           {renewal.length === 0 ? (
-            <div style={{ padding: 24, textAlign: 'center', color: '#64748B', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12 }}>
+            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12 }}>
               {t('predictive.renewalEmpty')}
             </div>
           ) : (
@@ -98,7 +98,7 @@ export default function PredictiveInsights() {
                       <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>
                         {s.tenant_name} — {s.property_name} {s.unit_number ? `#${s.unit_number}` : ''}
                       </div>
-                      <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono', marginTop: 2 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginTop: 2 }}>
                         {t('predictive.confidence')}: {Math.round(s.confidence * 100)}% · {t('predictive.expiresIn').replace('{n}', String(s.days_until_expiry))}
                       </div>
                     </div>

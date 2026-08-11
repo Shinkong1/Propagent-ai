@@ -35,12 +35,12 @@ export default function VerifyEmail() {
           </div>
 
           <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 32 }}>
-            {status === 'checking' && <p style={{ color: '#64748B', fontFamily: 'IBM Plex Mono', fontSize: 13 }}>Verifying...</p>}
+            {status === 'checking' && <p style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', fontSize: 13 }}>Verifying...</p>}
             {status === 'success' && (
               <>
                 <CheckCircle size={32} color="#10B981" style={{ marginBottom: 14 }} />
                 <h1 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)', marginBottom: 6 }}>Email verified</h1>
-                <p style={{ color: '#64748B', fontSize: 13.5, fontFamily: 'IBM Plex Sans', marginBottom: 20 }}>You're all set.</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13.5, fontFamily: 'IBM Plex Sans', marginBottom: 20 }}>You're all set.</p>
                 <Link href="/dashboard" style={{ color: '#FBC02D', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>Go to dashboard</Link>
               </>
             )}
@@ -48,7 +48,7 @@ export default function VerifyEmail() {
               <>
                 <XCircle size={32} color="#EF4444" style={{ marginBottom: 14 }} />
                 <h1 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)', marginBottom: 6 }}>Couldn't verify</h1>
-                <p style={{ color: '#64748B', fontSize: 13.5, fontFamily: 'IBM Plex Sans', marginBottom: 20 }}>{error} You can request a new link from your dashboard.</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13.5, fontFamily: 'IBM Plex Sans', marginBottom: 20 }}>{error} You can request a new link from your dashboard.</p>
                 <Link href="/login" style={{ color: '#FBC02D', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>Back to sign in</Link>
               </>
             )}

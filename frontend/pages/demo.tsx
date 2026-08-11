@@ -107,7 +107,7 @@ export default function Demo() {
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#FBC02D', marginBottom: 8 }}>Automated product walkthrough</div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 30, color: 'var(--text-primary)', marginBottom: 8, textWrap: 'balance' as any }}>See PropAgent AI in action</h1>
-            <p style={{ color: '#64748B', fontSize: 14.5 }}>No slides. This is a real, live demo account — press play or let it run.</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14.5 }}>No slides. This is a real, live demo account — press play or let it run.</p>
           </div>
 
           <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-strong)', borderRadius: 14, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
@@ -137,7 +137,7 @@ export default function Demo() {
                 <div style={{ textAlign: 'center', padding: '40px 10px' }}>
                   <div style={{ fontFamily: 'Syne', fontSize: 42, fontWeight: 800, color: '#FBC02D', marginBottom: 6 }}>⚡</div>
                   <h3 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, marginBottom: 10, textWrap: 'balance' as any }}>Your property management team, powered by AI</h3>
-                  <p style={{ color: '#64748B', fontSize: 14, maxWidth: 420, margin: '0 auto' }}>Real inquiries, real maintenance tickets, real AI screening decisions — everything in this walkthrough comes from a live PropAgent AI account.</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 14, maxWidth: 420, margin: '0 auto' }}>Real inquiries, real maintenance tickets, real AI screening decisions — everything in this walkthrough comes from a live PropAgent AI account.</p>
                 </div>
               )}
 
@@ -174,7 +174,7 @@ export default function Demo() {
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 600 }}>{c.who} <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#475569', marginLeft: 6 }}>{c.tag}</span></div>
-                          <div style={{ fontSize: 12.5, color: '#64748B', marginTop: 2 }}>{c.txt}</div>
+                          <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>{c.txt}</div>
                         </div>
                         <div style={{ marginLeft: 'auto', textAlign: 'right', fontFamily: 'IBM Plex Mono', fontSize: 10.5, color: '#475569', whiteSpace: 'nowrap' }}>{c.dur}<br />completed</div>
                       </div>
@@ -221,7 +221,7 @@ export default function Demo() {
               {scene === 5 && (
                 <div style={{ textAlign: 'center', padding: '18px 10px 6px' }}>
                   <h3 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 21, marginBottom: 8, textWrap: 'balance' as any }}>Everything you just watched is real.</h3>
-                  <p style={{ color: '#64748B', fontSize: 13.5, maxWidth: 440, margin: '0 auto 22px' }}>Not staged screenshots — a live product you can try yourself.</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 13.5, maxWidth: 440, margin: '0 auto 22px' }}>Not staged screenshots — a live product you can try yourself.</p>
                   <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
                     <Link href="/signup" style={{ textDecoration: 'none' }}>
                       <span style={{ display: 'inline-block', padding: '11px 24px', borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', fontSize: 14 }}>Start free trial</span>
@@ -258,7 +258,7 @@ export default function Demo() {
 }
 
 const ctrlBtn: React.CSSProperties = {
-  background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', color: '#64748B',
+  background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', color: 'var(--text-muted)',
   width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
 };
 
@@ -272,5 +272,5 @@ function SceneTitle({ title }: { title: string }) {
 }
 
 function Caption({ children }: { children: React.ReactNode }) {
-  return <p style={{ fontSize: 14.5, color: '#64748B', margin: '0 0 16px', lineHeight: 1.5, maxWidth: 560 }}>{children}</p>;
+  return <p style={{ fontSize: 14.5, color: 'var(--text-muted)', margin: '0 0 16px', lineHeight: 1.5, maxWidth: 560 }}>{children}</p>;
 }

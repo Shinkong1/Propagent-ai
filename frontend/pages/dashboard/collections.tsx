@@ -76,7 +76,7 @@ export default function Collections() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
       </DashboardLayout>
     );
   }
@@ -84,7 +84,7 @@ export default function Collections() {
   if (!data) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B' }}>{t('collections.error')}</div>
+        <div style={{ color: 'var(--text-muted)' }}>{t('collections.error')}</div>
       </DashboardLayout>
     );
   }
@@ -109,12 +109,12 @@ export default function Collections() {
             <Settings size={15} /> {t('collections.settings')}
           </button>
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t('collections.subtitle')}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('collections.subtitle')}</p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
           {kpis.map(k => (
             <div key={k.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '14px 16px' }}>
-              <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
+              <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '0.5px' }}>{k.label.toUpperCase()}</div>
               <div style={{ fontSize: 22, fontFamily: 'IBM Plex Mono', fontWeight: 600, color: k.warn ? '#EF4444' : 'var(--text-primary)' }}>{k.value}</div>
             </div>
           ))}
@@ -137,7 +137,7 @@ export default function Collections() {
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                   {[t('collections.tenant'), t('portfolio.property'), t('collections.amount'), t('collections.dueDate'), t('collections.daysOverdue'), t('collections.currentStage'), t('collections.recommendedAction'), t('compliance.actions')].map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -178,7 +178,7 @@ export default function Collections() {
                           </button>
                         )}
                         <button onClick={() => openHistory(item)} title={t('collections.viewHistory')}
-                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: '#64748B', cursor: 'pointer', flexShrink: 0 }}>
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-muted)', cursor: 'pointer', flexShrink: 0 }}>
                           <HistoryIcon size={13} />
                         </button>
                       </div>
@@ -196,9 +196,9 @@ export default function Collections() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('collections.settings')}</h2>
-                <button onClick={() => setShowSettings(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowSettings(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
-              <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{t('collections.settingsSubtitle')}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>{t('collections.settingsSubtitle')}</p>
 
               {[
                 ['collections_day_reminder', t('collections.stage.reminder')],
@@ -212,7 +212,7 @@ export default function Collections() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <input type="number" min={0} value={settings[key]} onChange={e => setSettings((p: any) => ({ ...p, [key]: parseInt(e.target.value) || 0 }))}
                       style={{ width: 60, padding: '6px 8px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Mono', outline: 'none', textAlign: 'center' }} />
-                    <span style={{ fontSize: 11, color: '#64748B' }}>{t('collections.days')}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('collections.days')}</span>
                   </div>
                 </div>
               ))}
@@ -221,7 +221,7 @@ export default function Collections() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <input type="number" min={0} step={0.5} value={settings.collections_late_fee_percent} onChange={e => setSettings((p: any) => ({ ...p, collections_late_fee_percent: parseFloat(e.target.value) || 0 }))}
                     style={{ width: 60, padding: '6px 8px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Mono', outline: 'none', textAlign: 'center' }} />
-                  <span style={{ fontSize: 11, color: '#64748B' }}>%</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>%</span>
                 </div>
               </div>
               <button onClick={saveSettings} disabled={savingSettings} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
@@ -236,11 +236,11 @@ export default function Collections() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440, maxHeight: '80vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('collections.historyTitle')}</h2>
-                <button onClick={() => setHistoryItem(null)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setHistoryItem(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
-              <p style={{ fontSize: 12, color: '#64748B', marginBottom: 18 }}>{historyItem.tenant_name} · {fmtMoney(historyItem.amount)}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18 }}>{historyItem.tenant_name} · {fmtMoney(historyItem.amount)}</p>
               {historyLoading ? (
-                <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono', fontSize: 13 }}>{t('nav.loading')}</div>
+                <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', fontSize: 13 }}>{t('nav.loading')}</div>
               ) : historyList && historyList.length > 0 ? (
                 <div style={{ display: 'grid', gap: 10 }}>
                   {historyList.map((h: any) => (
@@ -249,7 +249,7 @@ export default function Collections() {
                         <span style={{ fontSize: 12, fontWeight: 600, color: STAGE_COLOR[h.action_type] || 'var(--text-primary)', fontFamily: 'IBM Plex Mono' }}>
                           {t(`collections.stage.${h.action_type}`)}
                         </span>
-                        <span style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{h.action_date}</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{h.action_date}</span>
                       </div>
                       {h.amount != null && (
                         <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{fmtMoney(h.amount)}</div>

@@ -140,7 +140,7 @@ export default function Inspections() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{t('nav.loading')}</div>
       </DashboardLayout>
     );
   }
@@ -157,7 +157,7 @@ export default function Inspections() {
             <Plus size={16} /> {t('inspections.newInspection')}
           </button>
         </div>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 20 }}>{t('inspections.subtitle')}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 20 }}>{t('inspections.subtitle')}</p>
 
         {list.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px', color: '#475569', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12 }}>
@@ -174,11 +174,11 @@ export default function Inspections() {
                       <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(59,130,246,0.15)', color: '#3B82F6', fontFamily: 'IBM Plex Mono' }}>{t(`inspections.type.${item.inspection_type}`)}</span>
                       <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: item.status === 'completed' ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.15)', color: item.status === 'completed' ? '#10B981' : 'var(--text-secondary)', fontFamily: 'IBM Plex Mono' }}>{t(`inspections.status.${item.status}`)}</span>
                     </div>
-                    <div style={{ fontSize: 12, color: '#64748B' }}>{item.inspection_date}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{item.inspection_date}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: 11, color: '#64748B' }}>{t('inspections.issues')}: {item.total_issues}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('inspections.issues')}: {item.total_issues}</div>
                       <div style={{ fontSize: 13, fontFamily: 'IBM Plex Mono', color: item.estimated_repair_cost > 0 ? '#F97316' : 'var(--text-secondary)' }}>{fmtMoney(item.estimated_repair_cost)}</div>
                     </div>
                     <button onClick={e => { e.stopPropagation(); downloadReport(item); }} title={t('inspections.downloadReport')}
@@ -196,7 +196,7 @@ export default function Inspections() {
                 {expandedId === item.id && detail && (
                   <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--border-subtle)' }}>
                     {detail.inspector_name && (
-                      <div style={{ fontSize: 12, color: '#64748B', margin: '12px 0' }}>{t('inspections.inspector')}: {detail.inspector_name}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)', margin: '12px 0' }}>{t('inspections.inspector')}: {detail.inspector_name}</div>
                     )}
                     {detail.photos.length === 0 ? (
                       <div style={{ fontSize: 12, color: '#475569', marginBottom: 12 }}>{t('inspections.noPhotos')}</div>
@@ -211,13 +211,13 @@ export default function Inspections() {
                               </span>
                             </div>
                             {!photo.analyzed && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#64748B', marginBottom: 6 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>
                                 <AlertCircle size={12} /> {t('inspections.manualReviewNote')}
                               </div>
                             )}
                             {photo.issues.map((issue: any, i: number) => (
                               <div key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-                                <span style={{ color: '#F97316', fontWeight: 600 }}>{t(`inspections.issueType.${issue.type}`)}</span> ({issue.severity}) — {issue.description} <span style={{ color: '#64748B' }}>({fmtMoney(issue.estimated_cost)})</span>
+                                <span style={{ color: '#F97316', fontWeight: 600 }}>{t(`inspections.issueType.${issue.type}`)}</span> ({issue.severity}) — {issue.description} <span style={{ color: 'var(--text-muted)' }}>({fmtMoney(issue.estimated_cost)})</span>
                               </div>
                             ))}
                           </div>
@@ -248,7 +248,7 @@ export default function Inspections() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('inspections.newInspection')}</h2>
-                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>

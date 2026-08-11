@@ -107,7 +107,7 @@ export default function Dashboard() {
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>
             {t('dashboard.portfolioOverview')}
           </h1>
-          <p style={{ color: '#64748B', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>
             Real-time metrics across your property portfolio
           </p>
         </div>
@@ -144,7 +144,7 @@ export default function Dashboard() {
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
                   <div>
                     <div style={{ fontSize: 13, color: '#E2E8F0', fontFamily: 'IBM Plex Sans', marginBottom: 2 }}>{t.title}</div>
-                    <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{t.category}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{t.category}</div>
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: `${PRIORITY_COLOR[t.priority]}20`, color: PRIORITY_COLOR[t.priority], fontFamily: 'IBM Plex Mono' }}>
@@ -188,7 +188,7 @@ export default function Dashboard() {
                 </div>
               ))}
               {chat.loading && (
-                <div style={{ color: '#64748B', fontSize: 12, fontFamily: 'IBM Plex Mono' }}>AI thinking...</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: 12, fontFamily: 'IBM Plex Mono' }}>AI thinking...</div>
               )}
             </div>
             <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border-subtle)', display: 'flex', gap: 8 }}>
@@ -213,10 +213,10 @@ export default function Dashboard() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 460, maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Monthly Revenue</h2>
-                <button onClick={closeModal} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={closeModal} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               {modalLoading ? (
-                <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono', fontSize: 13 }}>Loading...</div>
+                <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', fontSize: 13 }}>Loading...</div>
               ) : revenueData?.trend?.length ? (
                 <>
                   {!revenueData.has_payment_history && (
@@ -252,17 +252,17 @@ export default function Dashboard() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 500, maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Units</h2>
-                <button onClick={closeModal} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={closeModal} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               {modalLoading ? (
-                <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono', fontSize: 13 }}>Loading...</div>
+                <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', fontSize: 13 }}>Loading...</div>
               ) : unitsData?.units?.length ? (
                 <div style={{ display: 'grid', gap: 8 }}>
                   {unitsData.units.map((u: any) => (
                     <div key={u.unit_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', border: '1px solid var(--border-strong)', borderRadius: 8 }}>
                       <div>
                         <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans', fontWeight: 600 }}>{u.property_name} · Unit {u.unit_number}</div>
-                        <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{u.is_occupied ? (u.tenant_name || 'Occupied') : 'Vacant'}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{u.is_occupied ? (u.tenant_name || 'Occupied') : 'Vacant'}</div>
                       </div>
                       <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: u.is_occupied ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: u.is_occupied ? '#10B981' : '#EF4444', fontFamily: 'IBM Plex Mono' }}>
                         {u.is_occupied ? 'Occupied' : 'Vacant'}
@@ -283,19 +283,19 @@ export default function Dashboard() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 460, maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>AI Activity</h2>
-                <button onClick={closeModal} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={closeModal} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <p style={{ fontSize: 11, color: '#475569', marginBottom: 16 }}>
                 Real log of AI feature calls, last 30 days. Full conversation transcripts aren't stored anywhere in the app — this shows when and which AI features ran, not the content of each response.
               </p>
               {modalLoading ? (
-                <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono', fontSize: 13 }}>Loading...</div>
+                <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', fontSize: 13 }}>Loading...</div>
               ) : aiData ? (
                 <>
                   <div style={{ display: 'flex', gap: 16, marginBottom: 18, flexWrap: 'wrap' }}>
                     {Object.entries(aiData.by_feature || {}).map(([feature, count]: any) => (
                       <div key={feature} style={{ background: 'var(--bg-app)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '8px 12px' }}>
-                        <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', textTransform: 'uppercase' }}>{feature.replace('_', ' ')}</div>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', textTransform: 'uppercase' }}>{feature.replace('_', ' ')}</div>
                         <div style={{ fontSize: 16, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono', fontWeight: 700 }}>{count}</div>
                       </div>
                     ))}
@@ -305,7 +305,7 @@ export default function Dashboard() {
                       {aiData.recent.map((c: any, i: number) => (
                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border-subtle)' }}>
                           <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono' }}>{c.feature.replace('_', ' ')}</span>
-                          <span style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{new Date(c.created_at).toLocaleString()}</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{new Date(c.created_at).toLocaleString()}</span>
                         </div>
                       ))}
                     </div>
@@ -326,7 +326,7 @@ export default function Dashboard() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 500, maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Leads Pipeline</h2>
-                <button onClick={closeModal} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={closeModal} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               {leadsList.length === 0 ? (
                 <div style={{ color: '#475569', fontSize: 13 }}>No leads yet.</div>
@@ -344,7 +344,7 @@ export default function Dashboard() {
                         <div key={l.id} onClick={() => { closeModal(); router.push('/dashboard/leads'); }}
                           style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}>
                           <span style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans' }}>{l.first_name} {l.last_name}{l.company ? ` · ${l.company}` : ''}</span>
-                          <span style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>score {l.score}</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>score {l.score}</span>
                         </div>
                       ))}
                     </div>

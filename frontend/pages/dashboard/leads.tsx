@@ -33,7 +33,7 @@ export default function Leads() {
             <ShieldAlert size={26} color="#EF4444" />
           </div>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text-primary)', marginBottom: 10 }}>Lead CRM</h1>
-          <p style={{ color: '#64748B', fontSize: 14 }}>This is PropAgent AI's own sales pipeline for finding new subscribers — it's restricted to the platform owner.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>This is PropAgent AI's own sales pipeline for finding new subscribers — it's restricted to the platform owner.</p>
         </div>
       </DashboardLayout>
     );
@@ -132,7 +132,7 @@ export default function Leads() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Lead CRM</h1>
-            <p style={{ color: '#64748B', fontSize: 14 }}>{leadList.length} leads · AI-powered outreach</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{leadList.length} leads · AI-powered outreach</p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => setShowAddModal(true)}
@@ -157,7 +157,7 @@ export default function Leads() {
         {/* Filters */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative' }}>
-            <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
+            <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search leads..."
               spellCheck autoCorrect="on"
               style={{ paddingLeft: 30, paddingRight: 12, paddingTop: 8, paddingBottom: 8, background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: '#E2E8F0', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none', width: 200 }} />
@@ -181,7 +181,7 @@ export default function Leads() {
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
                 {['Name', 'Company', 'Contact', 'Properties', 'Score', 'Status', 'Outreach', 'Actions'].map(h => (
-                  <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px', fontWeight: 500 }}>{h}</th>
+                  <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', fontWeight: 500 }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -196,12 +196,12 @@ export default function Leads() {
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#E2E8F0', fontFamily: 'IBM Plex Sans' }}>{l.first_name} {l.last_name}</div>
-                    <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>{l.source}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>{l.source}</div>
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Sans' }}>{l.company || '—'}</td>
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Sans' }}>{l.email || '—'}</div>
-                    <div style={{ fontSize: 11, color: '#64748B' }}>{l.phone || ''}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{l.phone || ''}</div>
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: 13, fontFamily: 'IBM Plex Mono', color: 'var(--text-primary)', textAlign: 'center' }}>{l.num_properties || '—'}</td>
                   <td style={{ padding: '12px 16px' }}>
@@ -262,7 +262,7 @@ export default function Leads() {
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 17, color: 'var(--text-primary)' }}>Add Lead</h2>
-              <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
+              <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}>
                 <X size={18} />
               </button>
             </div>

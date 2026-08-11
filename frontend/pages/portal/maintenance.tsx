@@ -53,9 +53,9 @@ export default function TenantMaintenance() {
       </div>
 
       {loading ? (
-        <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>Loading...</div>
+        <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>Loading...</div>
       ) : tickets.length === 0 ? (
-        <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 40, textAlign: 'center', color: '#64748B' }}>
+        <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
           <Wrench size={32} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
           <p style={{ fontSize: 14 }}>No maintenance requests yet.</p>
         </div>
@@ -68,7 +68,7 @@ export default function TenantMaintenance() {
                 <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: `${STATUS_COLOR[t.status]}20`, color: STATUS_COLOR[t.status], fontFamily: 'IBM Plex Mono' }}>{t.status.replace('_', ' ')}</span>
               </div>
               <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>{t.description}</p>
-              <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>
                 {t.category.replace('_', ' ')} · {t.priority} · {new Date(t.created_at).toLocaleDateString()}
               </div>
             </div>
@@ -81,7 +81,7 @@ export default function TenantMaintenance() {
           <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>New Maintenance Request</h2>
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
             </div>
 
             <label style={lbl}>Title</label>

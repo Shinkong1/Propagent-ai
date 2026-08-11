@@ -60,7 +60,7 @@ export default function ListingsDirectory() {
 
         <div style={{ maxWidth: 960, margin: '0 auto', padding: '48px 20px 80px' }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 34, color: 'var(--text-primary)', marginBottom: 8 }}>Browse Rentals</h1>
-          <p style={{ color: '#64748B', fontSize: 14, marginBottom: 28 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 28 }}>
             Available apartments and homes listed directly by their property managers.
           </p>
 
@@ -75,7 +75,7 @@ export default function ListingsDirectory() {
           </form>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
-            <span style={{ fontSize: 12, color: '#64748B', fontFamily: 'IBM Plex Sans' }}>Sort:</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>Sort:</span>
             {(['default', 'newest'] as const).map(opt => (
               <button
                 key={opt}
@@ -99,9 +99,9 @@ export default function ListingsDirectory() {
           </div>
 
           {loading ? (
-            <div style={{ color: '#64748B', fontFamily: 'IBM Plex Mono' }}>Loading...</div>
+            <div style={{ color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>Loading...</div>
           ) : listings.length === 0 ? (
-            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 48, textAlign: 'center', color: '#64748B' }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
               <Building2 size={28} style={{ margin: '0 auto 12px', opacity: 0.3, display: 'block' }} />
               No listings found{city || state ? ' for that search' : ' yet'}. Check back soon.
             </div>
@@ -122,13 +122,13 @@ export default function ListingsDirectory() {
                       </span>
                     )}
                     <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 6, paddingRight: 44 }}>{l.name}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#64748B', marginBottom: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
                       <MapPin size={11} /> {l.city}, {l.state}
                     </div>
                     <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 17, fontWeight: 600, color: '#FBC02D', marginBottom: 8 }}>
                       ${l.min_rent.toLocaleString()}{l.max_rent !== l.min_rent ? `–$${l.max_rent.toLocaleString()}` : ''}/mo
                     </div>
-                    <div style={{ display: 'flex', gap: 14, fontSize: 12, color: '#64748B' }}>
+                    <div style={{ display: 'flex', gap: 14, fontSize: 12, color: 'var(--text-muted)' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Home size={12} /> {l.min_bedrooms === l.max_bedrooms ? `${l.min_bedrooms} bd` : `${l.min_bedrooms}-${l.max_bedrooms} bd`}
                       </span>

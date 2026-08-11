@@ -74,9 +74,9 @@ export default function ImportModal({
       <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto', boxSizing: 'border-box' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{title}</h2>
-          <button onClick={() => { reset(); onClose(); }} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+          <button onClick={() => { reset(); onClose(); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
         </div>
-        <p style={{ fontSize: 13, color: '#64748B', marginBottom: 18 }}>{description}</p>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 18 }}>{description}</p>
 
         <button onClick={downloadTemplate} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 8, color: '#3B82F6', fontSize: 12, fontFamily: 'IBM Plex Mono', cursor: 'pointer', marginBottom: 18 }}>
           <Download size={13} /> Download CSV template

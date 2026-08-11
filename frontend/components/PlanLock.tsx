@@ -23,7 +23,7 @@ export default function PlanLock({ minTier, titleKey }: { minTier: PlanTier; tit
           <Lock size={26} color="#FBC02D" />
         </div>
         <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text-primary)', marginBottom: 10 }}>{t(titleKey)}</h1>
-        <p style={{ color: '#64748B', fontSize: 14, marginBottom: 24 }}>{t(messageKey)}</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t(messageKey)}</p>
         <Link href="/pricing" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', borderRadius: 8, fontWeight: 700, fontFamily: 'Syne', fontSize: 14, textDecoration: 'none' }}>
           {t('executive.upgradeCta')}
         </Link>

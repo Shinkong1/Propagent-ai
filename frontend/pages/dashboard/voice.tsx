@@ -46,7 +46,7 @@ export default function Voice() {
       <div style={{ maxWidth: 1000 }}>
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Voice AI Call Center</h1>
-          <p style={{ color: '#64748B', fontSize: 14 }}>Twilio-powered AI handles inbound tenant calls 24/7</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Twilio-powered AI handles inbound tenant calls 24/7</p>
         </div>
 
         {/* Status Card */}
@@ -59,13 +59,13 @@ export default function Voice() {
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 8px #10B981' }} />
               <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: '#10B981' }}>AI Call Center Active</span>
             </div>
-            <p style={{ color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>
               Twilio webhook active · Speech-to-text enabled · LangGraph agents connected
             </p>
           </div>
           <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
             <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 24, fontWeight: 600, color: 'var(--text-primary)' }}>{loading ? '—' : (stats?.calls_this_month ?? 0)}</div>
-            <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>calls this month</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>calls this month</div>
           </div>
         </div>
 
@@ -78,7 +78,7 @@ export default function Voice() {
           ].map(s => (
             <div key={s.label} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 10, padding: '14px 16px' }}>
               <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>{loading ? '—' : s.value}</div>
-              <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono', marginTop: 2 }}>{s.label}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginTop: 2 }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -114,12 +114,12 @@ export default function Voice() {
           </div>
 
           {loading ? (
-            <div style={{ padding: '40px 20px', textAlign: 'center', color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>Loading call history…</div>
+            <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>Loading call history…</div>
           ) : calls.length === 0 ? (
             <div style={{ padding: '40px 20px', textAlign: 'center' }}>
               <PhoneMissed size={28} color="#64748B" style={{ marginBottom: 10 }} />
               <div style={{ color: 'var(--text-secondary)', fontSize: 14, fontFamily: 'IBM Plex Sans', marginBottom: 6 }}>No calls tracked yet</div>
-              <p style={{ color: '#64748B', fontSize: 12, fontFamily: 'IBM Plex Sans', maxWidth: 460, margin: '0 auto' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: 12, fontFamily: 'IBM Plex Sans', maxWidth: 460, margin: '0 auto' }}>
                 Calls only show up here once your Twilio number receives one from a phone number
                 already on file — either a tenant, or a prospect who submitted a rental inquiry
                 on one of your listings. All subscribers currently share one Twilio number, so a
@@ -132,7 +132,7 @@ export default function Voice() {
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                 {['Caller', 'Time', 'Duration', 'Topic', 'AI Summary', 'Status'].map(h => (
-                  <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B' }}>{h}</th>
+                  <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -146,9 +146,9 @@ export default function Voice() {
                         <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 4, background: 'rgba(251,192,45,0.15)', color: '#FBC02D', fontFamily: 'IBM Plex Mono', whiteSpace: 'nowrap' }}>PROSPECT</span>
                       )}
                     </div>
-                    {c.property_name && <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Sans', marginTop: 2 }}>{c.property_name}</div>}
+                    {c.property_name && <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans', marginTop: 2 }}>{c.property_name}</div>}
                   </td>
-                  <td style={{ padding: '12px 16px', fontSize: 12, color: '#64748B', fontFamily: 'IBM Plex Sans', whiteSpace: 'nowrap' }}>{timeAgo(c.started_at)}</td>
+                  <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans', whiteSpace: 'nowrap' }}>{timeAgo(c.started_at)}</td>
                   <td style={{ padding: '12px 16px', fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' }}>{formatDuration(c.duration_seconds)}</td>
                   <td style={{ padding: '12px 16px' }}>
                     {c.intent ? (
@@ -177,7 +177,7 @@ export default function Voice() {
         <div style={{ marginTop: 20, background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 20 }}>
           <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 14 }}>Webhook Configuration</h3>
           <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, padding: '12px 16px' }}>
-            <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 6 }}>TWILIO WEBHOOK URL</div>
+            <div style={{ fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', marginBottom: 6 }}>TWILIO WEBHOOK URL</div>
             <div style={{ fontSize: 13, fontFamily: 'IBM Plex Mono', color: '#FBC02D', wordBreak: 'break-all' }}>{API_URL}/voice/incoming</div>
           </div>
           <p style={{ marginTop: 12, fontSize: 12, color: '#475569', fontFamily: 'IBM Plex Sans' }}>

@@ -113,7 +113,7 @@ export default function Accounting() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Accounting</h1>
-            <p style={{ color: '#64748B', fontSize: 14 }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
               {report ? `${report.period_start} → ${report.period_end}` : 'Loading...'}
             </p>
           </div>
@@ -156,7 +156,7 @@ export default function Accounting() {
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans', fontWeight: 600, marginBottom: 2 }}>{p.tenant_name || 'Unknown tenant'}</div>
                       <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono', marginBottom: 2 }}>{formatMoney(p.amount)} · {p.property_name}{p.unit_number ? ` · Unit ${p.unit_number}` : ''}</div>
-                      <div style={{ fontSize: 11, color: '#64748B' }}>Due {p.due_date}{p.paid_date ? ` · Paid ${p.paid_date}` : ''}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Due {p.due_date}{p.paid_date ? ` · Paid ${p.paid_date}` : ''}</div>
                     </div>
                     <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, fontFamily: 'IBM Plex Mono', background: `${STATUS_COLOR[p.status]}20`, color: STATUS_COLOR[p.status] }}>
                       {p.status}
@@ -175,7 +175,7 @@ export default function Accounting() {
                   <div key={e.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-app)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono' }}>{formatMoney(e.amount)}</div>
-                      <div style={{ fontSize: 11, color: '#64748B' }}>{e.expense_date}{e.description ? ` · ${e.description}` : ''}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{e.expense_date}{e.description ? ` · ${e.description}` : ''}</div>
                     </div>
                     <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, fontFamily: 'IBM Plex Mono', background: 'rgba(100,116,139,0.15)', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>
                       {e.category.replace('_', ' ')}
@@ -193,7 +193,7 @@ export default function Accounting() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Record Rent Payment</h2>
-                <button onClick={() => setShowPaymentModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowPaymentModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ marginBottom: 14 }}>
                 <label style={lbl}>Tenant / Lease</label>
@@ -202,7 +202,7 @@ export default function Accounting() {
                   {leaseOptions.map(l => <option key={l.id} value={l.id}>{l.tenant_name} — {l.property_name} · Unit {l.unit_number}</option>)}
                 </select>
                 {leaseOptions.length === 0 && (
-                  <div style={{ fontSize: 11, color: '#64748B', marginTop: 6 }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
                     No active leases yet — add a tenant and assign them to a unit first.
                   </div>
                 )}
@@ -261,7 +261,7 @@ export default function Accounting() {
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Record Expense</h2>
-                <button onClick={() => setShowExpenseModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+                <button onClick={() => setShowExpenseModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ marginBottom: 14 }}>
                 <label style={lbl}>Property</label>
@@ -308,7 +308,7 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
     <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
         {icon}
-        <span style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', letterSpacing: '0.5px' }}>{label.toUpperCase()}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', letterSpacing: '0.5px' }}>{label.toUpperCase()}</span>
       </div>
       <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'Syne' }}>{value}</div>
     </div>

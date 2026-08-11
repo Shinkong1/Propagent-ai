@@ -44,7 +44,7 @@ export default function TenantResetPassword() {
             </div>
             <div>
               <div style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 17, color: 'var(--text-primary)', lineHeight: 1.1 }}>PropAgent AI</div>
-              <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>TENANT PORTAL</div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>TENANT PORTAL</div>
             </div>
           </div>
 
@@ -59,13 +59,13 @@ export default function TenantResetPassword() {
                 <h1 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 20, color: 'var(--text-primary)', marginBottom: 20, textAlign: 'center' }}>Set a new password</h1>
                 <label style={lbl}>New password</label>
                 <div style={{ position: 'relative', marginBottom: 14 }}>
-                  <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
+                  <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="At least 8 characters" autoFocus
                     style={{ ...inp, paddingLeft: 34 }} />
                 </div>
                 <label style={lbl}>Confirm password</label>
                 <div style={{ position: 'relative', marginBottom: 20 }}>
-                  <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
+                  <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()}
                     style={{ ...inp, paddingLeft: 34 }} />
                 </div>

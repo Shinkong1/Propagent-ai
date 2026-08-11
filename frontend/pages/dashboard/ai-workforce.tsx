@@ -32,7 +32,7 @@ function AgentCard({ agent }: { agent: any }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>{agent.name}</h3>
             {locked ? (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, padding: '2px 7px', borderRadius: 4, background: 'rgba(100,116,139,0.15)', color: '#94A3B8', fontFamily: 'IBM Plex Mono' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, padding: '2px 7px', borderRadius: 4, background: 'rgba(100,116,139,0.15)', color: 'var(--text-faint)', fontFamily: 'IBM Plex Mono' }}>
                 <Lock size={9} /> {agent.min_tier === 'enterprise' ? 'ENTERPRISE' : 'PROFESSIONAL'}
               </span>
             ) : (
@@ -41,7 +41,7 @@ function AgentCard({ agent }: { agent: any }) {
               </span>
             )}
           </div>
-          <p style={{ color: '#64748B', fontSize: 12.5, fontFamily: 'IBM Plex Sans', marginTop: 4, lineHeight: 1.5 }}>{agent.description}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 12.5, fontFamily: 'IBM Plex Sans', marginTop: 4, lineHeight: 1.5 }}>{agent.description}</p>
         </div>
       </div>
 
@@ -49,7 +49,7 @@ function AgentCard({ agent }: { agent: any }) {
         {agent.stats.map((s: any) => (
           <div key={s.label} style={{ background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, padding: '10px 10px' }}>
             <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>{s.value}</div>
-            <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
           </div>
         ))}
       </div>
@@ -121,7 +121,7 @@ export default function AIWorkforce() {
             <Sparkles size={24} color="#FBC02D" />
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)' }}>AI Workforce</h1>
           </div>
-          <p style={{ color: '#64748B', fontSize: 14, marginTop: 4 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 4 }}>
             Your property management team, powered by AI{orgName ? ` — ${orgName}` : ''}. Every number below reflects real activity, updated live.
           </p>
         </div>
@@ -131,12 +131,12 @@ export default function AIWorkforce() {
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-strong)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <ClipboardCheck size={16} color="#FBC02D" />
             <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>Action Center</h3>
-            <span style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Sans' }}>— applicants your AI Leasing Agent has screened and is waiting on your decision</span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>— applicants your AI Leasing Agent has screened and is waiting on your decision</span>
           </div>
           {queueLoading ? (
-            <div style={{ padding: '28px 20px', textAlign: 'center', color: '#64748B', fontSize: 13 }}>Loading…</div>
+            <div style={{ padding: '28px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Loading…</div>
           ) : queue.length === 0 ? (
-            <div style={{ padding: '28px 20px', textAlign: 'center', color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>
+            <div style={{ padding: '28px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>
               Nothing waiting on you right now.
             </div>
           ) : (
@@ -146,9 +146,9 @@ export default function AIWorkforce() {
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <div style={{ fontSize: 13.5, fontFamily: 'IBM Plex Sans', color: 'var(--text-primary)', fontWeight: 600 }}>
                       {inq.first_name} {inq.last_name}
-                      <span style={{ color: '#64748B', fontWeight: 400 }}> — {inq.property_name}{inq.unit_number ? ` #${inq.unit_number}` : ''}</span>
+                      <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}> — {inq.property_name}{inq.unit_number ? ` #${inq.unit_number}` : ''}</span>
                     </div>
-                    <div style={{ fontSize: 12, color: '#64748B', fontFamily: 'IBM Plex Sans', marginTop: 3 }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans', marginTop: 3 }}>
                       AI recommendation: {inq.screening_approved ? (
                         <span style={{ color: '#10B981', fontWeight: 600 }}>Approve</span>
                       ) : (
@@ -182,7 +182,7 @@ export default function AIWorkforce() {
         {/* Employee cards */}
         <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 14 }}>Your AI Employees</h2>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#64748B', fontSize: 13 }}>Loading your AI workforce…</div>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Loading your AI workforce…</div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
             {agents.map(agent => <AgentCard key={agent.key} agent={agent} />)}

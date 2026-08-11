@@ -24,7 +24,7 @@ export default function Security() {
 
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 24px 80px' }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 36, color: 'var(--text-primary)', marginBottom: 10 }}>Security &amp; Data Handling</h1>
-          <p style={{ color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Mono', marginBottom: 20 }}>Last updated: {LAST_UPDATED}</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Mono', marginBottom: 20 }}>Last updated: {LAST_UPDATED}</p>
           <p style={{ fontSize: 15, lineHeight: 1.75, color: 'var(--text-secondary)', marginBottom: 20, maxWidth: 680 }}>
             This page describes the technical measures PropAgent AI actually has in place today to protect your
             account, your organization&apos;s data, and your tenants&apos; information — in plain language, without
@@ -136,7 +136,7 @@ export default function Security() {
             </div>
           </div>
 
-          <p style={{ fontSize: 13, lineHeight: 1.7, color: '#64748B', marginTop: 32 }}>
+          <p style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--text-muted)', marginTop: 32 }}>
             See also our <Link href="/privacy" style={{ color: '#FBC02D' }}>Privacy Policy</Link> for what
             information we collect and how it&apos;s used, and our{' '}
             <Link href="/terms" style={{ color: '#FBC02D' }}>Terms of Service</Link>.

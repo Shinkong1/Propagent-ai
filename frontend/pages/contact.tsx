@@ -47,7 +47,7 @@ export default function Contact() {
 
         <div style={{ maxWidth: 560, margin: '0 auto', padding: '56px 20px 80px' }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 32, color: 'var(--text-primary)', marginBottom: 10 }}>Talk to us</h1>
-          <p style={{ color: '#64748B', fontSize: 14.5, marginBottom: 32, lineHeight: 1.6 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14.5, marginBottom: 32, lineHeight: 1.6 }}>
             Managing a larger portfolio, or want a walkthrough before you commit? Tell us a bit about what you're running and we'll get back to you —
             no pressure to sign up first. Prefer to just try it? <Link href="/signup" style={{ color: '#FBC02D' }}>Start a free trial</Link> instead.
           </p>
@@ -56,7 +56,7 @@ export default function Contact() {
             <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 14, padding: 28, textAlign: 'center' }}>
               <CheckCircle size={28} color="#10B981" style={{ marginBottom: 10 }} />
               <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 6 }}>Message sent</h3>
-              <p style={{ fontSize: 13, color: '#64748B' }}>We'll reply to {form.email} soon.</p>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>We'll reply to {form.email} soon.</p>
             </div>
           ) : (
             <form onSubmit={submit} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 24 }}>

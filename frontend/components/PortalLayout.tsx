@@ -43,7 +43,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           </div>
           <div>
             <div style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.1 }}>PropAgent AI</div>
-            <div style={{ fontSize: 10, color: '#64748B', fontFamily: 'IBM Plex Mono' }}>TENANT PORTAL</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>TENANT PORTAL</div>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
@@ -62,7 +62,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
               </Link>
             );
           })}
-          <button onClick={signOut} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, background: 'transparent', border: '1px solid var(--border-strong)', color: '#64748B', fontSize: 13, fontFamily: 'IBM Plex Sans', cursor: 'pointer', marginLeft: 6 }}>
+          <button onClick={signOut} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, background: 'transparent', border: '1px solid var(--border-strong)', color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Sans', cursor: 'pointer', marginLeft: 6 }}>
             <LogOut size={14} /> Sign Out
           </button>
         </div>
