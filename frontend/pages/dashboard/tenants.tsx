@@ -10,21 +10,24 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import ImportModal from '../../components/ImportModal';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../lib/LanguageContext';
 
 const EMPTY_FORM = { first_name: '', last_name: '', email: '', phone: '', annual_income: '', employment_status: 'employed', employer: '', property_id: '', unit_id: '' };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const FIELD_INPUT_TYPE: Record<string, string> = { email: 'email', phone: 'tel', annual_income: 'number' };
+const EMPLOYMENT_STATUSES = ['employed', 'self-employed', 'unemployed', 'student', 'retired'];
 
-function validateTenantForm(f: { first_name: string; last_name: string; email: string; phone: string }): string | null {
-  if (!f.first_name.trim() || !f.last_name.trim()) return 'First and last name are required';
-  if (f.email.trim() && !EMAIL_RE.test(f.email.trim())) return 'Enter a valid email address';
-  if (f.phone.trim() && f.phone.replace(/\D/g, '').length < 7) return 'Enter a valid phone number';
+function validateTenantForm(f: { first_name: string; last_name: string; email: string; phone: string }, t: (k: string) => string): string | null {
+  if (!f.first_name.trim() || !f.last_name.trim()) return t('tenants.validation.nameRequired');
+  if (f.email.trim() && !EMAIL_RE.test(f.email.trim())) return t('tenants.validation.invalidEmail');
+  if (f.phone.trim() && f.phone.replace(/\D/g, '').length < 7) return t('tenants.validation.invalidPhone');
   return null;
 }
 
 export default function Tenants() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { formatMoney, symbol } = useCurrency();
   const [tenantList, setTenantList] = useState<any[]>([]);
   const [propertyList, setPropertyList] = useState<any[]>([]);
@@ -72,7 +75,7 @@ export default function Tenants() {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch {
-      toast.error('Failed to generate contract');
+      toast.error(t('tenants.toast.contractFailed'));
     } finally {
       setDownloadingLease(null);
     }
@@ -119,7 +122,7 @@ export default function Tenants() {
   };
 
   const create = async () => {
-    const validationError = validateTenantForm(form);
+    const validationError = validateTenantForm(form, t);
     if (validationError) { toast.error(validationError); return; }
 
     setLoading(true);
@@ -149,25 +152,25 @@ export default function Tenants() {
         // invisible under the current filter (confirmed by a real tester:
         // "it says the tenant was added, but I don't see it"). Switch to
         // "All Properties" so it's actually visible right away.
-        toast.success('Tenant added! Showing all properties since they aren\'t assigned to a unit yet.');
+        toast.success(t('tenants.toast.addedNoUnit'));
         setPropertyFilter('all');
         load('all');
       } else {
-        toast.success(unit_id ? 'Tenant added and assigned to unit!' : 'Tenant added!');
+        toast.success(unit_id ? t('tenants.toast.addedWithUnit') : t('tenants.toast.added'));
         load(propertyFilter);
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.detail || 'Failed to add tenant');
+      toast.error(err?.response?.data?.detail || t('tenants.toast.addFailed'));
     }
     finally { setLoading(false); }
   };
 
-  const openEditModal = (t: any) => {
-    setEditingTenant(t);
+  const openEditModal = (tenant: any) => {
+    setEditingTenant(tenant);
     setEditForm({
-      first_name: t.first_name || '', last_name: t.last_name || '', email: t.email || '',
-      phone: t.phone || '', annual_income: t.annual_income || '', employment_status: t.employment_status || 'employed',
-      employer: t.employer || '', property_id: '', unit_id: '',
+      first_name: tenant.first_name || '', last_name: tenant.last_name || '', email: tenant.email || '',
+      phone: tenant.phone || '', annual_income: tenant.annual_income || '', employment_status: tenant.employment_status || 'employed',
+      employer: tenant.employer || '', property_id: '', unit_id: '',
     });
     setEditUnits([]);
   };
@@ -179,7 +182,7 @@ export default function Tenants() {
 
   const saveEdit = async () => {
     if (!editingTenant) return;
-    const validationError = validateTenantForm(editForm);
+    const validationError = validateTenantForm(editForm, t);
     if (validationError) { toast.error(validationError); return; }
 
     setSaving(true);
@@ -201,43 +204,43 @@ export default function Tenants() {
         });
       }
 
-      toast.success('Tenant updated');
+      toast.success(t('tenants.toast.updated'));
       setEditingTenant(null);
       load(propertyFilter);
     } catch (err: any) {
-      toast.error(err?.response?.data?.detail || 'Failed to update tenant');
+      toast.error(err?.response?.data?.detail || t('tenants.toast.updateFailed'));
     }
     finally { setSaving(false); }
   };
 
-  const inviteToPortal = async (t: any) => {
-    if (!t.email) {
-      toast.error('This tenant has no email on file — add one first');
+  const inviteToPortal = async (tenant: any) => {
+    if (!tenant.email) {
+      toast.error(t('tenants.toast.noEmailOnFile'));
       return;
     }
-    setInvitingId(t.id);
+    setInvitingId(tenant.id);
     try {
-      const res = await tenantsApi.invite(t.id);
+      const res = await tenantsApi.invite(tenant.id);
       if (res.data.email_status === 'sent') {
-        toast.success('Portal invite sent');
+        toast.success(t('tenants.toast.inviteSent'));
       } else {
-        toast.error(`Invite created, but the email didn't send (${res.data.email_status})`);
+        toast.error(t('tenants.toast.inviteEmailFailed', { status: res.data.email_status }));
       }
       load(propertyFilter);
     } catch (err: any) {
-      toast.error(err?.response?.data?.detail || 'Failed to send invite');
+      toast.error(err?.response?.data?.detail || t('tenants.toast.inviteFailed'));
     } finally {
       setInvitingId(null);
     }
   };
 
-  const deleteTenant = async (t: any) => {
-    setDeletingId(t.id);
+  const deleteTenant = async (tenant: any) => {
+    setDeletingId(tenant.id);
     try {
-      await tenantsApi.delete(t.id);
-      toast.success('Tenant removed');
+      await tenantsApi.delete(tenant.id);
+      toast.success(t('tenants.toast.removed'));
       load(propertyFilter);
-    } catch { toast.error('Failed to remove tenant'); }
+    } catch { toast.error(t('tenants.toast.removeFailed')); }
     finally { setDeletingId(null); }
   };
 
@@ -246,20 +249,20 @@ export default function Tenants() {
       <div style={{ maxWidth: 1200 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Tenants</h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{tenantList.length} active tenants</p>
+            <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>{t('tenants.title')}</h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t('tenants.activeCount', { count: tenantList.length })}</p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <select value={propertyFilter} onChange={e => changePropertyFilter(e.target.value)}
               style={{ padding: '9px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none' }}>
-              <option value="all">All Properties</option>
+              <option value="all">{t('common.allProperties')}</option>
               {propertyList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             <button onClick={() => { setImportPropertyId(propertyFilter !== 'all' ? propertyFilter : ''); setShowImportModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontWeight: 600, fontFamily: 'Syne', fontSize: 14, cursor: 'pointer' }}>
-              <Upload size={16} /> Import
+              <Upload size={16} /> {t('tenants.import')}
             </button>
             <button onClick={openAddModal} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', border: 'none', borderRadius: 8, fontWeight: 700, fontFamily: 'Syne', fontSize: 14, cursor: 'pointer' }}>
-              <Plus size={16} /> Add Tenant
+              <Plus size={16} /> {t('tenants.addTenant')}
             </button>
           </div>
         </div>
@@ -273,7 +276,7 @@ export default function Tenants() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <ShieldAlert size={18} color="#EF4444" />
                 <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>
-                  {fraudFlags.length} Risk Flag{fraudFlags.length !== 1 ? 's' : ''} Detected
+                  {t('tenants.riskFlagsDetected', { count: fraudFlags.length, s: fraudFlags.length !== 1 ? 's' : '' })}
                 </span>
               </div>
               {fraudExpanded ? <ChevronUp size={16} color="#64748B" /> : <ChevronDown size={16} color="#64748B" />}
@@ -308,95 +311,95 @@ export default function Tenants() {
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
-                {['Tenant', 'Property', 'Contact', 'Employment', 'Income', 'Screening', 'Status', 'Contract', 'Portal', 'Actions'].map(h => (
+                {[t('tenants.col.tenant'), t('tenants.col.property'), t('tenants.col.contact'), t('tenants.col.employment'), t('tenants.col.income'), t('tenants.col.screening'), t('tenants.col.status'), t('tenants.col.contract'), t('tenants.col.portal'), t('tenants.col.actions')].map(h => (
                   <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', letterSpacing: '0.5px', fontWeight: 500 }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {tenantList.length === 0 ? (
-                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '60px', color: '#475569', fontFamily: 'IBM Plex Sans' }}>
-                  No tenants yet. Add your first tenant above.
+                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '60px', color: 'var(--text-faint)', fontFamily: 'IBM Plex Sans' }}>
+                  {t('tenants.empty')}
                 </td></tr>
-              ) : tenantList.map((t: any) => (
-                <tr key={t.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}
+              ) : tenantList.map((tenant: any) => (
+                <tr key={tenant.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
                   <td style={{ padding: '14px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg, var(--border-input), var(--border-strong))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', fontFamily: 'Syne' }}>
-                        {t.first_name?.[0]}{t.last_name?.[0]}
+                        {tenant.first_name?.[0]}{tenant.last_name?.[0]}
                       </div>
                       <div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans' }}>{t.first_name} {t.last_name}</div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>ID: {t.id?.slice(0,8)}</div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans' }}>{tenant.first_name} {tenant.last_name}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>ID: {tenant.id?.slice(0,8)}</div>
                       </div>
                     </div>
                   </td>
                   <td style={{ padding: '14px 16px' }}>
-                    {t.property_name ? (
+                    {tenant.property_name ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
-                        <Building2 size={12} /> {t.property_name}{t.unit_number ? ` · Unit ${t.unit_number}` : ''}
+                        <Building2 size={12} /> {tenant.property_name}{tenant.unit_number ? ` · Unit ${tenant.unit_number}` : ''}
                       </div>
                     ) : (
-                      <span style={{ fontSize: 12, color: '#475569' }}>Unassigned</span>
+                      <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('tenants.unassigned')}</span>
                     )}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t.email || '—'}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t.phone || ''}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{tenant.email || '—'}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{tenant.phone || ''}</div>
                   </td>
-                  <td style={{ padding: '14px 16px', fontSize: 12, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{t.employment_status || '—'}</td>
+                  <td style={{ padding: '14px 16px', fontSize: 12, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{tenant.employment_status ? t(`tenants.employment.${tenant.employment_status}`) : '—'}</td>
                   <td style={{ padding: '14px 16px', fontSize: 13, fontFamily: 'IBM Plex Mono', color: 'var(--text-primary)' }}>
-                    {t.annual_income ? formatMoney(Number(t.annual_income)) : '—'}
+                    {tenant.annual_income ? formatMoney(Number(tenant.annual_income)) : '—'}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
-                    {t.screening_approved === true && <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#10B981', fontSize: 12 }}><CheckCircle size={13} /> Approved</div>}
-                    {t.screening_approved === false && <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#EF4444', fontSize: 12 }}><XCircle size={13} /> Declined</div>}
-                    {t.screening_approved === null && <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>Pending</div>}
+                    {tenant.screening_approved === true && <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#10B981', fontSize: 12 }}><CheckCircle size={13} /> {t('tenants.screening.approved')}</div>}
+                    {tenant.screening_approved === false && <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#EF4444', fontSize: 12 }}><XCircle size={13} /> {t('tenants.screening.declined')}</div>}
+                    {tenant.screening_approved === null && <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>{t('tenants.screening.pending')}</div>}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
-                    <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: t.is_active ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)', color: t.is_active ? '#10B981' : '#EF4444', fontFamily: 'IBM Plex Mono' }}>
-                      {t.is_active ? 'active' : 'inactive'}
+                    <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: tenant.is_active ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)', color: tenant.is_active ? '#10B981' : '#EF4444', fontFamily: 'IBM Plex Mono' }}>
+                      {tenant.is_active ? t('tenants.status.active') : t('tenants.status.inactive')}
                     </span>
                   </td>
                   <td style={{ padding: '14px 16px' }}>
-                    {t.active_lease_id ? (
+                    {tenant.active_lease_id ? (
                       canGenerateContracts ? (
                         <button
-                          onClick={() => downloadContract(t.active_lease_id, `${t.first_name}_${t.last_name}`)}
-                          disabled={downloadingLease === t.active_lease_id}
+                          onClick={() => downloadContract(tenant.active_lease_id, `${tenant.first_name}_${tenant.last_name}`)}
+                          disabled={downloadingLease === tenant.active_lease_id}
                           style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 6, background: 'rgba(var(--accent-rgb),0.1)', border: '1px solid rgba(var(--accent-rgb),0.3)', color: '#FBC02D', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
-                          <FileText size={11} /> {downloadingLease === t.active_lease_id ? '...' : 'Generate'}
+                          <FileText size={11} /> {downloadingLease === tenant.active_lease_id ? '...' : t('tenants.generate')}
                         </button>
                       ) : (
-                        <Link href="/pricing" title="Upgrade to Professional to generate rental contracts" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 6, background: 'rgba(100,116,139,0.1)', border: '1px solid var(--border-strong)', color: 'var(--text-muted)', fontSize: 11, fontFamily: 'IBM Plex Mono', textDecoration: 'none', width: 'fit-content' }}>
-                          <Lock size={11} /> Upgrade
+                        <Link href="/pricing" title={t('tenants.upgradeTitle')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 6, background: 'rgba(100,116,139,0.1)', border: '1px solid var(--border-strong)', color: 'var(--text-muted)', fontSize: 11, fontFamily: 'IBM Plex Mono', textDecoration: 'none', width: 'fit-content' }}>
+                          <Lock size={11} /> {t('common.upgrade')}
                         </Link>
                       )
                     ) : (
-                      <span style={{ fontSize: 11, color: '#334155' }}>No lease</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t('tenants.noLease')}</span>
                     )}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
-                    {t.portal_status === 'active' ? (
-                      <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: 'rgba(16,185,129,0.12)', color: '#10B981', fontFamily: 'IBM Plex Mono' }}>Active</span>
-                    ) : t.portal_status === 'invited' ? (
-                      <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: 'rgba(251,192,45,0.12)', color: '#FBC02D', fontFamily: 'IBM Plex Mono' }}>Invited</span>
+                    {tenant.portal_status === 'active' ? (
+                      <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: 'rgba(16,185,129,0.12)', color: '#10B981', fontFamily: 'IBM Plex Mono' }}>{t('tenants.portal.active')}</span>
+                    ) : tenant.portal_status === 'invited' ? (
+                      <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: 'rgba(251,192,45,0.12)', color: '#FBC02D', fontFamily: 'IBM Plex Mono' }}>{t('tenants.portal.invited')}</span>
                     ) : (
-                      <button onClick={() => inviteToPortal(t)} disabled={invitingId === t.id} title={t.email ? 'Invite to tenant portal' : 'Add an email first'}
+                      <button onClick={() => inviteToPortal(tenant)} disabled={invitingId === tenant.id} title={tenant.email ? t('tenants.inviteTitle') : t('tenants.inviteNoEmail')}
                         style={{ padding: '4px 10px', borderRadius: 6, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: '#3B82F6', fontSize: 11, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
-                        {invitingId === t.id ? '...' : 'Invite'}
+                        {invitingId === tenant.id ? '...' : t('tenants.invite')}
                       </button>
                     )}
                   </td>
                   <td style={{ padding: '14px 16px' }}>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => openEditModal(t)} title="Edit tenant"
+                      <button onClick={() => openEditModal(tenant)} title={t('tenants.editTitle')}
                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: '#3B82F6', cursor: 'pointer' }}>
                         <Pencil size={12} />
                       </button>
-                      <button onClick={() => setConfirmTarget(t)} disabled={deletingId === t.id} title="Remove tenant"
+                      <button onClick={() => setConfirmTarget(tenant)} disabled={deletingId === tenant.id} title={t('tenants.removeTitle')}
                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#EF4444', cursor: 'pointer' }}>
                         <Trash2 size={12} />
                       </button>
@@ -414,52 +417,52 @@ export default function Tenants() {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Add Tenant</h2>
+                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('tenants.modal.addTitle')}</h2>
                 <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
-                  <label style={lbl}>First Name <span style={{ color: '#EF4444' }}>*</span></label>
+                  <label style={lbl}>{t('common.firstName')} <span style={{ color: '#EF4444' }}>*</span></label>
                   <input value={form.first_name} onChange={e => setForm(p => ({ ...p, first_name: e.target.value }))} required style={inp} {...textFieldAttrs('first_name')} />
                 </div>
                 <div>
-                  <label style={lbl}>Last Name <span style={{ color: '#EF4444' }}>*</span></label>
+                  <label style={lbl}>{t('common.lastName')} <span style={{ color: '#EF4444' }}>*</span></label>
                   <input value={form.last_name} onChange={e => setForm(p => ({ ...p, last_name: e.target.value }))} required style={inp} {...textFieldAttrs('last_name')} />
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
-                  <label style={lbl}>Property</label>
+                  <label style={lbl}>{t('tenants.propertyLabel')}</label>
                   <select value={form.property_id} onChange={e => changeAddProperty(e.target.value)} style={{ ...inp } as any}>
-                    <option value="">No property</option>
+                    <option value="">{t('tenants.noProperty')}</option>
                     {propertyList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={lbl}>Unit</label>
+                  <label style={lbl}>{t('tenants.unitLabel')}</label>
                   <select value={form.unit_id} onChange={e => setForm(p => ({ ...p, unit_id: e.target.value }))} disabled={!form.property_id} style={{ ...inp } as any}>
-                    <option value="">Leave unassigned</option>
-                    {unitsForProperty.map(u => <option key={u.id} value={u.id}>Unit {u.unit_number} — {formatMoney(u.monthly_rent)}/mo</option>)}
+                    <option value="">{t('tenants.leaveUnassigned')}</option>
+                    {unitsForProperty.map(u => <option key={u.id} value={u.id}>{t('tenants.unitOption', { number: u.unit_number, price: formatMoney(u.monthly_rent) })}</option>)}
                   </select>
                 </div>
               </div>
               {form.property_id && unitsForProperty.length === 0 && (
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: -6, marginBottom: 14 }}>No vacant units at this property right now.</div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: -6, marginBottom: 14 }}>{t('tenants.noVacantUnits')}</div>
               )}
-              {[['email', 'Email'], ['phone', 'Phone'], ['employer', 'Employer'], ['annual_income', `Annual Income (${symbol})`]].map(([k, l]) => (
+              {[['email', t('common.email')], ['phone', t('common.phone')], ['employer', t('tenants.employer')], ['annual_income', t('tenants.annualIncome', { symbol })]].map(([k, l]) => (
                 <div key={k} style={{ marginBottom: 14 }}>
                   <label style={lbl}>{l}</label>
                   <input type={FIELD_INPUT_TYPE[k] || 'text'} value={(form as any)[k]} onChange={e => setForm(p => ({ ...p, [k]: e.target.value }))} style={inp} {...textFieldAttrs(k)} />
                 </div>
               ))}
               <div style={{ marginBottom: 20 }}>
-                <label style={lbl}>Employment Status</label>
+                <label style={lbl}>{t('tenants.employmentStatusLabel')}</label>
                 <select value={form.employment_status} onChange={e => setForm(p => ({ ...p, employment_status: e.target.value }))} style={{ ...inp } as any}>
-                  {['employed','self-employed','unemployed','student','retired'].map(s => <option key={s} value={s}>{s.replace('-', ' ')}</option>)}
+                  {EMPLOYMENT_STATUSES.map(s => <option key={s} value={s}>{t(`tenants.employment.${s}`)}</option>)}
                 </select>
               </div>
               <button onClick={create} disabled={loading} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
-                {loading ? 'Adding...' : 'Add Tenant'}
+                {loading ? t('tenants.adding') : t('tenants.addTenant')}
               </button>
             </div>
           </div>
@@ -470,16 +473,16 @@ export default function Tenants() {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Edit {editingTenant.first_name} {editingTenant.last_name}</h2>
+                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('tenants.editModalTitle', { name: `${editingTenant.first_name} ${editingTenant.last_name}` })}</h2>
                 <button onClick={() => setEditingTenant(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
-                  <label style={lbl}>First Name <span style={{ color: '#EF4444' }}>*</span></label>
+                  <label style={lbl}>{t('common.firstName')} <span style={{ color: '#EF4444' }}>*</span></label>
                   <input value={editForm.first_name} onChange={e => setEditForm((p: any) => ({ ...p, first_name: e.target.value }))} required style={inp} {...textFieldAttrs('first_name')} />
                 </div>
                 <div>
-                  <label style={lbl}>Last Name <span style={{ color: '#EF4444' }}>*</span></label>
+                  <label style={lbl}>{t('common.lastName')} <span style={{ color: '#EF4444' }}>*</span></label>
                   <input value={editForm.last_name} onChange={e => setEditForm((p: any) => ({ ...p, last_name: e.target.value }))} required style={inp} {...textFieldAttrs('last_name')} />
                 </div>
               </div>
@@ -487,41 +490,41 @@ export default function Tenants() {
               {editingTenant.property_name ? (
                 <div style={{ marginBottom: 14, padding: '10px 12px', background: 'var(--bg-app)', borderRadius: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
                   <Building2 size={12} style={{ verticalAlign: -1, marginRight: 6 }} />
-                  Currently at {editingTenant.property_name}{editingTenant.unit_number ? ` · Unit ${editingTenant.unit_number}` : ''}
+                  {t('tenants.currentlyAt', { property: editingTenant.property_name + (editingTenant.unit_number ? ` · Unit ${editingTenant.unit_number}` : '') })}
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                   <div>
-                    <label style={lbl}>Assign Property</label>
+                    <label style={lbl}>{t('tenants.assignProperty')}</label>
                     <select value={editForm.property_id} onChange={e => changeEditProperty(e.target.value)} style={{ ...inp } as any}>
-                      <option value="">Not assigned</option>
+                      <option value="">{t('tenants.notAssigned')}</option>
                       {propertyList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label style={lbl}>Unit</label>
+                    <label style={lbl}>{t('tenants.unitLabel')}</label>
                     <select value={editForm.unit_id} onChange={e => setEditForm((p: any) => ({ ...p, unit_id: e.target.value }))} disabled={!editForm.property_id} style={{ ...inp } as any}>
-                      <option value="">Leave unassigned</option>
-                      {editUnits.map(u => <option key={u.id} value={u.id}>Unit {u.unit_number} — {formatMoney(u.monthly_rent)}/mo</option>)}
+                      <option value="">{t('tenants.leaveUnassigned')}</option>
+                      {editUnits.map(u => <option key={u.id} value={u.id}>{t('tenants.unitOption', { number: u.unit_number, price: formatMoney(u.monthly_rent) })}</option>)}
                     </select>
                   </div>
                 </div>
               )}
 
-              {[['email', 'Email'], ['phone', 'Phone'], ['employer', 'Employer'], ['annual_income', `Annual Income (${symbol})`]].map(([k, l]) => (
+              {[['email', t('common.email')], ['phone', t('common.phone')], ['employer', t('tenants.employer')], ['annual_income', t('tenants.annualIncome', { symbol })]].map(([k, l]) => (
                 <div key={k} style={{ marginBottom: 14 }}>
                   <label style={lbl}>{l}</label>
                   <input type={FIELD_INPUT_TYPE[k] || 'text'} value={editForm[k] ?? ''} onChange={e => setEditForm((p: any) => ({ ...p, [k]: e.target.value }))} style={inp} {...textFieldAttrs(k)} />
                 </div>
               ))}
               <div style={{ marginBottom: 20 }}>
-                <label style={lbl}>Employment Status</label>
+                <label style={lbl}>{t('tenants.employmentStatusLabel')}</label>
                 <select value={editForm.employment_status} onChange={e => setEditForm((p: any) => ({ ...p, employment_status: e.target.value }))} style={{ ...inp } as any}>
-                  {['employed','self-employed','unemployed','student','retired'].map(s => <option key={s} value={s}>{s.replace('-', ' ')}</option>)}
+                  {EMPLOYMENT_STATUSES.map(s => <option key={s} value={s}>{t(`tenants.employment.${s}`)}</option>)}
                 </select>
               </div>
               <button onClick={saveEdit} disabled={saving} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? t('common.saving') : t('common.saveChanges')}
               </button>
             </div>
           </div>
@@ -529,25 +532,25 @@ export default function Tenants() {
 
         <ConfirmDialog
           open={!!confirmTarget}
-          message={`Remove ${confirmTarget?.first_name || ''} ${confirmTarget?.last_name || ''}? This will also end their active lease if any.`}
-          confirmLabel="Remove"
-          cancelLabel="Cancel"
+          message={t('tenants.confirmRemove', { name: `${confirmTarget?.first_name || ''} ${confirmTarget?.last_name || ''}` })}
+          confirmLabel={t('common.remove')}
+          cancelLabel={t('common.cancel')}
           onCancel={() => setConfirmTarget(null)}
           onConfirm={() => { const tn = confirmTarget; setConfirmTarget(null); deleteTenant(tn); }}
         />
 
         <ImportModal
           open={showImportModal}
-          title="Import Tenants"
-          description="Upload a CSV or Excel file exported from a spreadsheet or your previous system. If you pick a property and your file has a unit_number column, matching tenants are automatically assigned to that vacant unit — same as picking one in the Add Tenant form."
+          title={t('tenants.import.title')}
+          description={t('tenants.import.description')}
           templateHeaders={['first_name', 'last_name', 'email', 'phone', 'employer', 'annual_income', 'employment_status', 'unit_number']}
           templateExampleRow={['Jane', 'Doe', 'jane@example.com', '555-123-4567', 'Acme Inc', '65000', 'employed', '101']}
           templateFilename="tenants_template.csv"
           extraFields={
             <div style={{ marginBottom: 14 }}>
-              <label style={lbl}>Property (optional — needed to auto-assign units by number)</label>
+              <label style={lbl}>{t('tenants.import.propertyOptional')}</label>
               <select value={importPropertyId} onChange={e => setImportPropertyId(e.target.value)} style={{ ...inp } as any}>
-                <option value="">No property — create tenants unassigned</option>
+                <option value="">{t('tenants.import.noPropertyUnassigned')}</option>
                 {propertyList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>

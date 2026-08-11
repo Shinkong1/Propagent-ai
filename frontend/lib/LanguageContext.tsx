@@ -6,7 +6,7 @@ import { auth as authApi } from './api';
 interface LanguageContextValue {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
@@ -68,8 +68,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const t = (key: string): string => {
-    return translations[language]?.[key] ?? translations.en[key] ?? key;
+  const t = (key: string, params?: Record<string, string | number>): string => {
+    let str = translations[language]?.[key] ?? translations.en[key] ?? key;
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        str = str.split(`{${k}}`).join(String(v));
+      }
+    }
+    return str;
   };
 
   return (
