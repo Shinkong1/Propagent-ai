@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import PortalLayout from '../../components/PortalLayout';
 import { tenantPortal } from '../../lib/tenantApi';
 import { useCurrency } from '../../lib/CurrencyContext';
+import { parseLocalDate } from '../../lib/date';
 
 const STATUS_STYLE: Record<string, { color: string; icon: any; label: string }> = {
   paid: { color: '#10B981', icon: CheckCircle, label: 'Paid' },
@@ -65,8 +66,8 @@ export default function TenantPayments() {
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'Syne', color: 'var(--text-primary)', marginBottom: 4 }}>{formatMoney(p.amount)}</div>
                   <div style={{ fontSize: 12, color: '#64748B' }}>
-                    Due {new Date(p.due_date).toLocaleDateString()}
-                    {p.paid_date ? ` · Paid ${new Date(p.paid_date).toLocaleDateString()}` : ''}
+                    Due {parseLocalDate(p.due_date).toLocaleDateString()}
+                    {p.paid_date ? ` · Paid ${parseLocalDate(p.paid_date).toLocaleDateString()}` : ''}
                     {p.property_name ? ` · ${p.property_name}${p.unit_number ? ` #${p.unit_number}` : ''}` : ''}
                   </div>
                 </div>

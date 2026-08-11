@@ -199,10 +199,21 @@ export default function Properties() {
                       )}
                     </div>
                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                      <input type="number" value={u.bedrooms} onChange={e => updateUnitRow(i, 'bedrooms', e.target.value)} placeholder="Beds"
-                        style={{ width: 70, padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
-                      <input type="number" step="0.5" value={u.bathrooms} onChange={e => updateUnitRow(i, 'bathrooms', e.target.value)} placeholder="Baths"
-                        style={{ width: 70, padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                      <div style={{ width: 70 }}>
+                        {/* A placeholder alone never shows here -- bedrooms/bathrooms
+                            default to 1, so the input is never actually empty and the
+                            "Beds"/"Baths" hint text could never appear. Real report: a
+                            user couldn't tell which box was which. Persistent label
+                            above the input instead, so it's always visible. */}
+                        <label style={{ display: 'block', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 3 }}>Beds</label>
+                        <input type="number" min={0} value={u.bedrooms} onChange={e => updateUnitRow(i, 'bedrooms', e.target.value)}
+                          style={{ width: '100%', padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                      </div>
+                      <div style={{ width: 70 }}>
+                        <label style={{ display: 'block', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', marginBottom: 3 }}>Baths</label>
+                        <input type="number" step="0.5" min={0} value={u.bathrooms} onChange={e => updateUnitRow(i, 'bathrooms', e.target.value)}
+                          style={{ width: '100%', padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                      </div>
                       <input value={u.description} onChange={e => updateUnitRow(i, 'description', e.target.value)} placeholder="Description (optional)"
                         spellCheck autoCorrect="on"
                         style={{ flex: 1, padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />

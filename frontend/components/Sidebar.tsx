@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Building2, Users, Wrench, UserSearch, Home,
   BarChart3, Phone, CreditCard, LogOut, Zap, User, Landmark, Sparkles, Boxes, ShieldCheck, AlertTriangle, TrendingUp, FileText, LineChart, ClipboardCheck, MessageSquare, MessageCircle, Settings, Lock, Crown, ChevronLeft, ChevronRight, Workflow, Radar, ChevronRight as CaretRight, X, Megaphone, Share2
 } from 'lucide-react';
-import { clearToken, getUser } from '../lib/auth';
+import { clearToken, getUser, USER_UPDATED_EVENT } from '../lib/auth';
 import { useLanguage } from '../lib/LanguageContext';
 import { useSidebar } from '../lib/SidebarContext';
 import { hasPlanAccess, PlanTier } from './PlanLock';
@@ -111,8 +111,16 @@ export default function Sidebar() {
   }, [router.pathname]);
 
   useEffect(() => {
-    setPlan(getUser()?.plan || 'starter');
-    setIsMaster(!!getUser()?.is_master);
+    const refreshFromUser = () => {
+      setPlan(getUser()?.plan || 'starter');
+      setIsMaster(!!getUser()?.is_master);
+    };
+    refreshFromUser();
+    // Sidebar stays mounted across the whole dashboard, so a plan/role
+    // change made elsewhere (e.g. Admin changing this org's plan) needs
+    // this to actually pick it up without a full page reload.
+    window.addEventListener(USER_UPDATED_EVENT, refreshFromUser);
+    return () => window.removeEventListener(USER_UPDATED_EVENT, refreshFromUser);
   }, []);
 
   const handleLogout = () => {

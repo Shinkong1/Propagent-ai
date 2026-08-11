@@ -50,15 +50,24 @@ function copyLink(url: string) {
   toast.success('Copied');
 }
 
-function KpiCard({ label, value, sub, icon: Icon }: { label: string; value: any; sub?: string; icon: any }) {
+function KpiCard({ label, value, sub, icon: Icon, onClick }: { label: string; value: any; sub?: string; icon: any; onClick?: () => void }) {
   return (
-    <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '14px 16px' }}>
+    <div
+      onClick={onClick}
+      style={{
+        background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '14px 16px',
+        cursor: onClick ? 'pointer' : 'default',
+      }}
+      onMouseEnter={e => { if (onClick) (e.currentTarget as HTMLElement).style.borderColor = 'rgba(251,192,45,0.4)'; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
         <Icon size={14} color="#FBC02D" />
         <div style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px' }}>{label.toUpperCase()}</div>
       </div>
       <div style={{ fontSize: 22, fontFamily: 'IBM Plex Mono', fontWeight: 600, color: 'var(--text-primary)' }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>{sub}</div>}
+      {onClick && <div style={{ fontSize: 10, color: '#FBC02D', marginTop: 6 }}>View breakdown →</div>}
     </div>
   );
 }
@@ -118,6 +127,7 @@ export default function OwnerAdmin() {
 
   // Other tabs
   const [revenue, setRevenue] = useState<any>(null);
+  const [revenueModal, setRevenueModal] = useState<'mrr' | 'arr' | 'arpu' | null>(null);
   const [growth, setGrowth] = useState<any>(null);
   const [platform, setPlatform] = useState<any>(null);
   const [businessAnalytics, setBusinessAnalytics] = useState<any>(null);
@@ -498,9 +508,9 @@ export default function OwnerAdmin() {
         {tab === 'revenue' && revenue && (
           <>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
-              <KpiCard label={t('admin.mrr')} value={formatMoney(revenue.mrr)} sub={t('admin.mrrSub')} icon={DollarSign} />
-              <KpiCard label={t('admin.arr')} value={formatMoney(revenue.arr)} sub={t('admin.arrSub')} icon={TrendingUp} />
-              <KpiCard label={t('admin.arpu')} value={formatMoney(revenue.arpu)} sub={t('admin.arpuSub')} icon={Users} />
+              <KpiCard label={t('admin.mrr')} value={formatMoney(revenue.mrr)} sub={t('admin.mrrSub')} icon={DollarSign} onClick={() => setRevenueModal('mrr')} />
+              <KpiCard label={t('admin.arr')} value={formatMoney(revenue.arr)} sub={t('admin.arrSub')} icon={TrendingUp} onClick={() => setRevenueModal('arr')} />
+              <KpiCard label={t('admin.arpu')} value={formatMoney(revenue.arpu)} sub={t('admin.arpuSub')} icon={Users} onClick={() => setRevenueModal('arpu')} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 20 }}>
               <KpiCard label={t('admin.churnRate')} value={revenue.churn_rate_30d !== null ? `${revenue.churn_rate_30d}%` : '—'} sub={revenue.churn_note || t('admin.churnSub')} icon={Repeat} />
@@ -918,6 +928,92 @@ export default function OwnerAdmin() {
               </div>
             ) : (
               <p style={{ fontSize: 12, color: '#64748B', fontStyle: 'italic' }}>No sender email on file — can't reply directly to this message.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {revenueModal && revenue && (
+        <div
+          onClick={() => setRevenueModal(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 14, padding: 24, maxWidth: 520, width: '100%', maxHeight: '85vh', overflowY: 'auto' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
+              <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 17, color: 'var(--text-primary)' }}>
+                {revenueModal === 'mrr' ? 'MRR Breakdown' : revenueModal === 'arr' ? 'ARR Breakdown' : 'ARPU Breakdown'}
+              </h2>
+              <button onClick={() => setRevenueModal(null)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', padding: 4 }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            {revenueModal === 'mrr' && (
+              <>
+                <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 10, overflow: 'hidden', marginBottom: 14 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-strong)' }}>
+                        {['Plan', 'Orgs', 'Price / org', 'Subtotal'].map(h => (
+                          <th key={h} style={{ padding: '8px 12px', textAlign: h === 'Plan' ? 'left' : 'right', fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748B', letterSpacing: '0.5px' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {revenue.mrr_breakdown.map((row: any) => (
+                        <tr key={row.plan} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                          <td style={{ padding: '8px 12px', fontSize: 12, color: 'var(--text-primary)', textTransform: 'capitalize' }}>{row.plan}</td>
+                          <td style={{ padding: '8px 12px', fontSize: 12, color: 'var(--text-secondary)', textAlign: 'right', fontFamily: 'IBM Plex Mono' }}>{row.org_count}</td>
+                          <td style={{ padding: '8px 12px', fontSize: 12, color: 'var(--text-secondary)', textAlign: 'right', fontFamily: 'IBM Plex Mono' }}>{formatMoney(row.price_per_org)}</td>
+                          <td style={{ padding: '8px 12px', fontSize: 12, color: 'var(--text-primary)', textAlign: 'right', fontFamily: 'IBM Plex Mono', fontWeight: 600 }}>{formatMoney(row.subtotal)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colSpan={3} style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text-primary)', fontWeight: 700, fontFamily: 'Syne' }}>Total MRR</td>
+                        <td style={{ padding: '10px 12px', fontSize: 14, color: '#FBC02D', textAlign: 'right', fontFamily: 'IBM Plex Mono', fontWeight: 700 }}>{formatMoney(revenue.mrr)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+                <p style={{ fontSize: 11, color: '#64748B', lineHeight: 1.6 }}>{revenue.mrr_methodology_note}</p>
+              </>
+            )}
+
+            {revenueModal === 'arr' && (
+              <>
+                <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 18, marginBottom: 14, textAlign: 'center' }}>
+                  <div style={{ fontSize: 15, fontFamily: 'IBM Plex Mono', color: 'var(--text-primary)' }}>
+                    {formatMoney(revenue.mrr)} <span style={{ color: '#64748B' }}>MRR</span> × 12 months
+                  </div>
+                  <div style={{ fontSize: 22, fontFamily: 'IBM Plex Mono', fontWeight: 700, color: '#FBC02D', marginTop: 8 }}>
+                    = {formatMoney(revenue.arr)}
+                  </div>
+                </div>
+                <p style={{ fontSize: 11, color: '#64748B', lineHeight: 1.6 }}>
+                  ARR is Monthly Recurring Revenue annualized — it assumes the current MRR holds steady for 12 months, so it moves exactly in step with MRR. See the MRR card for how that figure itself is built up.
+                </p>
+              </>
+            )}
+
+            {revenueModal === 'arpu' && (
+              <>
+                <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 10, padding: 18, marginBottom: 14, textAlign: 'center' }}>
+                  <div style={{ fontSize: 15, fontFamily: 'IBM Plex Mono', color: 'var(--text-primary)' }}>
+                    {formatMoney(revenue.mrr)} <span style={{ color: '#64748B' }}>MRR</span> ÷ {revenue.active_subscriber_count} active org{revenue.active_subscriber_count === 1 ? '' : 's'}
+                  </div>
+                  <div style={{ fontSize: 22, fontFamily: 'IBM Plex Mono', fontWeight: 700, color: '#FBC02D', marginTop: 8 }}>
+                    = {formatMoney(revenue.arpu)}
+                  </div>
+                </div>
+                <p style={{ fontSize: 11, color: '#64748B', lineHeight: 1.6 }}>
+                  ARPU (Average Revenue Per User/org) is total MRR spread evenly across every currently active organization, regardless of which plan each one is actually on.
+                </p>
+              </>
             )}
           </div>
         </div>

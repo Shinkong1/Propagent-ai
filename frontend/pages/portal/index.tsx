@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import PortalLayout from '../../components/PortalLayout';
 import { tenantPortal } from '../../lib/tenantApi';
 import { useCurrency } from '../../lib/CurrencyContext';
+import { parseLocalDate } from '../../lib/date';
 
 export default function TenantDashboard() {
   const { formatMoney } = useCurrency();
@@ -67,7 +68,7 @@ export default function TenantDashboard() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14 }}>
                 <MiniStat icon={<DollarSign size={14} color="#10B981" />} label="Monthly Rent" value={formatMoney(me.active_lease.monthly_rent)} />
-                <MiniStat icon={<Calendar size={14} color="#3B82F6" />} label="Lease Ends" value={new Date(me.active_lease.end_date).toLocaleDateString()} />
+                <MiniStat icon={<Calendar size={14} color="#3B82F6" />} label="Lease Ends" value={parseLocalDate(me.active_lease.end_date).toLocaleDateString()} />
                 <MiniStat icon={<DollarSign size={14} color={balanceDue > 0 ? '#EF4444' : '#10B981'} />} label="Balance Due" value={formatMoney(balanceDue)} negative={balanceDue > 0} />
               </div>
             </div>

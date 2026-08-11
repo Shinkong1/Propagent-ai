@@ -1,11 +1,34 @@
 const { BASE_URL } = require('../config');
 
 const listLeads = async (z, bundle) => {
+  // z.cursor persists a small string between polling runs -- we use it to
+  // remember the newest created_at we've already seen, so a poll after a
+  // burst of >25 new leads doesn't silently skip the older ones in that
+  // burst (plain "last 25, dedupe by id" would miss them). Best-effort only:
+  // confirmed in testing that Zapier's RPC/cursor storage can be unreachable
+  // ("RPC request failed after 3 attempts") even in production, so a cursor
+  // failure must never take down the whole trigger -- fall back to a plain
+  // "last 25" poll instead.
+  let since;
+  try {
+    since = await z.cursor.get();
+  } catch (e) {
+    since = null;
+  }
   const response = await z.request({
     url: `${BASE_URL}/leads`,
-    params: { limit: 25 },
+    params: { limit: 25, ...(since ? { since } : {}) },
   });
-  return response.data;
+  const leads = response.data;
+  if (leads.length > 0) {
+    // Backend returns newest-first, so the first item is the new high-water mark.
+    try {
+      await z.cursor.set(leads[0].created_at);
+    } catch (e) {
+      // best-effort -- ignore, next poll just falls back to "last 25" again
+    }
+  }
+  return leads;
 };
 
 module.exports = {

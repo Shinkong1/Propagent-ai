@@ -11,7 +11,7 @@ from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.concurrency import run_in_threadpool
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 
 from database.session import get_db
@@ -497,7 +497,10 @@ async def finance_reconcile_manual(
 
 @router.get("/users", response_model=List[UserAdminResponse])
 async def list_users(db: Session = Depends(get_db)):
-    users = db.query(User).order_by(User.created_at.desc()).all()
+    # joinedload -- without it, u.organization.name below lazy-loads a
+    # separate query PER USER (N+1). Real report: "admin tab loads very
+    # slowly."
+    users = db.query(User).options(joinedload(User.organization)).order_by(User.created_at.desc()).all()
     return [
         UserAdminResponse(
             id=u.id, email=u.email, full_name=u.full_name, role=u.role.value,
@@ -655,7 +658,7 @@ async def growth(db: Session = Depends(get_db)):
 @router.get("/platform-health")
 async def platform_health_route(db: Session = Depends(get_db)):
     return {
-        "health": analytics.platform_health(db),
+        "health": await analytics.platform_health(db),
         "ai_calls": analytics.ai_call_trend(db),
         "recent_errors": analytics.recent_errors(db),
     }

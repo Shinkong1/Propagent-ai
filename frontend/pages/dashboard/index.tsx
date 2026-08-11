@@ -34,13 +34,26 @@ export default function Dashboard() {
 
   useEffect(() => { setIsMaster(!!getUser()?.is_master); }, []);
 
-  useEffect(() => {
+  const loadOverview = () => {
     properties.stats().then(r => setStats(r.data)).catch(() => setStats({
       total_properties: 0, total_units: 0, occupied_units: 0,
       vacancy_rate: 0, open_tickets: 0, monthly_revenue: 0
     }));
     maintenance.list().then(r => setTickets(r.data?.slice(0, 5) || [])).catch(() => {});
     properties.aiActivity().then(r => setAiData(r.data)).catch(() => {});
+  };
+
+  useEffect(() => {
+    loadOverview();
+    // Mobile Safari (and other browsers) can restore this page from bfcache
+    // on a back/swipe-back navigation instead of re-running this effect --
+    // real report: add a tenant on the Tenants page, navigate back to
+    // Overview, and it still shows the pre-tenant stats ("no tenants") from
+    // before the effect ever re-fires. event.persisted is true specifically
+    // for a bfcache restore, so this refetches exactly then.
+    const onPageShow = (e: PageTransitionEvent) => { if (e.persisted) loadOverview(); };
+    window.addEventListener('pageshow', onPageShow);
+    return () => window.removeEventListener('pageshow', onPageShow);
   }, []);
 
   // Lead CRM is PropAgent AI's own sales pipeline (owner-only) — only fetch

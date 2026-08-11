@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { ClipboardCheck, Plus, X, ChevronDown, ChevronUp, Camera, Download, Trash2, AlertCircle } from 'lucide-react';
 import { inspections as inspectionsApi, properties as propertiesApi } from '../../lib/api';
+import { localDateString } from '../../lib/date';
 import { useLanguage } from '../../lib/LanguageContext';
 import { useCurrency } from '../../lib/CurrencyContext';
 import PlanLock, { hasPlanAccess } from '../../components/PlanLock';
@@ -24,7 +25,7 @@ export default function Inspections() {
   const [unitList, setUnitList] = useState<any[]>([]);
   const [unitId, setUnitId] = useState('');
   const [inspectionType, setInspectionType] = useState('move_in');
-  const [inspectionDate, setInspectionDate] = useState(new Date().toISOString().slice(0, 10));
+  const [inspectionDate, setInspectionDate] = useState(localDateString());
   const [inspectorName, setInspectorName] = useState('');
   const [notes, setNotes] = useState('');
   const [creating, setCreating] = useState(false);

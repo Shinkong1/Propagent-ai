@@ -1,4 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+/* Syne / IBM Plex Sans / IBM Plex Mono are loaded via <link> tags in
+   pages/_document.tsx, not a CSS @import here. @import is render-blocking
+   in a way <link rel="stylesheet"> isn't -- the browser can't even start
+   fetching the font stylesheet until it parses this far into the CSS,
+   adding a full extra round-trip on top of the one to fetch the actual
+   font files. On a slow mobile connection that shows up as the "PropAgent"
+   wordmark (Syne, weight 800, tight letter-spacing) rendering in a
+   generic fallback font for longer than it should -- confirmed by a real
+   mobile tester ("the font is throwing me off... on all of the pages").
+   <link> in <Head> lets the browser discover and start the font fetch
+   immediately, in parallel with everything else. */
 
 @tailwind base;
 @tailwind components;

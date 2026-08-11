@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/DashboardLayout';
 import { UserSearch, Mail, Phone, Calendar, Building2, UserPlus, Users, ShieldCheck, ShieldX, ShieldQuestion, X, Trash2 } from 'lucide-react';
 import { inquiries as inquiriesApi, properties as propertiesApi } from '../../lib/api';
+import { parseLocalDate } from '../../lib/date';
 import toast from 'react-hot-toast';
 
 const STATUS_COLOR: Record<string, string> = {
@@ -193,7 +194,7 @@ export default function Inquiries() {
                       </td>
                       <td style={{ padding: '14px 16px', fontSize: 12, color: 'var(--text-secondary)' }}>
                         {i.desired_move_in ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={11} /> {new Date(i.desired_move_in).toLocaleDateString()}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={11} /> {parseLocalDate(i.desired_move_in).toLocaleDateString()}</div>
                         ) : '—'}
                       </td>
                       <td style={{ padding: '14px 16px' }}>

@@ -4,6 +4,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import { Users, Plus, X, CheckCircle, XCircle, Building2, FileText, Lock, Pencil, Trash2, ShieldAlert, ChevronDown, ChevronUp, Upload } from 'lucide-react';
 import { tenants as tenantsApi, properties as propertiesApi, fraud as fraudApi } from '../../lib/api';
 import { getUser } from '../../lib/auth';
+import { localDateString } from '../../lib/date';
 import { useCurrency } from '../../lib/CurrencyContext';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import ImportModal from '../../components/ImportModal';
@@ -135,14 +136,26 @@ export default function Tenants() {
           unit_id,
           monthly_rent: unit?.monthly_rent || 0,
           security_deposit: unit ? unit.monthly_rent * 1.5 : 0,
-          start_date: today.toISOString().slice(0, 10),
-          end_date: oneYearOut.toISOString().slice(0, 10),
+          start_date: localDateString(today),
+          end_date: localDateString(oneYearOut),
         });
       }
 
       setShowModal(false);
-      toast.success(unit_id ? 'Tenant added and assigned to unit!' : 'Tenant added!');
-      load(propertyFilter);
+      if (!unit_id && propertyFilter !== 'all') {
+        // A tenant with no unit has no lease yet, and the property-filtered
+        // list only shows tenants with an active lease at that property --
+        // so without this, the tenant we just successfully created would be
+        // invisible under the current filter (confirmed by a real tester:
+        // "it says the tenant was added, but I don't see it"). Switch to
+        // "All Properties" so it's actually visible right away.
+        toast.success('Tenant added! Showing all properties since they aren\'t assigned to a unit yet.');
+        setPropertyFilter('all');
+        load('all');
+      } else {
+        toast.success(unit_id ? 'Tenant added and assigned to unit!' : 'Tenant added!');
+        load(propertyFilter);
+      }
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || 'Failed to add tenant');
     }
@@ -183,8 +196,8 @@ export default function Tenants() {
           unit_id,
           monthly_rent: unit?.monthly_rent || 0,
           security_deposit: unit ? unit.monthly_rent * 1.5 : 0,
-          start_date: today.toISOString().slice(0, 10),
-          end_date: oneYearOut.toISOString().slice(0, 10),
+          start_date: localDateString(today),
+          end_date: localDateString(oneYearOut),
         });
       }
 

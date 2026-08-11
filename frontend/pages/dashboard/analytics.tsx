@@ -6,6 +6,7 @@ import { getUser } from '../../lib/auth';
 import { useLanguage } from '../../lib/LanguageContext';
 import { useCurrency } from '../../lib/CurrencyContext';
 import { useSidebar } from '../../lib/SidebarContext';
+import { parseLocalDate } from '../../lib/date';
 
 const OPEN_STATUSES = ['open', 'in_progress', 'waiting_vendor', 'scheduled'];
 
@@ -32,7 +33,7 @@ function buildAnalytics(portfolioData: any, payments: any[], tickets: any[], lea
   const revenueByMonth = new Map(months.map(m => [m.key, 0]));
   payments.forEach(p => {
     if (p.status !== 'paid' || !p.paid_date) return;
-    const d = new Date(p.paid_date);
+    const d = parseLocalDate(p.paid_date);
     const key = `${d.getFullYear()}-${d.getMonth()}`;
     if (revenueByMonth.has(key)) revenueByMonth.set(key, revenueByMonth.get(key)! + p.amount);
   });

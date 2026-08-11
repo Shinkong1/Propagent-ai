@@ -3,7 +3,7 @@ import OnboardingTour from './OnboardingTour';
 import { Menu, MailWarning, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { getToken, getUser } from '../lib/auth';
+import { getToken, getUser, USER_UPDATED_EVENT } from '../lib/auth';
 import { auth as authApi } from '../lib/api';
 import { useLanguage } from '../lib/LanguageContext';
 import { useTutorial } from '../lib/TutorialContext';
@@ -22,13 +22,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (!getToken()) {
       router.push('/login');
-    } else {
-      setReady(true);
+      return;
+    }
+    setReady(true);
+    const refreshVerifyBanner = () => {
       // Only new signups are ever marked unverified -- existing sessions
       // predating this feature have no is_verified field cached at all and
       // correctly never see this.
       setShowVerifyBanner(getUser()?.is_verified === false && sessionStorage.getItem('hideVerifyBanner') !== '1');
-    }
+    };
+    refreshVerifyBanner();
+    // DashboardLayout wraps every dashboard page and stays mounted across
+    // in-page edits -- without this, verifying an email (or any other
+    // profile change) wouldn't clear/update this banner until a full
+    // page reload.
+    window.addEventListener(USER_UPDATED_EVENT, refreshVerifyBanner);
+    return () => window.removeEventListener(USER_UPDATED_EVENT, refreshVerifyBanner);
   }, []);
 
   const resendVerification = async () => {

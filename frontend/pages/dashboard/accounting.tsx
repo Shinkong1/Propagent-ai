@@ -4,6 +4,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import { DollarSign, TrendingUp, TrendingDown, Percent, Plus, X, Wallet } from 'lucide-react';
 import { accounting as accountingApi, properties as propertiesApi } from '../../lib/api';
 import { useCurrency } from '../../lib/CurrencyContext';
+import { localDateString } from '../../lib/date';
 import ExportButtons from '../../components/ExportButtons';
 import toast from 'react-hot-toast';
 
@@ -62,7 +63,7 @@ export default function Accounting() {
   };
 
   const openPaymentModal = () => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDateString();
     setPaymentForm({ lease_id: '', amount: '', due_date: today, paid_date: today, status: 'paid', payment_method: 'ach' });
     setShowPaymentModal(true);
   };
@@ -89,7 +90,7 @@ export default function Accounting() {
   };
 
   const openExpenseModal = () => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDateString();
     setExpenseForm({ property_id: propertyFilter !== 'all' ? propertyFilter : '', category: 'other', amount: '', expense_date: today, description: '' });
     setShowExpenseModal(true);
   };
@@ -200,6 +201,11 @@ export default function Accounting() {
                   <option value="">Select...</option>
                   {leaseOptions.map(l => <option key={l.id} value={l.id}>{l.tenant_name} — {l.property_name} · Unit {l.unit_number}</option>)}
                 </select>
+                {leaseOptions.length === 0 && (
+                  <div style={{ fontSize: 11, color: '#64748B', marginTop: 6 }}>
+                    No active leases yet — add a tenant and assign them to a unit first.
+                  </div>
+                )}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
