@@ -226,7 +226,20 @@ export default function Accounting() {
                 </div>
                 <div>
                   <label style={lbl}>Paid Date</label>
-                  <input type="date" value={paymentForm.paid_date} onChange={e => setPaymentForm(p => ({ ...p, paid_date: e.target.value }))} style={inp} />
+                  {/* Chrome shows a native "x" to clear a date input; Safari
+                      (especially iOS) doesn't render one at all -- there's no
+                      way to blank this field back out on Safari without an
+                      explicit control. Real report: "no option to clear the
+                      paid date... like it is on chrome". */}
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input type="date" value={paymentForm.paid_date} onChange={e => setPaymentForm(p => ({ ...p, paid_date: e.target.value }))} style={{ ...inp, flex: 1 }} />
+                    {paymentForm.paid_date && (
+                      <button type="button" onClick={() => setPaymentForm(p => ({ ...p, paid_date: '' }))} title="Clear paid date"
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-secondary)', cursor: 'pointer', flexShrink: 0 }}>
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
               <div style={{ marginBottom: 20 }}>

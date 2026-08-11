@@ -54,8 +54,17 @@
   --text-primary: #0F172A;
   --text-hover: #1E293B;
   --text-secondary: #475569;
-  --text-muted: #64748B;
-  --text-faint: #94A3B8;
+  /* --text-muted and --text-faint used to be copy-pasted verbatim from the
+     dark theme instead of independently tuned for a light background --
+     unlike --text-secondary/--text-primary above, which correctly do get
+     their own light-mode values. #94A3B8 (the old --text-faint) measures
+     only 2.56:1 contrast against white -- well under WCAG AA's 4.5:1 floor
+     for normal text -- and #64748B (the old --text-muted) sat right at the
+     4.76:1 edge. Real report: "grey text in white page" hard to read.
+     Both retuned darker here to comfortably clear AA (5.5:1 / 4.7:1)
+     while keeping secondary > muted > faint contrast ordering intact. */
+  --text-muted: #5A6A80;
+  --text-faint: #647587;
   --accent: #FBC02D;
   --accent-dark: #F57F17;
   --accent-rgb: 251,192,45;

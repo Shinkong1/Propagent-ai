@@ -184,13 +184,19 @@ export default function Properties() {
                 </div>
                 {unitRows.map((u, i) => (
                   <div key={i} style={{ background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                      {/* minWidth: 0 is required on flex:1 inputs -- without it, a flex
+                          item can't shrink below its content's intrinsic width, and
+                          number inputs (esp. Safari's spinner rendering) are wider than
+                          Chrome's. On a narrow iPhone that pushed this row out of its
+                          container instead of the two inputs sharing space evenly --
+                          real report: "the monthly rent section falls out of place". */}
                       <input value={u.unit_number} onChange={e => updateUnitRow(i, 'unit_number', e.target.value)} placeholder="Unit # (e.g. 101)"
                         spellCheck={false} autoCorrect="off"
-                        style={{ flex: 1, padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                        style={{ flex: 1, minWidth: 100, padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
                       <input type="number" value={u.monthly_rent} onChange={e => updateUnitRow(i, 'monthly_rent', e.target.value)} placeholder="Monthly rent"
                         spellCheck={false} autoCorrect="off"
-                        style={{ flex: 1, padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+                        style={{ flex: 1, minWidth: 100, padding: '7px 10px', background: 'var(--bg-surface)', border: '1px solid var(--border-input)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
                       {unitRows.length > 1 && (
                         <button type="button" onClick={() => removeUnitRow(i)} title="Remove unit"
                           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 6, color: '#EF4444', cursor: 'pointer', flexShrink: 0 }}>
