@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Plus, X, RefreshCw, Building2, Home } from 'lucide-react';
+import { Plus, X, RefreshCw, Building2, Home, Wrench, Trash2, Star } from 'lucide-react';
 import { maintenance as maintenanceApi, properties as propertiesApi } from '../../lib/api';
 import toast from 'react-hot-toast';
 
@@ -27,6 +27,12 @@ export default function Maintenance() {
 
   const [draggedTicketId, setDraggedTicketId] = useState<string | null>(null);
   const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
+
+  const EMPTY_VENDOR_FORM = { name: '', company: '', email: '', phone: '', specialties: '', hourly_rate: '', is_preferred: false, notes: '' };
+  const [showVendorModal, setShowVendorModal] = useState(false);
+  const [vendorForm, setVendorForm] = useState(EMPTY_VENDOR_FORM);
+  const [savingVendor, setSavingVendor] = useState(false);
+  const [deletingVendorId, setDeletingVendorId] = useState<string | null>(null);
 
   const load = (propertyId?: string, openTicketId?: string) => {
     maintenanceApi.list(undefined, propertyId === 'all' ? undefined : propertyId).then(r => {
@@ -106,6 +112,48 @@ export default function Maintenance() {
     finally { setSaving(false); }
   };
 
+  const loadVendors = () => {
+    maintenanceApi.vendors().then(r => setVendorList(r.data || [])).catch(() => {});
+  };
+
+  const createVendor = async () => {
+    if (!vendorForm.name.trim()) { toast.error('Vendor name is required'); return; }
+    setSavingVendor(true);
+    try {
+      const specialties = vendorForm.specialties.split(',').map(s => s.trim()).filter(Boolean);
+      await maintenanceApi.createVendor({
+        name: vendorForm.name.trim(),
+        company: vendorForm.company.trim() || undefined,
+        email: vendorForm.email.trim() || undefined,
+        phone: vendorForm.phone.trim() || undefined,
+        specialties: specialties.length ? specialties : undefined,
+        hourly_rate: vendorForm.hourly_rate ? parseFloat(vendorForm.hourly_rate) : undefined,
+        is_preferred: vendorForm.is_preferred,
+        notes: vendorForm.notes.trim() || undefined,
+      });
+      toast.success('Vendor added');
+      setVendorForm(EMPTY_VENDOR_FORM);
+      loadVendors();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to add vendor');
+    } finally {
+      setSavingVendor(false);
+    }
+  };
+
+  const deleteVendor = async (id: string) => {
+    setDeletingVendorId(id);
+    try {
+      await maintenanceApi.deleteVendor(id);
+      toast.success('Vendor removed');
+      loadVendors();
+    } catch {
+      toast.error('Failed to remove vendor');
+    } finally {
+      setDeletingVendorId(null);
+    }
+  };
+
   const handleDrop = async (newStatus: string) => {
     setDragOverStatus(null);
     const ticketId = draggedTicketId;
@@ -150,6 +198,9 @@ export default function Maintenance() {
             </select>
             <button onClick={() => load(propertyFilter)} style={{ padding: '9px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', cursor: 'pointer' }}>
               <RefreshCw size={14} />
+            </button>
+            <button onClick={() => setShowVendorModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontWeight: 600, fontFamily: 'Syne', fontSize: 14, cursor: 'pointer' }}>
+              <Wrench size={16} /> Manage Vendors
             </button>
             <button onClick={() => setShowModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', border: 'none', borderRadius: 8, fontWeight: 700, fontFamily: 'Syne', fontSize: 14, cursor: 'pointer' }}>
               <Plus size={16} /> New Ticket
@@ -307,6 +358,11 @@ export default function Maintenance() {
                     <option value="">Unassigned</option>
                     {vendorList.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
                   </select>
+                  {vendorList.length === 0 && (
+                    <div style={{ fontSize: 11, color: '#64748B', marginTop: 6 }}>
+                      No vendors yet — add one from "Manage Vendors" above.
+                    </div>
+                  )}
                 </div>
               </div>
               <div style={{ marginBottom: 14 }}>
@@ -321,6 +377,96 @@ export default function Maintenance() {
               </div>
               <button onClick={saveTicket} disabled={saving} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
                 {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Manage Vendors Modal */}
+        {showVendorModal && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
+            <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 560, maxHeight: '88vh', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Manage Vendors</h2>
+                <button onClick={() => setShowVendorModal(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={18} /></button>
+              </div>
+
+              {/* Existing vendors */}
+              {vendorList.length > 0 ? (
+                <div style={{ marginBottom: 22, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {vendorList.map(v => (
+                    <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 8 }}>
+                      {v.is_preferred && <Star size={13} color="#FBC02D" fill="#FBC02D" />}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans', fontWeight: 600 }}>
+                          {v.name}{v.company ? ` — ${v.company}` : ''}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#64748B', fontFamily: 'IBM Plex Mono', marginTop: 2 }}>
+                          {[v.phone, v.email, v.hourly_rate ? `$${v.hourly_rate}/hr` : null].filter(Boolean).join(' · ') || 'No contact info'}
+                        </div>
+                        {v.specialties?.length > 0 && (
+                          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+                            {v.specialties.map((s: string) => (
+                              <span key={s} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(139,92,246,0.15)', color: '#8B5CF6', fontFamily: 'IBM Plex Mono' }}>{s}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <button onClick={() => deleteVendor(v.id)} disabled={deletingVendorId === v.id} title="Remove vendor"
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#EF4444', cursor: 'pointer', flexShrink: 0 }}>
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ fontSize: 12, color: '#64748B', marginBottom: 22 }}>No vendors yet — add your first one below.</p>
+              )}
+
+              {/* Add vendor form */}
+              <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 12 }}>Add Vendor</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label style={lbl}>Name <span style={{ color: '#EF4444' }}>*</span></label>
+                  <input value={vendorForm.name} onChange={e => setVendorForm(p => ({ ...p, name: e.target.value }))} placeholder="Mike Torres" style={inp} spellCheck autoCorrect="on" autoCapitalize="words" />
+                </div>
+                <div>
+                  <label style={lbl}>Company</label>
+                  <input value={vendorForm.company} onChange={e => setVendorForm(p => ({ ...p, company: e.target.value }))} placeholder="Torres Plumbing Co." style={inp} spellCheck autoCorrect="on" autoCapitalize="words" />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label style={lbl}>Email</label>
+                  <input type="email" value={vendorForm.email} onChange={e => setVendorForm(p => ({ ...p, email: e.target.value }))} style={inp} spellCheck={false} autoCorrect="off" autoCapitalize="off" />
+                </div>
+                <div>
+                  <label style={lbl}>Phone</label>
+                  <input type="tel" value={vendorForm.phone} onChange={e => setVendorForm(p => ({ ...p, phone: e.target.value }))} style={inp} spellCheck={false} autoCorrect="off" autoCapitalize="off" />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label style={lbl}>Specialties (comma-separated)</label>
+                  <input value={vendorForm.specialties} onChange={e => setVendorForm(p => ({ ...p, specialties: e.target.value }))} placeholder="plumbing, hvac" style={inp} spellCheck={false} autoCorrect="off" />
+                </div>
+                <div>
+                  <label style={lbl}>Hourly Rate ($)</label>
+                  <input value={vendorForm.hourly_rate} onChange={e => setVendorForm(p => ({ ...p, hourly_rate: e.target.value }))} placeholder="75" style={inp} spellCheck={false} autoCorrect="off" />
+                </div>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label style={lbl}>Notes</label>
+                <textarea value={vendorForm.notes} onChange={e => setVendorForm(p => ({ ...p, notes: e.target.value }))} placeholder="Reliable, responds fast to emergencies..."
+                  spellCheck autoCorrect="on" autoCapitalize="sentences"
+                  style={{ ...inp, height: 60, resize: 'none' } as any} />
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18, fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <input type="checkbox" checked={vendorForm.is_preferred} onChange={e => setVendorForm(p => ({ ...p, is_preferred: e.target.checked }))} />
+                Preferred vendor (shown first in vendor lists)
+              </label>
+              <button onClick={createVendor} disabled={savingVendor} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+                {savingVendor ? 'Adding...' : 'Add Vendor'}
               </button>
             </div>
           </div>

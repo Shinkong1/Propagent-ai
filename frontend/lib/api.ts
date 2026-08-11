@@ -116,6 +116,9 @@ export const maintenance = {
   update: (id: string, data: any) => api.patch(`/maintenance/${id}`, data),
   chat: (data: any) => api.post('/maintenance/ai-chat', data),
   vendors: () => api.get('/maintenance/vendors'),
+  createVendor: (data: any) => api.post('/maintenance/vendors', data),
+  updateVendor: (id: string, data: any) => api.patch(`/maintenance/vendors/${id}`, data),
+  deleteVendor: (id: string) => api.delete(`/maintenance/vendors/${id}`),
 };
 
 export const voice = {

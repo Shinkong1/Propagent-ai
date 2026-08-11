@@ -51,3 +51,42 @@ class ChatMessage(BaseModel):
     tenant_id: Optional[UUID] = None
     property_id: Optional[UUID] = None
     channel: str = "chat"
+
+
+class VendorCreate(BaseModel):
+    name: str
+    company: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    specialties: Optional[list[str]] = None
+    hourly_rate: Optional[float] = None
+    is_preferred: bool = False
+    notes: Optional[str] = None
+
+
+class VendorUpdate(BaseModel):
+    name: Optional[str] = None
+    company: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    specialties: Optional[list[str]] = None
+    hourly_rate: Optional[float] = None
+    is_preferred: Optional[bool] = None
+    notes: Optional[str] = None
+
+
+class VendorResponse(BaseModel):
+    id: UUID
+    name: str
+    company: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    specialties: list[str] = []
+    hourly_rate: Optional[float] = None
+    rating: Optional[float] = None
+    is_preferred: bool
+    notes: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

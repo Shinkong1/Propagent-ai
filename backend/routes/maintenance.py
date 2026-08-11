@@ -12,7 +12,10 @@ from database.session import get_db
 from models.user import User
 from models.maintenance import MaintenanceTicket, Vendor, TicketStatus, TicketPriority
 from models.property import Property
-from schemas.maintenance import MaintenanceCreate, MaintenanceUpdate, MaintenanceResponse, ChatMessage
+from schemas.maintenance import (
+    MaintenanceCreate, MaintenanceUpdate, MaintenanceResponse, ChatMessage,
+    VendorCreate, VendorUpdate, VendorResponse,
+)
 from middleware.auth import get_current_user
 from middleware.plan_gate import check_and_increment_ai_calls
 from models.owner_message import OwnerMessageSource
@@ -149,7 +152,16 @@ async def ai_chat(
     return result
 
 
-@router.get("/vendors", response_model=List[dict])
+def _vendor_out(v: Vendor) -> dict:
+    return {
+        "id": v.id, "name": v.name, "company": v.company, "email": v.email, "phone": v.phone,
+        "specialties": json.loads(v.specialties) if v.specialties else [],
+        "hourly_rate": v.hourly_rate, "rating": v.rating, "is_preferred": v.is_preferred,
+        "notes": v.notes, "created_at": v.created_at,
+    }
+
+
+@router.get("/vendors", response_model=List[VendorResponse])
 async def list_vendors(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -157,7 +169,64 @@ async def list_vendors(
     vendors = db.query(Vendor).filter(
         Vendor.organization_id == current_user.organization_id,
         Vendor.is_active == True
-    ).all()
-    return [{"id": str(v.id), "name": v.name, "company": v.company, "phone": v.phone, 
-             "specialties": json.loads(v.specialties) if v.specialties else [], "rating": v.rating} 
-            for v in vendors]
+    ).order_by(Vendor.is_preferred.desc(), Vendor.name).all()
+    return [_vendor_out(v) for v in vendors]
+
+
+@router.post("/vendors", response_model=VendorResponse, status_code=201)
+async def create_vendor(
+    payload: VendorCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    vendor = Vendor(
+        organization_id=current_user.organization_id,
+        name=payload.name, company=payload.company, email=payload.email, phone=payload.phone,
+        specialties=json.dumps(payload.specialties) if payload.specialties else None,
+        hourly_rate=payload.hourly_rate, is_preferred=payload.is_preferred, notes=payload.notes,
+    )
+    db.add(vendor)
+    db.commit()
+    db.refresh(vendor)
+    return _vendor_out(vendor)
+
+
+@router.patch("/vendors/{vendor_id}", response_model=VendorResponse)
+async def update_vendor(
+    vendor_id: UUID,
+    payload: VendorUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    vendor = db.query(Vendor).filter(
+        Vendor.id == vendor_id, Vendor.organization_id == current_user.organization_id
+    ).first()
+    if not vendor:
+        raise HTTPException(status_code=404, detail="Vendor not found")
+
+    data = payload.dict(exclude_unset=True)
+    if "specialties" in data:
+        data["specialties"] = json.dumps(data["specialties"]) if data["specialties"] else None
+    for field, value in data.items():
+        setattr(vendor, field, value)
+    db.commit()
+    db.refresh(vendor)
+    return _vendor_out(vendor)
+
+
+@router.delete("/vendors/{vendor_id}", status_code=204)
+async def delete_vendor(
+    vendor_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    vendor = db.query(Vendor).filter(
+        Vendor.id == vendor_id, Vendor.organization_id == current_user.organization_id
+    ).first()
+    if not vendor:
+        raise HTTPException(status_code=404, detail="Vendor not found")
+    # Soft-delete, same pattern as delete_tenant -- keeps history on any
+    # ticket/expense that already references this vendor intact.
+    vendor.is_active = False
+    db.commit()
+    return None
