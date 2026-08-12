@@ -13,6 +13,7 @@ import { useSidebar } from '../../lib/SidebarContext';
 export default function Profile() {
   const [me, setMe] = useState<any>(getUser() || {});
   const [plans, setPlans] = useState<any[]>([]);
+  const [plansError, setPlansError] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
   const [referral, setReferral] = useState<{ referral_code: string; referral_credits_earned: number } | null>(null);
   const [copied, setCopied] = useState(false);
@@ -20,13 +21,27 @@ export default function Profile() {
   const { isMobile } = useSidebar();
   const currentLang = LANGUAGES.find(l => l.code === language);
 
+  const loadPlans = () => {
+    setPlansError(false);
+    billing.plans().then(r => setPlans(r.data?.plans || [])).catch(() => setPlansError(true));
+  };
+
   useEffect(() => {
     auth.me().then(r => setMe((prev: any) => ({ ...prev, ...r.data }))).catch(() => {});
-    billing.plans().then(r => setPlans(r.data?.plans || [])).catch(() => {});
+    loadPlans();
     auth.referral().then(r => setReferral(r.data)).catch(() => {});
   }, []);
 
+  // getUser() already has the org's real plan cached from login, so this
+  // doesn't depend on billing.plans() to know WHICH plan the user is on --
+  // only on it to show the plan's full name/price/feature list. Real gap
+  // found: if billing.plans() failed for any reason (was silently
+  // swallowed, no error, no retry), this card was stuck on "Loading
+  // plan..." forever even though the user's own plan was sitting right
+  // there in localStorage the whole time. Report: "her login also doesn't
+  // have a profile option showing her subscription."
   const currentPlan = plans.find(p => p.key === me.plan);
+  const rawPlanFallback = me.plan ? me.plan.charAt(0).toUpperCase() + me.plan.slice(1) : null;
   const referralLink = referral ? `https://propagent.app/signup?ref=${referral.referral_code}` : '';
 
   const openBillingPortal = async () => {
@@ -93,6 +108,16 @@ export default function Profile() {
                     ))}
                   </ul>
                 </>
+              ) : plansError ? (
+                <div>
+                  {rawPlanFallback && (
+                    <div style={{ fontSize: 20, fontWeight: 700, color: '#FBC02D', fontFamily: 'Syne', marginBottom: 8 }}>{rawPlanFallback}</div>
+                  )}
+                  <div style={{ fontSize: 12, color: '#EF4444', marginBottom: 8 }}>Couldn't load full plan details.</div>
+                  <button onClick={loadPlans} style={{ padding: '6px 12px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)', fontSize: 12, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer' }}>
+                    Retry
+                  </button>
+                </div>
               ) : (
                 <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Loading plan...</div>
               )}
