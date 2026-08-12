@@ -13,7 +13,15 @@ from models.accounting import RentPayment, PaymentStatus
 def scan_duplicate_applications(db: Session, organization_id) -> list:
     """Flags tenant records that share identity or contact details — a common
     signature of duplicate or fraudulent applications."""
-    tenants = db.query(Tenant).filter(Tenant.organization_id == organization_id).all()
+    # is_active == True -- without this, a soft-deleted tenant (delete_tenant
+    # never hard-deletes, only flips is_active) keeps tripping this scan
+    # forever, even after the org "removed" them. Real report: staff deleted
+    # the duplicate tenant and the same-email/phone flag never cleared,
+    # showing up again on every subsequent add and making it look like
+    # adding a tenant was failing.
+    tenants = db.query(Tenant).filter(
+        Tenant.organization_id == organization_id, Tenant.is_active == True
+    ).all()
 
     flags = []
 
