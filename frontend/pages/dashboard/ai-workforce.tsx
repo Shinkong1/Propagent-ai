@@ -8,6 +8,7 @@ import {
 import { aiWorkforce as workforceApi, inquiries as inquiriesApi } from '../../lib/api';
 import { getUser } from '../../lib/auth';
 import { hasPlanAccess, PlanTier } from '../../components/PlanLock';
+import { useLanguage } from '../../lib/LanguageContext';
 import toast from 'react-hot-toast';
 
 const AGENT_ICON: Record<string, any> = {
@@ -16,6 +17,7 @@ const AGENT_ICON: Record<string, any> = {
 };
 
 function AgentCard({ agent }: { agent: any }) {
+  const { t } = useLanguage();
   const Icon = AGENT_ICON[agent.key] || Sparkles;
   const locked = agent.min_tier && !hasPlanAccess(agent.min_tier as PlanTier);
 
@@ -33,11 +35,11 @@ function AgentCard({ agent }: { agent: any }) {
             <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>{agent.name}</h3>
             {locked ? (
               <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, padding: '2px 7px', borderRadius: 4, background: 'rgba(100,116,139,0.15)', color: 'var(--text-faint)', fontFamily: 'IBM Plex Mono' }}>
-                <Lock size={9} /> {agent.min_tier === 'enterprise' ? 'ENTERPRISE' : 'PROFESSIONAL'}
+                <Lock size={9} /> {agent.min_tier === 'enterprise' ? t('aiWorkforce.tierEnterprise') : t('aiWorkforce.tierProfessional')}
               </span>
             ) : (
               <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, padding: '2px 7px', borderRadius: 4, background: 'rgba(16,185,129,0.12)', color: '#10B981', fontFamily: 'IBM Plex Mono' }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981' }} /> ACTIVE
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981' }} /> {t('aiWorkforce.active')}
               </span>
             )}
           </div>
@@ -56,11 +58,11 @@ function AgentCard({ agent }: { agent: any }) {
 
       {locked ? (
         <Link href="/pricing" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '9px 0', borderRadius: 8, background: 'rgba(251,192,45,0.08)', border: '1px solid rgba(251,192,45,0.25)', color: '#FBC02D', fontSize: 12.5, fontWeight: 600, fontFamily: 'Syne' }}>
-          Upgrade to unlock
+          {t('aiWorkforce.upgradeToUnlock')}
         </Link>
       ) : (
         <Link href={agent.link} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '9px 0', borderRadius: 8, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 12.5, fontWeight: 600, fontFamily: 'Syne' }}>
-          Open agent <ArrowUpRight size={13} />
+          {t('aiWorkforce.openAgent')} <ArrowUpRight size={13} />
         </Link>
       )}
     </div>
@@ -68,6 +70,7 @@ function AgentCard({ agent }: { agent: any }) {
 }
 
 export default function AIWorkforce() {
+  const { t } = useLanguage();
   const [agents, setAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [queue, setQueue] = useState<any[]>([]);
@@ -92,9 +95,9 @@ export default function AIWorkforce() {
     try {
       await inquiriesApi.convertToTenant(id);
       setQueue(prev => prev.filter(i => i.id !== id));
-      toast.success('Approved — converted to tenant');
+      toast.success(t('aiWorkforce.toast.approved'));
     } catch (err: any) {
-      toast.error(err?.response?.data?.detail || 'Failed to convert');
+      toast.error(err?.response?.data?.detail || t('aiWorkforce.toast.convertFailed'));
     } finally {
       setActingId(null);
     }
@@ -105,9 +108,9 @@ export default function AIWorkforce() {
     try {
       await inquiriesApi.update(id, { status: 'closed' });
       setQueue(prev => prev.filter(i => i.id !== id));
-      toast.success('Declined');
+      toast.success(t('aiWorkforce.toast.declined'));
     } catch {
-      toast.error('Failed to decline');
+      toast.error(t('aiWorkforce.toast.declineFailed'));
     } finally {
       setActingId(null);
     }
@@ -119,10 +122,10 @@ export default function AIWorkforce() {
         <div style={{ marginBottom: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <Sparkles size={24} color="#FBC02D" />
-            <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)' }}>AI Workforce</h1>
+            <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)' }}>{t('aiWorkforce.title')}</h1>
           </div>
           <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 4 }}>
-            Your property management team, powered by AI{orgName ? ` — ${orgName}` : ''}. Every number below reflects real activity, updated live.
+            {t('aiWorkforce.subtitle', { org: orgName ? ` — ${orgName}` : '' })}
           </p>
         </div>
 
@@ -130,14 +133,14 @@ export default function AIWorkforce() {
         <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, overflow: 'hidden', marginBottom: 28 }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-strong)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <ClipboardCheck size={16} color="#FBC02D" />
-            <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>Action Center</h3>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>— applicants your AI Leasing Agent has screened and is waiting on your decision</span>
+            <h3 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>{t('aiWorkforce.actionCenter')}</h3>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>{t('aiWorkforce.actionCenterHint')}</span>
           </div>
           {queueLoading ? (
-            <div style={{ padding: '28px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Loading…</div>
+            <div style={{ padding: '28px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>{t('aiWorkforce.loading')}</div>
           ) : queue.length === 0 ? (
             <div style={{ padding: '28px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>
-              Nothing waiting on you right now.
+              {t('aiWorkforce.nothingWaiting')}
             </div>
           ) : (
             <div>
@@ -149,12 +152,12 @@ export default function AIWorkforce() {
                       <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}> — {inq.property_name}{inq.unit_number ? ` #${inq.unit_number}` : ''}</span>
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans', marginTop: 3 }}>
-                      AI recommendation: {inq.screening_approved ? (
-                        <span style={{ color: '#10B981', fontWeight: 600 }}>Approve</span>
+                      {t('aiWorkforce.aiRecommendation')}{inq.screening_approved ? (
+                        <span style={{ color: '#10B981', fontWeight: 600 }}>{t('aiWorkforce.approve')}</span>
                       ) : (
-                        <span style={{ color: '#EF4444', fontWeight: 600 }}>Decline</span>
+                        <span style={{ color: '#EF4444', fontWeight: 600 }}>{t('aiWorkforce.decline')}</span>
                       )}
-                      {inq.screening_score != null && <span> · Score {Math.round(inq.screening_score)}/100</span>}
+                      {inq.screening_score != null && <span>{t('aiWorkforce.score', { score: Math.round(inq.screening_score) })}</span>}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -163,14 +166,14 @@ export default function AIWorkforce() {
                       background: 'transparent', border: '1px solid rgba(239,68,68,0.35)', color: '#EF4444',
                       fontSize: 12.5, fontWeight: 600, fontFamily: 'Syne', cursor: actingId === inq.id ? 'default' : 'pointer', opacity: actingId === inq.id ? 0.5 : 1,
                     }}>
-                      <XCircle size={13} /> Decline
+                      <XCircle size={13} /> {t('aiWorkforce.decline')}
                     </button>
                     <button onClick={() => approve(inq.id)} disabled={actingId === inq.id} style={{
                       display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 7,
                       background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.35)', color: '#10B981',
                       fontSize: 12.5, fontWeight: 600, fontFamily: 'Syne', cursor: actingId === inq.id ? 'default' : 'pointer', opacity: actingId === inq.id ? 0.5 : 1,
                     }}>
-                      <CheckCircle2 size={13} /> Approve
+                      <CheckCircle2 size={13} /> {t('aiWorkforce.approve')}
                     </button>
                   </div>
                 </div>
@@ -180,9 +183,9 @@ export default function AIWorkforce() {
         </div>
 
         {/* Employee cards */}
-        <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 14 }}>Your AI Employees</h2>
+        <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 14 }}>{t('aiWorkforce.employeesHeading')}</h2>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Loading your AI workforce…</div>
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>{t('aiWorkforce.loadingWorkforce')}</div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
             {agents.map(agent => <AgentCard key={agent.key} agent={agent} />)}
