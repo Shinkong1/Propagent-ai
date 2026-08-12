@@ -4,6 +4,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import { DollarSign, TrendingUp, TrendingDown, Percent, Plus, X, Wallet } from 'lucide-react';
 import { accounting as accountingApi, properties as propertiesApi } from '../../lib/api';
 import { useCurrency } from '../../lib/CurrencyContext';
+import { useLanguage } from '../../lib/LanguageContext';
 import { localDateString } from '../../lib/date';
 import ExportButtons from '../../components/ExportButtons';
 import toast from 'react-hot-toast';
@@ -14,6 +15,7 @@ const PAYMENT_STATUSES = ['paid', 'pending', 'late', 'partial', 'missed'];
 
 export default function Accounting() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { formatMoney, symbol } = useCurrency();
   const fmtMoney = (v: number | null | undefined) => v == null ? '—' : formatMoney(Math.round(v));
   const [propertyList, setPropertyList] = useState<any[]>([]);
@@ -44,7 +46,7 @@ export default function Accounting() {
       setReport(r.data);
       setPayments(p.data || []);
       setExpenses(e.data || []);
-    }).catch(() => toast.error('Failed to load financial data'))
+    }).catch(() => toast.error(t('accounting.toast.loadFailed')))
       .finally(() => setLoading(false));
   };
 
@@ -74,7 +76,7 @@ export default function Accounting() {
   };
 
   const submitPayment = async () => {
-    if (!paymentForm.lease_id || !paymentForm.amount || !paymentForm.due_date) { toast.error('Fill in lease, amount, and due date'); return; }
+    if (!paymentForm.lease_id || !paymentForm.amount || !paymentForm.due_date) { toast.error(t('accounting.toast.fillPaymentFields')); return; }
     setSavingPayment(true);
     try {
       await accountingApi.recordPayment({
@@ -82,10 +84,10 @@ export default function Accounting() {
         amount: parseFloat(paymentForm.amount),
         paid_date: paymentForm.paid_date || undefined,
       });
-      toast.success('Payment recorded');
+      toast.success(t('accounting.toast.paymentRecorded'));
       setShowPaymentModal(false);
       load(propertyFilter);
-    } catch { toast.error('Failed to record payment'); }
+    } catch { toast.error(t('accounting.toast.paymentFailed')); }
     finally { setSavingPayment(false); }
   };
 
@@ -96,14 +98,14 @@ export default function Accounting() {
   };
 
   const submitExpense = async () => {
-    if (!expenseForm.property_id || !expenseForm.amount || !expenseForm.expense_date) { toast.error('Fill in property, amount, and date'); return; }
+    if (!expenseForm.property_id || !expenseForm.amount || !expenseForm.expense_date) { toast.error(t('accounting.toast.fillExpenseFields')); return; }
     setSavingExpense(true);
     try {
       await accountingApi.recordExpense({ ...expenseForm, amount: parseFloat(expenseForm.amount) });
-      toast.success('Expense recorded');
+      toast.success(t('accounting.toast.expenseRecorded'));
       setShowExpenseModal(false);
       load(propertyFilter);
-    } catch { toast.error('Failed to record expense'); }
+    } catch { toast.error(t('accounting.toast.expenseFailed')); }
     finally { setSavingExpense(false); }
   };
 
@@ -112,22 +114,22 @@ export default function Accounting() {
       <div style={{ maxWidth: 1200 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Accounting</h1>
+            <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>{t('accounting.title')}</h1>
             <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-              {report ? `${report.period_start} → ${report.period_end}` : 'Loading...'}
+              {report ? `${report.period_start} → ${report.period_end}` : t('accounting.loading')}
             </p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <select value={propertyFilter} onChange={e => changePropertyFilter(e.target.value)}
               style={{ padding: '9px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none' }}>
-              <option value="all">All Properties</option>
+              <option value="all">{t('common.allProperties')}</option>
               {propertyList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             <button onClick={openExpenseModal} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontWeight: 600, fontFamily: 'Syne', fontSize: 13, cursor: 'pointer' }}>
-              <Plus size={14} /> Expense
+              <Plus size={14} /> {t('accounting.expenseBtn')}
             </button>
             <button onClick={openPaymentModal} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', border: 'none', borderRadius: 8, fontWeight: 700, fontFamily: 'Syne', fontSize: 13, cursor: 'pointer' }}>
-              <Plus size={14} /> Payment
+              <Plus size={14} /> {t('accounting.paymentBtn')}
             </button>
             <ExportButtons
               onExport={(format) => propertyFilter === 'all' ? accountingApi.exportPortfolioReport(format) : accountingApi.exportPropertyReport(propertyFilter, format)}
@@ -138,28 +140,28 @@ export default function Accounting() {
 
         {/* Financial stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 28 }}>
-          <StatCard icon={<TrendingUp size={15} color="#10B981" />} label="Income" value={fmtMoney(report?.total_income)} />
-          <StatCard icon={<TrendingDown size={15} color="#EF4444" />} label="Expenses" value={fmtMoney(report?.total_expenses)} />
-          <StatCard icon={<DollarSign size={15} color="#FBC02D" />} label="NOI" value={fmtMoney(report?.noi)} />
-          <StatCard icon={<Percent size={15} color="#3B82F6" />} label="Cap Rate" value={report?.cap_rate != null ? `${report.cap_rate}%` : '—'} />
-          <StatCard icon={<Wallet size={15} color="#8B5CF6" />} label="DSCR" value={report?.dscr != null ? report.dscr.toFixed(2) : '—'} />
-          <StatCard icon={<DollarSign size={15} color={report?.cash_flow < 0 ? '#EF4444' : '#10B981'} />} label="Cash Flow" value={fmtMoney(report?.cash_flow)} />
+          <StatCard icon={<TrendingUp size={15} color="#10B981" />} label={t('accounting.statIncome')} value={fmtMoney(report?.total_income)} />
+          <StatCard icon={<TrendingDown size={15} color="#EF4444" />} label={t('accounting.statExpenses')} value={fmtMoney(report?.total_expenses)} />
+          <StatCard icon={<DollarSign size={15} color="#FBC02D" />} label={t('accounting.statNOI')} value={fmtMoney(report?.noi)} />
+          <StatCard icon={<Percent size={15} color="#3B82F6" />} label={t('accounting.statCapRate')} value={report?.cap_rate != null ? `${report.cap_rate}%` : '—'} />
+          <StatCard icon={<Wallet size={15} color="#8B5CF6" />} label={t('accounting.statDSCR')} value={report?.dscr != null ? report.dscr.toFixed(2) : '—'} />
+          <StatCard icon={<DollarSign size={15} color={report?.cash_flow < 0 ? '#EF4444' : '#10B981'} />} label={t('accounting.statCashFlow')} value={fmtMoney(report?.cash_flow)} />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
           {/* Recent Payments */}
-          <Section title="Recent Rent Payments">
-            {payments.length === 0 ? <Empty text="No payments recorded yet." /> : (
+          <Section title={t('accounting.recentPayments')}>
+            {payments.length === 0 ? <Empty text={t('accounting.noPayments')} /> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 420, overflowY: 'auto' }}>
                 {payments.slice(0, 30).map((p: any) => (
                   <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-app)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans', fontWeight: 600, marginBottom: 2 }}>{p.tenant_name || 'Unknown tenant'}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono', marginBottom: 2 }}>{formatMoney(p.amount)} · {p.property_name}{p.unit_number ? ` · Unit ${p.unit_number}` : ''}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Due {p.due_date}{p.paid_date ? ` · Paid ${p.paid_date}` : ''}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Sans', fontWeight: 600, marginBottom: 2 }}>{p.tenant_name || t('accounting.unknownTenant')}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono', marginBottom: 2 }}>{formatMoney(p.amount)} · {p.property_name}{p.unit_number ? t('accounting.unit', { unit: p.unit_number }) : ''}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('accounting.due', { date: p.due_date })}{p.paid_date ? t('accounting.paidOn', { date: p.paid_date }) : ''}</div>
                     </div>
                     <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, fontFamily: 'IBM Plex Mono', background: `${STATUS_COLOR[p.status]}20`, color: STATUS_COLOR[p.status] }}>
-                      {p.status}
+                      {t(`accounting.status.${p.status}`)}
                     </span>
                   </div>
                 ))}
@@ -168,8 +170,8 @@ export default function Accounting() {
           </Section>
 
           {/* Recent Expenses */}
-          <Section title="Recent Expenses">
-            {expenses.length === 0 ? <Empty text="No expenses recorded yet." /> : (
+          <Section title={t('accounting.recentExpenses')}>
+            {expenses.length === 0 ? <Empty text={t('accounting.noExpenses')} /> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 420, overflowY: 'auto' }}>
                 {expenses.slice(0, 30).map((e: any) => (
                   <div key={e.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-app)', borderRadius: 8, flexWrap: 'wrap', gap: 8 }}>
@@ -178,7 +180,7 @@ export default function Accounting() {
                       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{e.expense_date}{e.description ? ` · ${e.description}` : ''}</div>
                     </div>
                     <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, fontFamily: 'IBM Plex Mono', background: 'rgba(100,116,139,0.15)', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>
-                      {e.category.replace('_', ' ')}
+                      {t(`accounting.category.${e.category}`)}
                     </span>
                   </div>
                 ))}
@@ -192,40 +194,40 @@ export default function Accounting() {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Record Rent Payment</h2>
+                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('accounting.recordPaymentTitle')}</h2>
                 <button onClick={() => setShowPaymentModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ marginBottom: 14 }}>
-                <label style={lbl}>Tenant / Lease</label>
+                <label style={lbl}>{t('accounting.tenantLease')}</label>
                 <select value={paymentForm.lease_id} onChange={e => selectLease(e.target.value)} style={{ ...inp } as any}>
-                  <option value="">Select...</option>
+                  <option value="">{t('accounting.select')}</option>
                   {leaseOptions.map(l => <option key={l.id} value={l.id}>{l.tenant_name} — {l.property_name} · Unit {l.unit_number}</option>)}
                 </select>
                 {leaseOptions.length === 0 && (
                   <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
-                    No active leases yet — add a tenant and assign them to a unit first.
+                    {t('accounting.noLeasesHint')}
                   </div>
                 )}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
-                  <label style={lbl}>Amount ({symbol})</label>
+                  <label style={lbl}>{t('accounting.amountSymbol', { symbol })}</label>
                   <input value={paymentForm.amount} onChange={e => setPaymentForm(p => ({ ...p, amount: e.target.value }))} style={inp} spellCheck={false} autoCorrect="off" />
                 </div>
                 <div>
-                  <label style={lbl}>Status</label>
+                  <label style={lbl}>{t('common.status')}</label>
                   <select value={paymentForm.status} onChange={e => setPaymentForm(p => ({ ...p, status: e.target.value }))} style={{ ...inp } as any}>
-                    {PAYMENT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                    {PAYMENT_STATUSES.map(s => <option key={s} value={s}>{t(`accounting.status.${s}`)}</option>)}
                   </select>
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
-                  <label style={lbl}>Due Date</label>
+                  <label style={lbl}>{t('accounting.dueDate')}</label>
                   <input type="date" value={paymentForm.due_date} onChange={e => setPaymentForm(p => ({ ...p, due_date: e.target.value }))} style={inp} />
                 </div>
                 <div>
-                  <label style={lbl}>Paid Date</label>
+                  <label style={lbl}>{t('accounting.paidDate')}</label>
                   {/* Chrome shows a native "x" to clear a date input; Safari
                       (especially iOS) doesn't render one at all -- there's no
                       way to blank this field back out on Safari without an
@@ -234,7 +236,7 @@ export default function Accounting() {
                   <div style={{ display: 'flex', gap: 6 }}>
                     <input type="date" value={paymentForm.paid_date} onChange={e => setPaymentForm(p => ({ ...p, paid_date: e.target.value }))} style={{ ...inp, flex: 1 }} />
                     {paymentForm.paid_date && (
-                      <button type="button" onClick={() => setPaymentForm(p => ({ ...p, paid_date: '' }))} title="Clear paid date"
+                      <button type="button" onClick={() => setPaymentForm(p => ({ ...p, paid_date: '' }))} title={t('accounting.clearPaidDate')}
                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-secondary)', cursor: 'pointer', flexShrink: 0 }}>
                         <X size={14} />
                       </button>
@@ -243,13 +245,13 @@ export default function Accounting() {
                 </div>
               </div>
               <div style={{ marginBottom: 20 }}>
-                <label style={lbl}>Payment Method</label>
+                <label style={lbl}>{t('accounting.paymentMethod')}</label>
                 <select value={paymentForm.payment_method} onChange={e => setPaymentForm(p => ({ ...p, payment_method: e.target.value }))} style={{ ...inp } as any}>
-                  {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                  {PAYMENT_METHODS.map(m => <option key={m} value={m}>{t(`accounting.method.${m}`)}</option>)}
                 </select>
               </div>
               <button onClick={submitPayment} disabled={savingPayment} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
-                {savingPayment ? 'Saving...' : 'Record Payment'}
+                {savingPayment ? t('common.saving') : t('accounting.recordPayment')}
               </button>
             </div>
           </div>
@@ -260,38 +262,38 @@ export default function Accounting() {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
             <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>Record Expense</h2>
+                <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 18, color: 'var(--text-primary)' }}>{t('accounting.recordExpenseTitle')}</h2>
                 <button onClick={() => setShowExpenseModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ marginBottom: 14 }}>
-                <label style={lbl}>Property</label>
+                <label style={lbl}>{t('accounting.property')}</label>
                 <select value={expenseForm.property_id} onChange={e => setExpenseForm(p => ({ ...p, property_id: e.target.value }))} style={{ ...inp } as any}>
-                  <option value="">Select...</option>
+                  <option value="">{t('accounting.select')}</option>
                   {propertyList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 14 }}>
                 <div>
-                  <label style={lbl}>Category</label>
+                  <label style={lbl}>{t('accounting.category')}</label>
                   <select value={expenseForm.category} onChange={e => setExpenseForm(p => ({ ...p, category: e.target.value }))} style={{ ...inp } as any}>
-                    {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c.replace('_', ' ')}</option>)}
+                    {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{t(`accounting.category.${c}`)}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={lbl}>Amount ({symbol})</label>
+                  <label style={lbl}>{t('accounting.amountSymbol', { symbol })}</label>
                   <input value={expenseForm.amount} onChange={e => setExpenseForm(p => ({ ...p, amount: e.target.value }))} style={inp} spellCheck={false} autoCorrect="off" />
                 </div>
               </div>
               <div style={{ marginBottom: 14 }}>
-                <label style={lbl}>Date</label>
+                <label style={lbl}>{t('accounting.date')}</label>
                 <input type="date" value={expenseForm.expense_date} onChange={e => setExpenseForm(p => ({ ...p, expense_date: e.target.value }))} style={inp} />
               </div>
               <div style={{ marginBottom: 20 }}>
-                <label style={lbl}>Description</label>
-                <input value={expenseForm.description} onChange={e => setExpenseForm(p => ({ ...p, description: e.target.value }))} placeholder="Roof repair, quarterly insurance..." style={inp} spellCheck autoCorrect="on" autoCapitalize="sentences" />
+                <label style={lbl}>{t('common.description')}</label>
+                <input value={expenseForm.description} onChange={e => setExpenseForm(p => ({ ...p, description: e.target.value }))} placeholder={t('accounting.descriptionPlaceholder')} style={inp} spellCheck autoCorrect="on" autoCapitalize="sentences" />
               </div>
               <button onClick={submitExpense} disabled={savingExpense} style={{ width: '100%', padding: 12, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)', fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
-                {savingExpense ? 'Saving...' : 'Record Expense'}
+                {savingExpense ? t('common.saving') : t('accounting.recordExpense')}
               </button>
             </div>
           </div>
