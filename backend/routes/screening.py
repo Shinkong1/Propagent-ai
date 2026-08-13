@@ -55,6 +55,11 @@ async def evaluate_tenant(
         references=payload.references,
         db=db,
     )
+    if not result.pop("persisted", False):
+        # The evaluation itself ran fine, but saving it to the tenant record
+        # failed -- don't tell the property manager "APPROVED"/"DECLINED"
+        # for a decision that isn't actually on file.
+        raise HTTPException(status_code=502, detail="Screening was evaluated but couldn't be saved — please try again.")
 
     report = generate_screening_report(result, tenant.full_name, monthly_rent)
     return {**result, "report": report, "tenant_name": tenant.full_name}

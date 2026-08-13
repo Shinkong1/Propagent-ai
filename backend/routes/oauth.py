@@ -73,23 +73,31 @@ async def google_callback(code: str = Query(...), state: str = Query(...)):
     except (JWTError, ValueError):
         raise HTTPException(status_code=401, detail="Invalid or expired OAuth state.")
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        token_resp = await client.post(GOOGLE_TOKEN_URL, data={
-            "code": code,
-            "client_id": settings.GOOGLE_CLIENT_ID,
-            "client_secret": settings.GOOGLE_CLIENT_SECRET,
-            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
-            "grant_type": "authorization_code",
-        })
-        if token_resp.status_code != 200:
-            logger.warning(f"Google token exchange failed: {token_resp.text}")
-            raise HTTPException(status_code=401, detail="Google sign-in failed during token exchange.")
-        access_token = token_resp.json().get("access_token")
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            token_resp = await client.post(GOOGLE_TOKEN_URL, data={
+                "code": code,
+                "client_id": settings.GOOGLE_CLIENT_ID,
+                "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+                "grant_type": "authorization_code",
+            })
+            if token_resp.status_code != 200:
+                logger.warning(f"Google token exchange failed: {token_resp.text}")
+                raise HTTPException(status_code=401, detail="Google sign-in failed during token exchange.")
+            access_token = token_resp.json().get("access_token")
 
-        userinfo_resp = await client.get(GOOGLE_USERINFO_URL, headers={"Authorization": f"Bearer {access_token}"})
-        if userinfo_resp.status_code != 200:
-            raise HTTPException(status_code=401, detail="Google sign-in failed while fetching profile.")
-        profile = userinfo_resp.json()
+            userinfo_resp = await client.get(GOOGLE_USERINFO_URL, headers={"Authorization": f"Bearer {access_token}"})
+            if userinfo_resp.status_code != 200:
+                raise HTTPException(status_code=401, detail="Google sign-in failed while fetching profile.")
+            profile = userinfo_resp.json()
+    except httpx.HTTPError as e:
+        # Real gap found in a launch-readiness audit: a connection-level
+        # failure (timeout/DNS/network error) here used to propagate to a
+        # bare 500 instead of the same clean 401 every other failure mode
+        # in this function already returns.
+        logger.warning(f"Google OAuth callback: network error talking to Google: {e}")
+        raise HTTPException(status_code=401, detail="Google sign-in failed — couldn't reach Google. Please try again.")
 
     email = profile.get("email")
     if not email or not profile.get("email_verified"):

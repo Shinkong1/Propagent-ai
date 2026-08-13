@@ -213,59 +213,71 @@ async def facebook_callback(code: str = Query(None), state: str = Query(None), e
     except (JWTError, ValueError, KeyError):
         raise HTTPException(status_code=401, detail="Invalid or expired OAuth state.")
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        token_resp = await client.get(f"{FACEBOOK_GRAPH_BASE}/oauth/access_token", params={
-            "client_id": settings.FACEBOOK_APP_ID,
-            "client_secret": settings.FACEBOOK_APP_SECRET,
-            "redirect_uri": settings.FACEBOOK_REDIRECT_URI,
-            "code": code,
-        })
-        if token_resp.status_code != 200:
-            logger.warning(f"Facebook token exchange failed: {token_resp.text}")
-            return RedirectResponse(_frontend_social_url(error="facebook_token_exchange_failed"))
-        short_token = token_resp.json().get("access_token")
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            token_resp = await client.get(f"{FACEBOOK_GRAPH_BASE}/oauth/access_token", params={
+                "client_id": settings.FACEBOOK_APP_ID,
+                "client_secret": settings.FACEBOOK_APP_SECRET,
+                "redirect_uri": settings.FACEBOOK_REDIRECT_URI,
+                "code": code,
+            })
+            if token_resp.status_code != 200:
+                logger.warning(f"Facebook token exchange failed: {token_resp.text}")
+                return RedirectResponse(_frontend_social_url(error="facebook_token_exchange_failed"))
+            short_token = token_resp.json().get("access_token")
 
-        # Exchange for a long-lived user token (~60 days) -- best effort;
-        # fall back to the short-lived token if this step fails so the
-        # connection still succeeds.
-        long_resp = await client.get(f"{FACEBOOK_GRAPH_BASE}/oauth/access_token", params={
-            "grant_type": "fb_exchange_token",
-            "client_id": settings.FACEBOOK_APP_ID,
-            "client_secret": settings.FACEBOOK_APP_SECRET,
-            "fb_exchange_token": short_token,
-        })
-        user_token = long_resp.json().get("access_token", short_token) if long_resp.status_code == 200 else short_token
+            # Exchange for a long-lived user token (~60 days) -- best effort;
+            # fall back to the short-lived token if this step fails so the
+            # connection still succeeds.
+            long_resp = await client.get(f"{FACEBOOK_GRAPH_BASE}/oauth/access_token", params={
+                "grant_type": "fb_exchange_token",
+                "client_id": settings.FACEBOOK_APP_ID,
+                "client_secret": settings.FACEBOOK_APP_SECRET,
+                "fb_exchange_token": short_token,
+            })
+            user_token = long_resp.json().get("access_token", short_token) if long_resp.status_code == 200 else short_token
 
-        pages_resp = await client.get(f"{FACEBOOK_GRAPH_BASE}/me/accounts", params={"access_token": user_token})
-        if pages_resp.status_code != 200:
-            logger.warning(f"Facebook /me/accounts failed: {pages_resp.text}")
-            return RedirectResponse(_frontend_social_url(error="facebook_pages_fetch_failed"))
-        pages = pages_resp.json().get("data", [])
-        if not pages:
-            return RedirectResponse(_frontend_social_url(error="no_facebook_pages"))
+            pages_resp = await client.get(f"{FACEBOOK_GRAPH_BASE}/me/accounts", params={"access_token": user_token})
+            if pages_resp.status_code != 200:
+                logger.warning(f"Facebook /me/accounts failed: {pages_resp.text}")
+                return RedirectResponse(_frontend_social_url(error="facebook_pages_fetch_failed"))
+            pages = pages_resp.json().get("data", [])
+            if not pages:
+                return RedirectResponse(_frontend_social_url(error="no_facebook_pages"))
 
-        for page in pages:
-            page_id = page.get("id")
-            page_name = page.get("name")
-            page_token = page.get("access_token")
-            if not (page_id and page_token):
-                continue
-            _upsert_connection(db, org_id, SocialPlatform.facebook, page_id, page_name, page_token, user_id)
+            for page in pages:
+                page_id = page.get("id")
+                page_name = page.get("name")
+                page_token = page.get("access_token")
+                if not (page_id and page_token):
+                    continue
+                _upsert_connection(db, org_id, SocialPlatform.facebook, page_id, page_name, page_token, user_id)
 
-            # Instagram Business Account linked to this Page, if any -- IG
-            # posting uses the same Page access token, not a separate one.
-            ig_resp = await client.get(f"{FACEBOOK_GRAPH_BASE}/{page_id}",
-                                        params={"fields": "instagram_business_account", "access_token": page_token})
-            if ig_resp.status_code == 200:
-                ig_account = ig_resp.json().get("instagram_business_account")
-                if ig_account and ig_account.get("id"):
-                    ig_id = ig_account["id"]
-                    ig_name = None
-                    ig_name_resp = await client.get(f"{FACEBOOK_GRAPH_BASE}/{ig_id}",
-                                                     params={"fields": "username", "access_token": page_token})
-                    if ig_name_resp.status_code == 200:
-                        ig_name = ig_name_resp.json().get("username")
-                    _upsert_connection(db, org_id, SocialPlatform.instagram, ig_id, ig_name, page_token, user_id)
+                # Instagram Business Account linked to this Page, if any -- IG
+                # posting uses the same Page access token, not a separate one.
+                ig_resp = await client.get(f"{FACEBOOK_GRAPH_BASE}/{page_id}",
+                                            params={"fields": "instagram_business_account", "access_token": page_token})
+                if ig_resp.status_code == 200:
+                    ig_account = ig_resp.json().get("instagram_business_account")
+                    if ig_account and ig_account.get("id"):
+                        ig_id = ig_account["id"]
+                        ig_name = None
+                        ig_name_resp = await client.get(f"{FACEBOOK_GRAPH_BASE}/{ig_id}",
+                                                         params={"fields": "username", "access_token": page_token})
+                        if ig_name_resp.status_code == 200:
+                            ig_name = ig_name_resp.json().get("username")
+                        _upsert_connection(db, org_id, SocialPlatform.instagram, ig_id, ig_name, page_token, user_id)
+    except httpx.HTTPError as e:
+        # Real gap found in a launch-readiness audit: none of the calls
+        # above were guarded against a connection-level failure (timeout,
+        # DNS, network error) -- as opposed to an HTTP error status, which
+        # every branch above already handles gracefully. An unguarded
+        # exception here used to propagate to a bare 500 on a top-level
+        # browser navigation (this is what the user's browser lands on
+        # after Facebook's own redirect, not an XHR call), instead of the
+        # same friendly error redirect every other failure path here uses.
+        logger.warning(f"Facebook OAuth callback: network error talking to Facebook: {e}")
+        return RedirectResponse(_frontend_social_url(error="facebook_connection_failed"))
 
     return RedirectResponse(_frontend_social_url(connected="facebook"))
 
@@ -312,45 +324,53 @@ async def linkedin_callback(code: str = Query(None), state: str = Query(None), e
     except (JWTError, ValueError, KeyError):
         raise HTTPException(status_code=401, detail="Invalid or expired OAuth state.")
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        token_resp = await client.post(LINKEDIN_TOKEN_URL, data={
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": settings.LINKEDIN_REDIRECT_URI,
-            "client_id": settings.LINKEDIN_CLIENT_ID,
-            "client_secret": settings.LINKEDIN_CLIENT_SECRET,
-        }, headers={"Content-Type": "application/x-www-form-urlencoded"})
-        if token_resp.status_code != 200:
-            logger.warning(f"LinkedIn token exchange failed: {token_resp.text}")
-            return RedirectResponse(_frontend_social_url(error="linkedin_token_exchange_failed"))
-        access_token = token_resp.json().get("access_token")
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            token_resp = await client.post(LINKEDIN_TOKEN_URL, data={
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": settings.LINKEDIN_REDIRECT_URI,
+                "client_id": settings.LINKEDIN_CLIENT_ID,
+                "client_secret": settings.LINKEDIN_CLIENT_SECRET,
+            }, headers={"Content-Type": "application/x-www-form-urlencoded"})
+            if token_resp.status_code != 200:
+                logger.warning(f"LinkedIn token exchange failed: {token_resp.text}")
+                return RedirectResponse(_frontend_social_url(error="linkedin_token_exchange_failed"))
+            access_token = token_resp.json().get("access_token")
 
-        # Company Pages this member administers -- requires the
-        # r_organization_admin scope granted only once LinkedIn approves
-        # the app for the Marketing Developer Platform.
-        orgs_resp = await client.get(
-            f"{LINKEDIN_API_BASE}/organizationAcls",
-            params={
-                "q": "roleAssignee",
-                "role": "ADMINISTRATOR",
-                "state": "APPROVED",
-                "projection": "(elements*(organization~(localizedName),organization))",
-            },
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
-        if orgs_resp.status_code != 200:
-            logger.warning(f"LinkedIn organizationAcls fetch failed: {orgs_resp.text}")
-            return RedirectResponse(_frontend_social_url(error="linkedin_orgs_fetch_failed"))
-        elements = orgs_resp.json().get("elements", [])
-        if not elements:
-            return RedirectResponse(_frontend_social_url(error="no_linkedin_pages"))
+            # Company Pages this member administers -- requires the
+            # r_organization_admin scope granted only once LinkedIn approves
+            # the app for the Marketing Developer Platform.
+            orgs_resp = await client.get(
+                f"{LINKEDIN_API_BASE}/organizationAcls",
+                params={
+                    "q": "roleAssignee",
+                    "role": "ADMINISTRATOR",
+                    "state": "APPROVED",
+                    "projection": "(elements*(organization~(localizedName),organization))",
+                },
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+            if orgs_resp.status_code != 200:
+                logger.warning(f"LinkedIn organizationAcls fetch failed: {orgs_resp.text}")
+                return RedirectResponse(_frontend_social_url(error="linkedin_orgs_fetch_failed"))
+            elements = orgs_resp.json().get("elements", [])
+            if not elements:
+                return RedirectResponse(_frontend_social_url(error="no_linkedin_pages"))
 
-        for el in elements:
-            org_urn = el.get("organization")
-            if not org_urn:
-                continue
-            org_detail = el.get("organization~") or {}
-            org_name = org_detail.get("localizedName")
-            _upsert_connection(db, org_id, SocialPlatform.linkedin, org_urn, org_name, access_token, user_id)
+            for el in elements:
+                org_urn = el.get("organization")
+                if not org_urn:
+                    continue
+                org_detail = el.get("organization~") or {}
+                org_name = org_detail.get("localizedName")
+                _upsert_connection(db, org_id, SocialPlatform.linkedin, org_urn, org_name, access_token, user_id)
+    except httpx.HTTPError as e:
+        # Same gap and fix as facebook_callback above -- a connection-level
+        # failure (timeout/DNS/network error) used to propagate to a bare
+        # 500 on a top-level browser navigation instead of the friendly
+        # error redirect every other failure path here already uses.
+        logger.warning(f"LinkedIn OAuth callback: network error talking to LinkedIn: {e}")
+        return RedirectResponse(_frontend_social_url(error="linkedin_connection_failed"))
 
     return RedirectResponse(_frontend_social_url(connected="linkedin"))

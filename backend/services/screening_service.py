@@ -30,7 +30,14 @@ async def run_full_screening(
         employment_status=employment_status,
     )
 
-    # Update tenant record with screening result
+    # Update tenant record with screening result. `persisted` is real, not
+    # decorative -- a launch-readiness audit found this used to swallow a
+    # commit failure (logged only) and still return `result` as if it
+    # succeeded, so a property manager could see "APPROVED" with a full
+    # report in the UI while Tenant.screening_approved was never actually
+    # written. The caller (routes/screening.py) now checks this and returns
+    # a real error instead of a false success when it's False.
+    persisted = False
     try:
         from models.tenant import Tenant
         from uuid import UUID
@@ -42,9 +49,11 @@ async def run_full_screening(
             tenant.employment_status = employment_status
             tenant.employer = employer
             db.commit()
+            persisted = True
     except Exception as e:
         logger.error(f"Failed to update tenant screening: {e}")
 
+    result["persisted"] = persisted
     return result
 
 
