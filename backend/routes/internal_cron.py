@@ -151,6 +151,26 @@ async def lead_scrape_endpoint(background_tasks: BackgroundTasks, db: Session = 
                 except Exception:
                     logger.exception(f"lead-scrape: failed for org {org_id} in {location!r}")
 
+        # Permanent safety net, not just a one-time backfill: catches any
+        # lead -- from this run's scrape, an earlier run, or a manually
+        # added one -- that still has no OutreachEmail queued. See
+        # services.lead_service.queue_outreach_for_uncontacted_leads'
+        # docstring for the real gap this closes. Needs its own DB session:
+        # the request-scoped `db` above belongs to the HTTP request that
+        # already returned by the time this background task runs.
+        from uuid import UUID as _UUID
+        from database.base import SessionLocal
+        from services.lead_service import queue_outreach_for_uncontacted_leads
+        backfill_db = SessionLocal()
+        try:
+            for org_id in org_ids:
+                try:
+                    queue_outreach_for_uncontacted_leads(backfill_db, _UUID(org_id))
+                except Exception:
+                    logger.exception(f"lead-scrape: outreach backfill failed for org {org_id}")
+        finally:
+            backfill_db.close()
+
     background_tasks.add_task(_run_all_scrapes)
     return {
         "status": "started",

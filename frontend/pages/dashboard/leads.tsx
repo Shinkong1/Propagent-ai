@@ -75,6 +75,20 @@ export default function Leads() {
     }
   };
 
+  const [backfilling, setBackfilling] = useState(false);
+  const queueUncontacted = async () => {
+    setBackfilling(true);
+    try {
+      await leadsApi.queueUncontacted();
+      toast.success('Backfilling outreach for every uncontacted lead with an email on file — sends on the next cycle');
+      setTimeout(() => { leadsApi.list().then(r => setLeadList(r.data || [])).catch(() => {}); }, 2000);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to start backfill');
+    } finally {
+      setBackfilling(false);
+    }
+  };
+
   const markReplied = async (id: string) => {
     try {
       await leadsApi.markReplied(id);
@@ -143,6 +157,11 @@ export default function Leads() {
             <button onClick={() => setShowAddModal(true)}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', border: 'none', borderRadius: 8, color: 'var(--bg-app)', fontSize: 12, fontFamily: 'Syne', fontWeight: 700, cursor: 'pointer' }}>
               <Plus size={13} /> Add Lead
+            </button>
+            <button onClick={queueUncontacted} disabled={backfilling}
+              title="Queues outreach for every lead with an email that's never been contacted -- catches leads scraped before auto-outreach existed, and any manually-added lead"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'Syne', fontWeight: 700, cursor: backfilling ? 'default' : 'pointer', opacity: backfilling ? 0.6 : 1 }}>
+              <Mail size={13} /> {backfilling ? 'Queuing…' : 'Queue Uncontacted'}
             </button>
             <input
               value={scrapeLocation}

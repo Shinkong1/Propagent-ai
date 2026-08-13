@@ -156,6 +156,24 @@ async def send_outreach(
     return {"message": "Outreach email queued"}
 
 
+@router.post("/queue-uncontacted")
+async def queue_uncontacted(
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Manual trigger for services.lead_service.queue_outreach_for_uncontacted_leads
+    -- one-time (or run-it-whenever) backfill for every lead in this org
+    that has an email but was never actually queued for outreach (see that
+    function's docstring for the real gap this closes). Runs in the
+    background since it can touch a few hundred rows; the frontend just
+    shows a toast and refreshes the list a moment later, same pattern as
+    triggerScrape/sendOutreach."""
+    from services.lead_service import queue_outreach_for_uncontacted_leads
+    background_tasks.add_task(queue_outreach_for_uncontacted_leads, db, current_user.organization_id)
+    return {"message": "Backfilling outreach for uncontacted leads"}
+
+
 @router.post("/{lead_id}/mark-replied")
 async def mark_replied(
     lead_id: UUID,

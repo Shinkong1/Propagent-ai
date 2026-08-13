@@ -137,6 +137,7 @@ export const leads = {
   markReplied: (id: string) => api.post(`/leads/${id}/mark-replied`),
   delete: (id: string) => api.delete(`/leads/${id}`),
   scrape: (data: any) => api.post('/leads/scrape', data),
+  queueUncontacted: () => api.post('/leads/queue-uncontacted'),
 };
 
 export const billing = {

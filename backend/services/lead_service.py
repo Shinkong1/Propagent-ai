@@ -94,6 +94,57 @@ https://propagent.app
         logger.error(f"Failed to queue follow-up outreach: {e}")
 
 
+def queue_outreach_for_uncontacted_leads(db: Session, organization_id, limit: int = 200) -> dict:
+    """Safety net + backfill: queues initial outreach for any lead in this
+    ONE organization (Lead is multi-tenant like everything else -- every
+    caller must scope by organization_id, same as list_leads/create_lead in
+    routes/leads.py) that has a real email on file but has never had a
+    single OutreachEmail queued -- regardless of source (scrape, manual add
+    via POST /leads/) or how old the lead is. Covers two real gaps found in
+    a live audit:
+      1. Leads scraped before the scrape-time auto-queue fix landed
+         (workers/tasks/lead_scraping.py) never got outreach queued at all.
+      2. Manually-added leads (POST /leads/) still don't auto-queue outreach
+         today -- only a matching workflow rule or the manual "Send AI
+         outreach" button does.
+    Run once for an immediate backfill (see routes/leads.py's
+    POST /queue-uncontacted, triggered from the Lead CRM UI) and also on
+    every /internal/cron/lead-scrape run (once per org with an active
+    is_master user, same loop that endpoint already does) so it keeps
+    catching anything new, from any source, going forward -- not just what
+    that run itself scraped.
+
+    Idempotent: once a lead gets an OutreachEmail row here, the
+    `~has_any_email` filter excludes it from ever qualifying again, so
+    re-running this repeatedly (daily, via cron) never double-sends.
+    Excludes closed_won/closed_lost -- already-resolved either way,
+    no reason to cold-email them."""
+    has_any_email = (
+        db.query(OutreachEmail.id)
+        .filter(OutreachEmail.lead_id == Lead.id)
+        .exists()
+    )
+    candidates = (
+        db.query(Lead)
+        .filter(
+            Lead.organization_id == organization_id,
+            Lead.email.isnot(None),
+            ~Lead.status.in_([LeadStatus.closed_won, LeadStatus.closed_lost]),
+            ~has_any_email,
+        )
+        .limit(limit)
+        .all()
+    )
+
+    queued = 0
+    for lead in candidates:
+        queue_outreach_email(lead, db)
+        queued += 1
+
+    logger.info(f"Backfilled outreach for {queued} previously-uncontacted lead(s) in org {organization_id} (checked {len(candidates)})")
+    return {"queued": queued, "checked": len(candidates)}
+
+
 def process_outreach_queue(db: Session, limit: int = 50) -> dict:
     """Send whatever's sitting in the outreach queue. Shared by the Celery
     task (for local dev, where a worker/beat process actually runs) and the
