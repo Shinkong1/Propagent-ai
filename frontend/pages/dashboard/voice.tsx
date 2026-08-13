@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Phone, Mic, PhoneCall, PhoneOff, Zap, CheckCircle, PhoneMissed } from 'lucide-react';
 import { voice as voiceApi } from '../../lib/api';
+import PlanLock, { hasPlanAccess } from '../../components/PlanLock';
 
 const API_URL = 'https://propagent-api.onrender.com';
 
@@ -40,6 +41,10 @@ export default function Voice() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  if (!hasPlanAccess('professional')) {
+    return <PlanLock minTier="professional" titleKey="voice.title" />;
+  }
 
   return (
     <DashboardLayout>

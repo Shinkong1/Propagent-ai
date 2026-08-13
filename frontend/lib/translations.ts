@@ -1088,6 +1088,8 @@ export const translations: Record<Language, Dict> = {
     'social.toast.writeMessage': 'Write a message first',
     'social.toast.postedToAccounts': 'Posted to {count} account{s}',
     'social.toast.postFailed': 'Failed to post',
+    // voice.title key
+    'voice.title': 'Voice AI Call Center',
   },
   es: {
     'common.cancel': 'Cancelar',
@@ -2145,6 +2147,8 @@ export const translations: Record<Language, Dict> = {
     'social.toast.writeMessage': 'Escribe un mensaje primero',
     'social.toast.postedToAccounts': 'Publicado en {count} cuenta{s}',
     'social.toast.postFailed': 'Error al publicar',
+    // voice.title key
+    'voice.title': 'Centro de Llamadas con IA de Voz',
   },
   fr: {
     'common.cancel': 'Annuler',
@@ -3202,6 +3206,8 @@ export const translations: Record<Language, Dict> = {
     'social.toast.writeMessage': 'Rédigez d\'abord un message',
     'social.toast.postedToAccounts': 'Publié sur {count} compte{s}',
     'social.toast.postFailed': 'Échec de la publication',
+    // voice.title key
+    'voice.title': 'Centre d\'Appels IA Vocale',
   },
   de: {
     'common.cancel': 'Abbrechen',
@@ -4259,6 +4265,8 @@ export const translations: Record<Language, Dict> = {
     'social.toast.writeMessage': 'Schreiben Sie zuerst eine Nachricht',
     'social.toast.postedToAccounts': 'Auf {count} Konto{s} veröffentlicht',
     'social.toast.postFailed': 'Veröffentlichung fehlgeschlagen',
+    // voice.title key
+    'voice.title': 'Sprach-KI-Callcenter',
   },
   zh: {
     'common.cancel': '取消',
@@ -5316,6 +5324,8 @@ export const translations: Record<Language, Dict> = {
     'social.toast.writeMessage': '请先撰写内容',
     'social.toast.postedToAccounts': '已发布到 {count} 个账号{s}',
     'social.toast.postFailed': '发布失败',
+    // voice.title key
+    'voice.title': '语音 AI 呼叫中心',
   },
   is: {
     'common.cancel': 'Hætta við',
@@ -6373,6 +6383,8 @@ export const translations: Record<Language, Dict> = {
     'social.toast.writeMessage': 'Skrifaðu skilaboð fyrst',
     'social.toast.postedToAccounts': 'Birt á {count} reikning{s}',
     'social.toast.postFailed': 'Ekki tókst að birta',
+    // voice.title key
+    'voice.title': 'Raddgervigreindar Þjónustuver',
   },
   ko: {
     'common.cancel': '취소',
@@ -7430,6 +7442,8 @@ export const translations: Record<Language, Dict> = {
     'social.toast.writeMessage': '먼저 메시지를 작성하세요',
     'social.toast.postedToAccounts': '{count}개 계정{s}에 게시됨',
     'social.toast.postFailed': '게시에 실패했습니다',
+    // voice.title key
+    'voice.title': '음성 AI 콜센터',
   },
   it: {
     'common.cancel': 'Annulla',
@@ -8487,5 +8501,7 @@ export const translations: Record<Language, Dict> = {
     'social.toast.writeMessage': 'Scrivi prima un messaggio',
     'social.toast.postedToAccounts': 'Pubblicato su {count} account{s}',
     'social.toast.postFailed': 'Impossibile pubblicare',
+    // voice.title key
+    'voice.title': 'Centro Chiamate IA Vocale',
   },
 };

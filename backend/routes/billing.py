@@ -419,25 +419,32 @@ def _handle_rent_payment_succeeded(db: Session, obj: dict):
 
 @router.get("/plans")
 async def get_plans():
+    # Kept in sync with frontend/pages/pricing.tsx's PLANS array by hand --
+    # this was found drifted (still describing Professional as "Lead
+    # generation, Automated outreach" instead of what it actually ships)
+    # during a pricing-page audit. This list is what a logged-in customer
+    # sees describing their OWN current plan on /dashboard/profile, so it
+    # needs to match what they were actually sold on /pricing, not an
+    # earlier draft of the plans.
     return {
         "plans": [
             {
                 "name": "Starter",
                 "key": "starter",
                 "price": 49,
-                "features": ["Up to 3 properties", "25 units", "AI chat support", "Maintenance tracking", "100 AI calls/mo"],
+                "features": ["3 properties", "25 units", "AI chat support", "Maintenance tracking", "Document uploads & search", "Rental inquiry & prospect tracking", "100 AI calls/mo", "Email support"],
             },
             {
                 "name": "Professional",
                 "key": "professional",
                 "price": 149,
-                "features": ["Up to 15 properties", "150 units", "Voice AI call center", "Lead generation", "Automated outreach", "1000 AI calls/mo"],
+                "features": ["15 properties", "150 units", "Voice AI call center", "Executive AI Assistant", "Lease & notice generation", "Inspection AI (photo damage detection)", "Compliance, Collections & Communications agents", "1,000 AI calls/mo", "Priority support"],
             },
             {
                 "name": "Enterprise",
                 "key": "enterprise",
                 "price": 499,
-                "features": ["Unlimited properties", "Unlimited units", "Full AI autonomy", "Custom integrations", "Dedicated support", "Unlimited AI calls"],
+                "features": ["Unlimited properties", "Unlimited units", "Portfolio Dashboard", "Investment Analysis", "Pricing Intelligence", "Full AI autonomy", "Custom integrations", "Dedicated CSM", "Unlimited AI calls", "SLA guarantee"],
             },
         ]
     }

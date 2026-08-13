@@ -8,8 +8,9 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from middleware.twilio_auth import verify_twilio_signature
 from middleware.auth import get_current_user
+from middleware.plan_gate import require_plan
 from database.session import get_db
-from models.user import User
+from models.user import User, PlanType
 from models.voice_call import VoiceCall
 from schemas.voice import VoiceCallOut, VoiceCallListOut
 
@@ -21,7 +22,11 @@ router = APIRouter(prefix="/voice", tags=["voice"], dependencies=[Depends(verify
 # Staff-facing call history — normal session auth, deliberately a separate
 # router so it isn't gated behind Twilio signature verification (that check
 # would reject every browser request since it's not coming from Twilio).
-staff_router = APIRouter(prefix="/voice", tags=["voice"])
+# Voice AI call center is sold as a Professional-tier feature on pricing.tsx
+# -- this was missing entirely (real gap found in a pricing-page audit: any
+# Starter org could hit /voice/calls and use it for free), same require_plan
+# pattern as inspections.py/compliance.py/etc.
+staff_router = APIRouter(prefix="/voice", tags=["voice"], dependencies=[Depends(require_plan(PlanType.professional))])
 
 
 @staff_router.get("/calls", response_model=VoiceCallListOut)
