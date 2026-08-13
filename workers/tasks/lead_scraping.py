@@ -311,6 +311,16 @@ def scrape_leads_task(org_id: str, source: str, location: str):
 
     db = SessionLocal()
     inserted = 0
+    # Real gap found and fixed: this function only ever inserted Lead rows --
+    # nothing anywhere automatically queued an outreach email for a newly
+    # scraped lead. The only path that called
+    # services.lead_service.queue_outreach_email was a manual, one-lead-at-a-
+    # time "Send AI outreach" button in the Lead CRM UI (routes/leads.py's
+    # POST /{lead_id}/outreach) -- with the nationwide rotation surfacing
+    # 100+ new leads/day, nobody was going to click that button 100+ times a
+    # day, so in practice almost no outreach was ever actually going out
+    # despite the daily scrape genuinely working. Leads collected here.
+    leads_to_contact = []
     try:
         org_uuid = UUID(org_id)
         lead_source = LeadSource[source] if source in [e.value for e in LeadSource] else LeadSource.google_maps
@@ -360,6 +370,12 @@ def scrape_leads_task(org_id: str, source: str, location: str):
                 )
                 db.add(lead)
                 inserted += 1
+                # Only leads where _discover_email actually found a real
+                # address are contactable at all -- process_outreach_queue
+                # sends to email.lead.email, which would just fail/no-op for
+                # a lead with no email on file.
+                if email:
+                    leads_to_contact.append(lead)
             except Exception as e:
                 # One malformed Places result should never sink the batch.
                 logger.warning(f"Skipping one Places result due to error: {e}")
@@ -370,5 +386,16 @@ def scrape_leads_task(org_id: str, source: str, location: str):
     except Exception as e:
         logger.error(f"Lead scraping failed: {e}")
         db.rollback()
+        db.close()
+        return
+
+    try:
+        from services.lead_service import queue_outreach_email
+        for lead in leads_to_contact:
+            queue_outreach_email(lead, db)
+        if leads_to_contact:
+            logger.info(f"Auto-queued outreach for {len(leads_to_contact)} newly scraped lead(s) with a discovered email")
+    except Exception as e:
+        logger.error(f"Failed to auto-queue outreach for newly scraped leads: {e}")
     finally:
         db.close()

@@ -9,8 +9,15 @@ logger = logging.getLogger(__name__)
 REENGAGEMENT_SEQUENCE_STEP = 3
 
 
-async def queue_outreach_email(lead: Lead, db: Session) -> None:
-    """Generate personalized outreach email using AI and queue it"""
+def queue_outreach_email(lead: Lead, db: Session) -> None:
+    """Generate personalized outreach email using AI and queue it.
+
+    Plain sync def (not async) even though FastAPI's BackgroundTasks accepts
+    either -- this needs to be callable directly from
+    workers/tasks/lead_scraping.py's scrape_leads_task, which is itself a
+    plain sync function with no event loop to await onto. Has no real
+    `await` in its body anyway, so dropping `async` changes nothing for the
+    existing BackgroundTasks caller in routes/leads.py."""
     try:
         subject = f"Automate {lead.company or 'Your Properties'} with AI — PropAgent"
         
