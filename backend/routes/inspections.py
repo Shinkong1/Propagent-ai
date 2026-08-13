@@ -17,11 +17,11 @@ from models.inspection import Inspection, InspectionPhoto, InspectionType, Inspe
 from schemas.inspection import InspectionCreate, InspectionUpdate, InspectionResponse, InspectionListItem
 from middleware.auth import get_current_user
 from services.inspection_agent import analyze_photo, generate_inspection_report_pdf
+from services import storage_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/inspections", tags=["inspections"], dependencies=[Depends(require_plan(PlanType.professional))])
 
-UPLOAD_ROOT = "/app/uploads/inspections"
 MAX_PHOTO_SIZE = 10 * 1024 * 1024  # 10MB
 
 
@@ -156,15 +156,10 @@ async def upload_inspection_photo(
     if len(file_bytes) > MAX_PHOTO_SIZE:
         raise HTTPException(status_code=413, detail="Photo exceeds the 10MB upload limit.")
 
-    org_dir = os.path.join(UPLOAD_ROOT, str(current_user.organization_id), str(inspection_id))
-    os.makedirs(org_dir, exist_ok=True)
     safe_filename = os.path.basename(file.filename or "photo.jpg")
     stored_name = f"{uuid.uuid4()}_{safe_filename}"
-    file_path = os.path.join(org_dir, stored_name)
-    if os.path.commonpath([os.path.abspath(file_path), os.path.abspath(org_dir)]) != os.path.abspath(org_dir):
-        raise HTTPException(status_code=400, detail="Invalid filename")
-    with open(file_path, "wb") as f:
-        f.write(file_bytes)
+    key = f"inspections/{current_user.organization_id}/{inspection_id}/{stored_name}"
+    file_path = storage_service.save_file(key, file_bytes, file.content_type or "image/jpeg")
 
     analysis = await analyze_photo(file_bytes, file.content_type or "image/jpeg")
 

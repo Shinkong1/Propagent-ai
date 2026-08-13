@@ -147,6 +147,18 @@ class Settings(BaseSettings):
     # hasn't been purchased. TODO: add FACEBOOK/LINKEDIN-style settings here
     # once a paid X API plan is decided on; don't stub/fake it before then.
 
+    # Cloudflare R2 (S3-compatible object storage) for uploaded documents and
+    # inspection photos -- see services/storage_service.py. Render's local
+    # disk is ephemeral (wiped on every deploy/restart), which was silently
+    # losing every uploaded file while the database row describing it (and
+    # a now-dead file_path) survived. Empty by default: storage_service
+    # falls back to local disk (same as before) until all four are set, so
+    # this stays a no-op change until R2 is actually configured.
+    R2_ACCOUNT_ID: str = ""
+    R2_ACCESS_KEY_ID: str = ""
+    R2_SECRET_ACCESS_KEY: str = ""
+    R2_BUCKET_NAME: str = ""
+
     class Config:
         env_file = ".env"
         extra = "ignore"

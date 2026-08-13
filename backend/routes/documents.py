@@ -6,7 +6,7 @@ import uuid
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -25,6 +25,7 @@ from services.document_generator import (
     generate_rent_increase_notice_pdf,
     generate_move_out_notice_pdf,
 )
+from services import storage_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -77,7 +78,6 @@ async def update_document_templates(
         move_out_notice=org.doc_template_move_out_notice,
     )
 
-UPLOAD_ROOT = "/app/uploads/documents"
 MAX_FILE_SIZE = 20 * 1024 * 1024  # 20MB
 
 GENERATABLE_TYPES = {"lease_agreement", "lease_renewal_notice", "rent_increase_notice", "move_out_notice"}
@@ -158,18 +158,15 @@ async def upload_document(
     if len(file_bytes) > MAX_FILE_SIZE:
         raise HTTPException(status_code=413, detail="File exceeds the 20MB upload limit.")
 
-    org_dir = os.path.join(UPLOAD_ROOT, str(current_user.organization_id))
-    os.makedirs(org_dir, exist_ok=True)
     # Strip any directory components from the client-supplied filename before
-    # using it in a path — an unsanitized filename like "../../etc/cron.d/x"
-    # would otherwise let an upload write outside org_dir.
+    # using it in the object key — an unsanitized filename like
+    # "../../etc/cron.d/x" would otherwise let an upload escape its org's
+    # namespace (storage_service also backstops this for the local-disk
+    # fallback specifically).
     safe_filename = os.path.basename(file.filename or "upload")
     stored_name = f"{uuid.uuid4()}_{safe_filename}"
-    file_path = os.path.join(org_dir, stored_name)
-    if os.path.commonpath([os.path.abspath(file_path), os.path.abspath(org_dir)]) != os.path.abspath(org_dir):
-        raise HTTPException(status_code=400, detail="Invalid filename")
-    with open(file_path, "wb") as f:
-        f.write(file_bytes)
+    key = f"documents/{current_user.organization_id}/{stored_name}"
+    file_path = storage_service.save_file(key, file_bytes, file.content_type or "application/octet-stream")
 
     extracted, status = extract_text(file_bytes, file.content_type or "")
     fields = extract_fields(extracted) if extracted else {}
@@ -255,17 +252,13 @@ async def generate_document(
         fields = {"tenant_name": tenant.full_name, "move_out_date": str(payload.move_out_date)}
         summary = f"Notice to vacate for {tenant.full_name}, move-out date {payload.move_out_date}."
 
-    org_dir = os.path.join(UPLOAD_ROOT, str(current_user.organization_id))
-    os.makedirs(org_dir, exist_ok=True)
     # filename is derived from tenant.full_name, which an org user controls when
-    # creating a tenant — sanitize before using it in a path, same reasoning as upload_document.
+    # creating a tenant — sanitize before using it in the object key, same
+    # reasoning as upload_document.
     safe_filename = os.path.basename(filename or "document.pdf")
     stored_name = f"{uuid.uuid4()}_{safe_filename}"
-    file_path = os.path.join(org_dir, stored_name)
-    if os.path.commonpath([os.path.abspath(file_path), os.path.abspath(org_dir)]) != os.path.abspath(org_dir):
-        raise HTTPException(status_code=400, detail="Invalid filename")
-    with open(file_path, "wb") as f:
-        f.write(pdf_bytes)
+    key = f"documents/{current_user.organization_id}/{stored_name}"
+    file_path = storage_service.save_file(key, pdf_bytes, "application/pdf")
 
     category = DocumentCategory.lease if payload.document_type in ("lease_agreement", "lease_renewal_notice") else DocumentCategory.other
 
@@ -299,8 +292,22 @@ async def download_document(
         Document.organization_id == current_user.organization_id,
         Document.is_active == True,
     ).first()
-    if not doc or not os.path.exists(doc.file_path):
+    if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
+
+    # R2-backed: redirect to a short-lived presigned URL so the file streams
+    # straight from Cloudflare's edge (free egress) instead of proxying the
+    # full bytes through this backend. Local-disk fallback: serve directly,
+    # same as before.
+    presigned = storage_service.get_download_url(doc.file_path, doc.filename or "document")
+    if presigned:
+        return RedirectResponse(presigned)
+
+    if not os.path.exists(doc.file_path):
+        # Real, unrecoverable case for anything uploaded before R2 was
+        # configured: local disk on Render is wiped on every deploy, so the
+        # bytes are gone even though this DB row survived.
+        raise HTTPException(status_code=404, detail="This file is no longer available — it was uploaded before persistent storage was configured.")
     return FileResponse(doc.file_path, media_type=doc.mime_type or "application/octet-stream", filename=doc.filename)
 
 
