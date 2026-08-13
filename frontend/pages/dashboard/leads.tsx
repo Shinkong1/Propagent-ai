@@ -22,6 +22,17 @@ export default function Leads() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState(EMPTY_LEAD_FORM);
   const [saving, setSaving] = useState(false);
+  // Must be declared here, before the `if (!isMaster) return` below -- not
+  // down by queueUncontacted() where it previously lived. A master
+  // account's first render takes the early-return path (isMaster still
+  // false, pre-effect) and a later render doesn't (isMaster now true);
+  // a hook declared only after that return gets called on some renders and
+  // not others, which is a real, guaranteed-fatal Rules of Hooks violation
+  // ("Rendered more hooks than during the previous render") -- confirmed as
+  // the actual cause of the reported "Application error" crash, master-only
+  // since only a master account's render ever crosses that isMaster
+  // false->true boundary.
+  const [backfilling, setBackfilling] = useState(false);
 
   useEffect(() => { setIsMaster(!!getUser()?.is_master); }, []);
   useEffect(() => { if (isMaster) leadsApi.list().then(r => setLeadList(r.data || [])).catch(() => {}); }, [isMaster]);
@@ -75,7 +86,6 @@ export default function Leads() {
     }
   };
 
-  const [backfilling, setBackfilling] = useState(false);
   const queueUncontacted = async () => {
     setBackfilling(true);
     try {
