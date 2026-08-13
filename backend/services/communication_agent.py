@@ -135,12 +135,16 @@ class _SMTP_SSL_IPv4(smtplib.SMTP_SSL):
         raise last_err or OSError(f"No IPv4 address found for {host}")
 
 
-def send_email(to_email: str, subject: str, body: str, reply_to: str = None) -> tuple:
+def send_email(to_email: str, subject: str, body: str, reply_to: str = None, html: str = None) -> tuple:
+    # `html` is optional and additive -- every existing caller keeps working
+    # unchanged (plain-text only). When provided, both parts are sent in a
+    # multipart/alternative message so plain-text clients still get a clean
+    # fallback while HTML clients render the formatted version.
     # Resend (HTTP, port 443) is preferred whenever configured -- it can't
     # be taken out by the kind of SMTP-port network block that's hit this
     # project twice now. Falls through to SMTP only if no Resend key is set.
     if settings.RESEND_API_KEY:
-        return _send_email_via_resend(to_email, subject, body, reply_to=reply_to)
+        return _send_email_via_resend(to_email, subject, body, reply_to=reply_to, html=html)
 
     if not (settings.SMTP_USER and settings.SMTP_PASSWORD):
         return "logged_only", None
@@ -154,7 +158,12 @@ def send_email(to_email: str, subject: str, body: str, reply_to: str = None) -> 
     msg["To"] = to_email
     if reply_to:
         msg["Reply-To"] = reply_to
+    # RFC 2046: multipart/alternative parts should be ordered plain-text
+    # first, then HTML -- clients render the LAST part they understand, so
+    # HTML-capable clients correctly prefer the html part attached after it.
     msg.attach(MIMEText(body, "plain"))
+    if html:
+        msg.attach(MIMEText(html, "html"))
 
     # timeout is critical here: this runs synchronously inside async route
     # handlers on a single-worker server, so a hung connection to the SMTP
@@ -188,7 +197,7 @@ def send_email(to_email: str, subject: str, body: str, reply_to: str = None) -> 
     return "failed", primary_error
 
 
-def _send_email_via_resend(to_email: str, subject: str, body: str, reply_to: str = None) -> tuple:
+def _send_email_via_resend(to_email: str, subject: str, body: str, reply_to: str = None, html: str = None) -> tuple:
     """Send over Resend's HTTPS API instead of raw SMTP. Note: Resend will
     only deliver to arbitrary recipients once FROM_EMAIL's domain has been
     verified in the Resend dashboard (adding a couple of DNS records at
@@ -196,6 +205,8 @@ def _send_email_via_resend(to_email: str, subject: str, body: str, reply_to: str
     account's own email address, using their onboarding@resend.dev sender."""
     try:
         payload = {"from": settings.FROM_EMAIL, "to": [to_email], "subject": subject, "text": body}
+        if html:
+            payload["html"] = html
         if reply_to:
             payload["reply_to"] = reply_to
         resp = requests.post(

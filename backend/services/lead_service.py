@@ -8,6 +8,59 @@ logger = logging.getLogger(__name__)
 
 REENGAGEMENT_SEQUENCE_STEP = 3
 
+# Real bug fixed here: these were plain-text-only, no HTML part at all, and
+# closed with just "Best, / The PropAgent Team / https://propagent.app" --
+# reported by the user after actually receiving one ("didn't have a
+# professional layout... no signoff or signature"). Every template below now
+# builds a matching HTML version (real <ul> for the bullet list, proper
+# paragraph spacing) sent alongside the plain-text body via
+# communication_agent.send_email()'s new `html` param, plus a real signature
+# block and a working opt-out line.
+#
+# NOT fixed here, flagged instead of guessed at: cold outreach emails like
+# these are commercial email under the US CAN-SPAM Act, which requires (1) a
+# valid physical postal address in the email and (2) a working opt-out --
+# the opt-out is covered below (reply routes through the Cloudflare Email
+# Worker to a real inbox, honored by simply not re-queuing that lead), but
+# there is nowhere in this codebase with a real business mailing address on
+# file, and one should not be invented. Add PHYSICAL_MAILING_ADDRESS to
+# config.py and wire it into SIGNATURE_HTML/SIGNATURE_TEXT below once you
+# have a real address to use.
+SIGNATURE_HTML = """
+<table role="presentation" style="margin-top:28px;border-top:1px solid #e2e8f0;padding-top:16px;">
+  <tr><td style="font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#1a202c;padding-bottom:2px;">The PropAgent Team</td></tr>
+  <tr><td style="font-size:13px;color:#4a5568;padding-bottom:1px;">PropAgent AI</td></tr>
+  <tr><td style="font-size:13px;padding-bottom:1px;"><a href="https://propagent.app" style="color:#b7791f;text-decoration:none;">propagent.app</a></td></tr>
+  <tr><td style="font-size:13px;color:#4a5568;">propagentapp@gmail.com &nbsp;·&nbsp; (617) 500-3821</td></tr>
+</table>
+<p style="font-size:12px;color:#a0aec0;margin-top:18px;">
+  You're receiving this because your business appeared in a public directory of property management companies.
+  Not interested? Just reply and let us know — we'll stop reaching out.
+</p>
+"""
+
+SIGNATURE_TEXT = """
+Best,
+The PropAgent Team
+PropAgent AI — https://propagent.app
+propagentapp@gmail.com · (617) 500-3821
+
+You're receiving this because your business appeared in a public directory of property
+management companies. Not interested? Just reply and let us know — we'll stop reaching out.
+"""
+
+
+def _html_wrapper(inner_html: str) -> str:
+    """Shared container: inline styles only (email clients don't reliably
+    support <style> blocks or external stylesheets), deliberately plain and
+    text-forward rather than graphic-heavy -- cold B2B outreach reads as
+    more legitimate, and is less likely to be flagged as spam, when it
+    looks like a real person wrote it rather than a marketing blast."""
+    return f"""<div style="max-width:520px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#1a202c;">
+{inner_html}
+{SIGNATURE_HTML}
+</div>"""
+
 
 def queue_outreach_email(lead: Lead, db: Session) -> None:
     """Generate personalized outreach email using AI and queue it.
@@ -20,11 +73,13 @@ def queue_outreach_email(lead: Lead, db: Session) -> None:
     existing BackgroundTasks caller in routes/leads.py."""
     try:
         subject = f"Automate {lead.company or 'Your Properties'} with AI — PropAgent"
-        
-        body = f"""Hi {lead.first_name or 'there'},
+        first = lead.first_name or 'there'
+        city = lead.city or 'your area'
+        num = lead.num_properties or 'several'
 
-I noticed you manage {lead.num_properties or 'several'} properties in {lead.city or 'your area'}, 
-and I wanted to reach out about PropAgent AI.
+        body = f"""Hi {first},
+
+I noticed you manage {num} properties in {city}, and I wanted to reach out about PropAgent AI.
 
 We help property managers like you automate:
 • Tenant communications (24/7 AI responses)
@@ -35,16 +90,25 @@ We help property managers like you automate:
 Most of our clients save 15+ hours/week on tenant communication alone.
 
 Would you be open to a 15-minute demo this week?
+""" + SIGNATURE_TEXT
 
-Best,
-The PropAgent Team
-https://propagent.app
-"""
-        
+        html = _html_wrapper(f"""<p>Hi {first},</p>
+<p>I noticed you manage {num} properties in {city}, and I wanted to reach out about PropAgent AI.</p>
+<p>We help property managers like you automate:</p>
+<ul style="margin:0 0 16px;padding-left:20px;">
+  <li style="margin-bottom:6px;">Tenant communications (24/7 AI responses)</li>
+  <li style="margin-bottom:6px;">Maintenance requests (auto-ticketing + vendor dispatch)</li>
+  <li style="margin-bottom:6px;">Leasing inquiries (AI books tours, qualifies leads)</li>
+  <li>Screening workflows (automated recommendations)</li>
+</ul>
+<p>Most of our clients save <strong>15+ hours/week</strong> on tenant communication alone.</p>
+<p>Would you be open to a 15-minute demo this week?</p>""")
+
         email = OutreachEmail(
             lead_id=lead.id,
             subject=subject,
             body=body,
+            html_body=html,
             status="queued",
             sequence_step=1,
         )
@@ -64,8 +128,10 @@ async def queue_followup_email(lead: Lead, db: Session) -> None:
     self-playing demo instead of asking them to book a call outright."""
     try:
         subject = f"Following up — see PropAgent AI in action, {lead.first_name or 'no call needed'}"
+        first = lead.first_name or 'there'
+        company = lead.company or 'your portfolio'
 
-        body = f"""Hi {lead.first_name or 'there'},
+        body = f"""Hi {first},
 
 Thanks for getting back to me. Instead of finding time on both our calendars,
 here's a 2-minute look at PropAgent AI running on a real account — real inquiries,
@@ -73,17 +139,18 @@ real maintenance tickets, real AI screening decisions. It plays itself:
 
 https://propagent.app/demo
 
-If it looks like a fit for {lead.company or 'your portfolio'}, reply here and
-I'll get you a login of your own to click around in, or we can find 15 minutes
-to talk through your specific properties.
+If it looks like a fit for {company}, reply here and I'll get you a login of
+your own to click around in, or we can find 15 minutes to talk through your
+specific properties.
+""" + SIGNATURE_TEXT
 
-Best,
-The PropAgent Team
-https://propagent.app
-"""
+        html = _html_wrapper(f"""<p>Hi {first},</p>
+<p>Thanks for getting back to me. Instead of finding time on both our calendars, here's a 2-minute look at PropAgent AI running on a real account — real inquiries, real maintenance tickets, real AI screening decisions. It plays itself:</p>
+<p><a href="https://propagent.app/demo" style="color:#b7791f;">propagent.app/demo</a></p>
+<p>If it looks like a fit for {company}, reply here and I'll get you a login of your own to click around in, or we can find 15 minutes to talk through your specific properties.</p>""")
 
         email = OutreachEmail(
-            lead_id=lead.id, subject=subject, body=body,
+            lead_id=lead.id, subject=subject, body=body, html_body=html,
             status="queued", sequence_step=2,
         )
         db.add(email)
@@ -166,7 +233,9 @@ def process_outreach_queue(db: Session, limit: int = 50) -> dict:
             # Without this, "replied" only ever happened if a human noticed
             # the reply in a real inbox and clicked "mark replied" manually.
             reply_to = f"reply+{email.lead_id}@propagent.app"
-            status, error = send_email(email.lead.email, email.subject, email.body, reply_to=reply_to)
+            # html_body is nullable -- rows queued before this column
+            # existed send exactly as before (plain-text only).
+            status, error = send_email(email.lead.email, email.subject, email.body, reply_to=reply_to, html=email.html_body)
             email.status = status
             if status == "sent":
                 email.sent_at = datetime.utcnow()
@@ -281,9 +350,12 @@ def queue_lead_reengagement_emails(db: Session, limit: int = 30, stale_days: int
 
         try:
             subject = f"Still worth a look, {lead.first_name or 'there'}?"
-            body = f"""Hi {lead.first_name or 'there'},
+            first = lead.first_name or 'there'
+            company = lead.company or 'your properties'
 
-I reached out a little while back about PropAgent AI for {lead.company or 'your properties'}
+            body = f"""Hi {first},
+
+I reached out a little while back about PropAgent AI for {company}
 and never heard back, so I didn't want it to just sit forgotten in your inbox.
 
 Different angle this time, no call required: here's a 2-minute self-playing demo of
@@ -294,15 +366,19 @@ https://propagent.app/demo
 
 If it's not a fit right now, no worries -- just reply "not now" and I'll stop following up.
 If it is, reply here and I'll get you a login of your own to try it firsthand.
+""" + SIGNATURE_TEXT
 
-Best,
-The PropAgent Team
-https://propagent.app
-"""
+            html = _html_wrapper(f"""<p>Hi {first},</p>
+<p>I reached out a little while back about PropAgent AI for {company} and never heard back, so I didn't want it to just sit forgotten in your inbox.</p>
+<p>Different angle this time, no call required: here's a 2-minute self-playing demo of PropAgent running on a real account — real tenant inquiries, real maintenance tickets, real AI screening decisions, start to finish.</p>
+<p><a href="https://propagent.app/demo" style="color:#b7791f;">propagent.app/demo</a></p>
+<p>If it's not a fit right now, no worries — just reply "not now" and I'll stop following up. If it is, reply here and I'll get you a login of your own to try it firsthand.</p>""")
+
             email = OutreachEmail(
                 lead_id=lead.id,
                 subject=subject,
                 body=body,
+                html_body=html,
                 status="queued",
                 sequence_step=REENGAGEMENT_SEQUENCE_STEP,
             )

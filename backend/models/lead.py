@@ -90,6 +90,10 @@ class OutreachEmail(Base):
     lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id"), nullable=False)
     subject = Column(String(500), nullable=False)
     body = Column(Text, nullable=False)
+    # Optional HTML version sent alongside `body` (multipart/alternative) --
+    # nullable so existing queued rows (written before this column existed)
+    # still send fine as plain-text-only, exactly as they did before.
+    html_body = Column(Text, nullable=True)
     status = Column(String(50), default="pending")  # pending, sent, opened, replied, bounced
     sent_at = Column(DateTime, nullable=True)
     opened_at = Column(DateTime, nullable=True)
