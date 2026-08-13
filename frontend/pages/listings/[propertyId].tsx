@@ -1,30 +1,32 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import { MapPin, Home, DollarSign, Maximize2, CheckCircle, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { publicListings } from '../../lib/api';
 
+const SITE_URL = 'https://propagent.app';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 const EMPTY_FORM = { first_name: '', last_name: '', email: '', phone: '', message: '', desired_move_in: '' };
 
-export default function PublicListing() {
-  const router = useRouter();
-  const { propertyId } = router.query;
-  const [listing, setListing] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+// Server-rendered (see getServerSideProps below) rather than fetched client-side
+// in a useEffect -- these are the exact pages Google's crawler is expected to
+// index and a renter would click through from search results. A client-only
+// fetch means the crawler's first, non-JS pass of the HTML sees no page-specific
+// <title>/description at all (just a "Loading..." placeholder), which directly
+// suppresses click-through even with healthy impressions. SSR-ing the same
+// /public/listings/{id} call the client used to make in useEffect means the
+// title/description/OG tags are already in the initial HTML response.
+export default function PublicListing({ listing, notFound: listingNotFound, propertyId }: {
+  listing: any | null;
+  notFound: boolean;
+  propertyId: string;
+}) {
   const [selectedUnitId, setSelectedUnitId] = useState<string>('');
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-
-  useEffect(() => {
-    if (!propertyId || typeof propertyId !== 'string') return;
-    publicListings.get(propertyId)
-      .then(r => setListing(r.data))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, [propertyId]);
 
   const submitInquiry = async () => {
     if (!form.first_name.trim() || !form.last_name.trim()) {
@@ -37,7 +39,7 @@ export default function PublicListing() {
     }
     setSubmitting(true);
     try {
-      await publicListings.inquire(propertyId as string, {
+      await publicListings.inquire(propertyId, {
         ...form,
         desired_move_in: form.desired_move_in || undefined,
         unit_id: selectedUnitId || undefined,
@@ -51,15 +53,17 @@ export default function PublicListing() {
     }
   };
 
-  if (loading) {
-    return <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono' }}>Loading...</div>;
-  }
-
-  if (error || !listing) {
+  if (listingNotFound || !listing) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>
-        This listing isn't available — it may have been removed or the link is incorrect.
-      </div>
+      <>
+        <Head>
+          <title>Listing not found | PropAgent AI</title>
+          <meta name="robots" content="noindex" />
+        </Head>
+        <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>
+          This listing isn't available — it may have been removed or the link is incorrect.
+        </div>
+      </>
     );
   }
 
@@ -68,6 +72,14 @@ export default function PublicListing() {
       <Head>
         <title>{listing.name} — {listing.city}, {listing.state} | For Rent</title>
         <meta name="description" content={`${listing.units.length} unit(s) available at ${listing.name}, ${listing.address}, ${listing.city}, ${listing.state}.`} />
+        <link rel="canonical" href={`${SITE_URL}/listings/${propertyId}`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`${SITE_URL}/listings/${propertyId}`} />
+        <meta property="og:title" content={`${listing.name} — ${listing.city}, ${listing.state} | For Rent`} />
+        <meta property="og:description" content={`${listing.units.length} unit(s) available at ${listing.name}, ${listing.address}, ${listing.city}, ${listing.state}.`} />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={`${listing.name} — ${listing.city}, ${listing.state} | For Rent`} />
+        <meta name="twitter:description" content={`${listing.units.length} unit(s) available at ${listing.name}, ${listing.address}, ${listing.city}, ${listing.state}.`} />
       </Head>
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
         <nav style={{ display: 'flex', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -181,3 +193,22 @@ function Field({ label, value, onChange, type = 'text' }: { label: string; value
 
 const lbl: React.CSSProperties = { display: 'block', marginBottom: 5, fontSize: 12, fontFamily: 'IBM Plex Mono', color: 'var(--text-secondary)' };
 const inp: React.CSSProperties = { width: '100%', padding: '9px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none', boxSizing: 'border-box' };
+
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+  const propertyId = params?.propertyId as string;
+  try {
+    const r = await fetch(`${API_URL}/public/listings/${propertyId}`);
+    if (!r.ok) {
+      res.statusCode = 404;
+      return { props: { listing: null, notFound: true, propertyId } };
+    }
+    const listing = await r.json();
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+    return { props: { listing, notFound: false, propertyId } };
+  } catch {
+    // Backend briefly unreachable -- serve the "not available" state rather
+    // than a 500, same fallback philosophy as sitemap.xml.tsx.
+    res.statusCode = 404;
+    return { props: { listing: null, notFound: true, propertyId } };
+  }
+};

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
+import Link from 'next/link';
 import { UserSearch, Plus, Mail, Zap, ExternalLink, Search, X, ShieldAlert, MessageCircle, Trash2 } from 'lucide-react';
 import { leads as leadsApi } from '../../lib/api';
 import { getUser } from '../../lib/auth';
@@ -33,7 +34,11 @@ export default function Leads() {
             <ShieldAlert size={26} color="#EF4444" />
           </div>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 24, color: 'var(--text-primary)', marginBottom: 10 }}>Lead CRM</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>This is PropAgent AI's own sales pipeline for finding new subscribers — it's restricted to the platform owner.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>This is PropAgent AI's own sales pipeline for finding new subscribers — it's restricted to the platform owner.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+            Looking for rental inquiries on your own listings instead? Those live on the{' '}
+            <Link href="/dashboard/inquiries" style={{ color: '#FBC02D', fontWeight: 600 }}>Inquiries page</Link>.
+          </p>
         </div>
       </DashboardLayout>
     );
