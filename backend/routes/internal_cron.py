@@ -8,7 +8,7 @@ logged-in user.
 import logging
 import hmac
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
@@ -100,7 +100,7 @@ async def payment_overdue_workflows_endpoint(db: Session = Depends(get_db)):
 
 
 @router.post("/lead-scrape", dependencies=[Depends(_require_cron_secret)])
-async def lead_scrape_endpoint(db: Session = Depends(get_db)):
+async def lead_scrape_endpoint(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Automated daily lead RESEARCH (finding new prospects), as opposed to
     /process-outreach-queue which only sends to leads that already exist.
     This is the free-cron equivalent of workers/tasks/lead_scraping.py's
@@ -113,7 +113,17 @@ async def lead_scrape_endpoint(db: Session = Depends(get_db)):
     search location. Scrapes each configured location for every org with an
     active is_master user (PropAgent's own B2B sales org), same lookup
     daily_scrape() used. Meant to be hit once a day by the same free
-    external scheduler already driving the other /internal/cron/* jobs."""
+    external scheduler already driving the other /internal/cron/* jobs.
+
+    Each location scrape hits the Places API and then crawls every result's
+    website looking for a contact email -- with `daily_count` locations that
+    easily runs past cron-job.org's ~30s request timeout if done inline
+    (real symptom: this endpoint showing "Failed (timeout)" every day in the
+    cron-job.org dashboard even though the underlying scrape was working).
+    So the actual scraping runs as a FastAPI BackgroundTask, same pattern
+    scrape_leads_task's own docstring already documents ("NOT awaited") --
+    this handler only does the fast owners/locations lookup before
+    responding, and the response comes back in well under a second."""
     from config import settings
     from models.user import User
     from workers.tasks.lead_scraping import scrape_leads_task, todays_scrape_locations
@@ -133,12 +143,20 @@ async def lead_scrape_endpoint(db: Session = Depends(get_db)):
         return {"status": "skipped", "reason": "no active is_master user found"}
     org_ids = sorted({str(o.organization_id) for o in owners})
 
-    ran = []
-    for org_id in org_ids:
-        for location in locations:
-            await run_in_threadpool(scrape_leads_task, org_id=org_id, source="google_maps", location=location)
-            ran.append({"org_id": org_id, "location": location})
-    return {"status": "ok", "scraped": ran}
+    def _run_all_scrapes():
+        for org_id in org_ids:
+            for location in locations:
+                try:
+                    scrape_leads_task(org_id=org_id, source="google_maps", location=location)
+                except Exception:
+                    logger.exception(f"lead-scrape: failed for org {org_id} in {location!r}")
+
+    background_tasks.add_task(_run_all_scrapes)
+    return {
+        "status": "started",
+        "org_count": len(org_ids),
+        "locations": locations,
+    }
 
 
 @router.post("/lead-reengagement", dependencies=[Depends(_require_cron_secret)])
