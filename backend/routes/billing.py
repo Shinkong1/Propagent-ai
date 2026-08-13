@@ -432,19 +432,19 @@ async def get_plans():
                 "name": "Starter",
                 "key": "starter",
                 "price": 49,
-                "features": ["3 properties", "25 units", "AI chat support", "Maintenance tracking", "Document uploads & search", "Rental inquiry & prospect tracking", "100 AI calls/mo", "Email support"],
+                "features": ["3 properties", "25 units", "AI chat support", "Maintenance tracking", "Document uploads & search", "Rental inquiry & prospect tracking", "100 AI chat messages/mo", "Email support"],
             },
             {
                 "name": "Professional",
                 "key": "professional",
                 "price": 149,
-                "features": ["15 properties", "150 units", "Voice AI call center", "Executive AI Assistant", "Lease & notice generation", "Inspection AI (photo damage detection)", "Compliance, Collections & Communications agents", "1,000 AI calls/mo", "Priority support"],
+                "features": ["15 properties", "150 units", "Voice AI call center", "Executive AI Assistant", "Lease & notice generation", "Inspection AI (photo damage detection)", "Compliance, Collections & Communications agents", "1,000 AI chat & assistant queries/mo", "Priority support"],
             },
             {
                 "name": "Enterprise",
                 "key": "enterprise",
                 "price": 499,
-                "features": ["Unlimited properties", "Unlimited units", "Portfolio Dashboard", "Investment Analysis", "Pricing Intelligence", "Full AI autonomy", "Custom integrations", "Dedicated CSM", "Unlimited AI calls", "SLA guarantee"],
+                "features": ["Unlimited properties", "Unlimited units", "Portfolio Dashboard", "Investment Analysis", "Pricing Intelligence", "No-code workflow automation", "API access", "Dedicated CSM", "Unlimited AI chat & assistant queries", "SLA guarantee"],
             },
         ]
     }

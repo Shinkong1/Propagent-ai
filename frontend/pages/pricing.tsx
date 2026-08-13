@@ -9,18 +9,30 @@ import toast from 'react-hot-toast';
 import PublicFooter from '../components/PublicFooter';
 import SalesChatWidget from '../components/SalesChatWidget';
 
+// Feature wording audited against actual enforcement (backend/middleware/plan_gate.py,
+// routes/*.py require_plan checks) -- see commit history for the full audit. Two
+// precision fixes baked in here:
+//  - "AI calls/mo" -> "AI chat & assistant queries/mo": check_and_increment_ai_calls
+//    (the only place this cap is actually enforced) covers exactly two endpoints --
+//    AI Tenant Chat (maintenance.py) and Executive AI Assistant (executive.py, itself
+//    Professional+ only) -- not a platform-wide meter across every AI feature.
+//  - "Full AI autonomy" -> "No-code workflow automation": the former had no feature
+//    behind it; the latter is a real, working, previously-unadvertised Enterprise
+//    feature (routes/workflows.py + dashboard/workflows.tsx).
+//  - "Custom integrations" -> "API access": what's actually sold is a REST API +
+//    key (routes/public_api.py), not bespoke per-customer integration work.
 const PLANS = [
   {
     name: 'Starter', key: 'starter', price: 49, popular: false,
-    features: ['3 properties', '25 units', 'AI chat support', 'Maintenance tracking', 'Document uploads & search', 'Rental inquiry & prospect tracking', '100 AI calls/mo', 'Email support'],
+    features: ['3 properties', '25 units', 'AI chat support', 'Maintenance tracking', 'Document uploads & search', 'Rental inquiry & prospect tracking', '100 AI chat messages/mo', 'Email support'],
   },
   {
     name: 'Professional', key: 'professional', price: 149, popular: true,
-    features: ['15 properties', '150 units', 'Voice AI call center', 'Executive AI Assistant', 'Lease & notice generation', 'Inspection AI (photo damage detection)', 'Compliance, Collections & Communications agents', '1,000 AI calls/mo', 'Priority support'],
+    features: ['15 properties', '150 units', 'Voice AI call center', 'Executive AI Assistant', 'Lease & notice generation', 'Inspection AI (photo damage detection)', 'Compliance, Collections & Communications agents', '1,000 AI chat & assistant queries/mo', 'Priority support'],
   },
   {
     name: 'Enterprise', key: 'enterprise', price: 499, popular: false,
-    features: ['Unlimited properties', 'Unlimited units', 'Portfolio Dashboard', 'Investment Analysis', 'Pricing Intelligence', 'Full AI autonomy', 'Custom integrations', 'Dedicated CSM', 'Unlimited AI calls', 'SLA guarantee'],
+    features: ['Unlimited properties', 'Unlimited units', 'Portfolio Dashboard', 'Investment Analysis', 'Pricing Intelligence', 'No-code workflow automation', 'API access', 'Dedicated CSM', 'Unlimited AI chat & assistant queries', 'SLA guarantee'],
   },
 ];
 
