@@ -67,11 +67,20 @@ def save_file(key: str, data: bytes, content_type: str = "application/octet-stre
     """Saves `data` and returns the value to persist in the DB's file_path
     column. `key` should be a relative path like
     "documents/{org_id}/{uuid}_{filename}" -- used as the R2 object key
-    directly, or joined onto _LOCAL_ROOT for the local-disk fallback."""
+    directly, or joined onto _LOCAL_ROOT for the local-disk fallback.
+
+    Callers should run this via run_in_threadpool -- it's a synchronous
+    network call (boto3), and calling it directly inside an async route
+    handler stalls this server's entire single event loop for the R2
+    round-trip, blocking every other concurrent user's request."""
     if is_configured():
-        _client_for_r2().put_object(
-            Bucket=settings.R2_BUCKET_NAME, Key=key, Body=data, ContentType=content_type,
-        )
+        try:
+            _client_for_r2().put_object(
+                Bucket=settings.R2_BUCKET_NAME, Key=key, Body=data, ContentType=content_type,
+            )
+        except Exception:
+            logger.exception(f"R2 put_object failed for key {key!r}")
+            raise
         return key
 
     global _warned_unconfigured
@@ -99,14 +108,19 @@ def save_file(key: str, data: bytes, content_type: str = "application/octet-stre
 
 
 def load_file(stored_value: str) -> bytes:
-    """Reads back whatever save_file() returned earlier."""
+    """Reads back whatever save_file() returned earlier. Same
+    run_in_threadpool requirement as save_file() -- synchronous boto3 call."""
     if _is_local_path(stored_value):
         if not os.path.exists(stored_value):
             raise FileNotFoundError(stored_value)
         with open(stored_value, "rb") as f:
             return f.read()
-    obj = _client_for_r2().get_object(Bucket=settings.R2_BUCKET_NAME, Key=stored_value)
-    return obj["Body"].read()
+    try:
+        obj = _client_for_r2().get_object(Bucket=settings.R2_BUCKET_NAME, Key=stored_value)
+        return obj["Body"].read()
+    except Exception:
+        logger.exception(f"R2 get_object failed for key {stored_value!r}")
+        raise
 
 
 def get_download_url(stored_value: str, filename: str, expires_in: int = 300) -> Optional[str]:
@@ -114,18 +128,23 @@ def get_download_url(stored_value: str, filename: str, expires_in: int = 300) ->
     file is served straight from Cloudflare's edge instead of proxying the
     full bytes back through the backend. Returns None for a local-disk
     path (no presigned-URL concept there) -- caller should fall back to
-    streaming the bytes itself via load_file() in that case."""
+    streaming the bytes itself via load_file() in that case. Same
+    run_in_threadpool requirement as save_file()."""
     if _is_local_path(stored_value):
         return None
-    return _client_for_r2().generate_presigned_url(
-        "get_object",
-        Params={
-            "Bucket": settings.R2_BUCKET_NAME,
-            "Key": stored_value,
-            "ResponseContentDisposition": f'attachment; filename="{filename}"',
-        },
-        ExpiresIn=expires_in,
-    )
+    try:
+        return _client_for_r2().generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": settings.R2_BUCKET_NAME,
+                "Key": stored_value,
+                "ResponseContentDisposition": f'attachment; filename="{filename}"',
+            },
+            ExpiresIn=expires_in,
+        )
+    except Exception:
+        logger.exception(f"R2 generate_presigned_url failed for key {stored_value!r}")
+        raise
 
 
 def delete_file(stored_value: str) -> None:

@@ -6,6 +6,7 @@ import uuid
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Response
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import Response as FastAPIResponse
 from sqlalchemy.orm import Session
 
@@ -159,7 +160,10 @@ async def upload_inspection_photo(
     safe_filename = os.path.basename(file.filename or "photo.jpg")
     stored_name = f"{uuid.uuid4()}_{safe_filename}"
     key = f"inspections/{current_user.organization_id}/{inspection_id}/{stored_name}"
-    file_path = storage_service.save_file(key, file_bytes, file.content_type or "image/jpeg")
+    try:
+        file_path = await run_in_threadpool(storage_service.save_file, key, file_bytes, file.content_type or "image/jpeg")
+    except Exception:
+        raise HTTPException(status_code=502, detail="Failed to save the photo — please try again in a moment.")
 
     analysis = await analyze_photo(file_bytes, file.content_type or "image/jpeg")
 

@@ -58,7 +58,19 @@ def reconcile_stripe_sessions(db: Session, lookback_hours: int = 72, limit: int 
     }
 
     cutoff = datetime.now(timezone.utc) - timedelta(hours=lookback_hours)
-    sessions = stripe.checkout.Session.list(limit=limit)
+    try:
+        sessions = stripe.checkout.Session.list(limit=limit)
+    except Exception as e:
+        # The one call in this function that wasn't actually guarded despite
+        # the docstring above promising it -- a transient Stripe outage/rate
+        # limit here used to raise straight through this cron-triggered
+        # function (POST /internal/cron/finance-reconcile has no try/except
+        # of its own around this call), turning a self-healing cycle into a
+        # hard 500. This runs every 15-30 min, so skipping this run and
+        # trying again next cycle is strictly better than crashing it.
+        logger.error(f"finance_reconciliation: couldn't list Stripe checkout sessions: {e}")
+        result["error"] = str(e)
+        return result
 
     for raw in sessions.data:
         s = _to_dict(raw)

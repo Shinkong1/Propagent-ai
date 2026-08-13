@@ -353,9 +353,13 @@ def seed_demo_organization(db: Session) -> dict:
     db.add_all(compliance)
 
     # ── Documents: write small real files so downloads actually work ──
-    upload_root = "/app/uploads/documents"
-    org_dir = os.path.join(upload_root, str(org.id))
-    os.makedirs(org_dir, exist_ok=True)
+    # Was writing straight to local disk here -- the exact same ephemeral-
+    # storage bug already fixed for routes/documents.py/inspections.py, just
+    # missed in this one remaining call site. Every time the demo org gets
+    # reseeded, its documents would 404 on download after the next deploy --
+    # not a paying customer's data, but it undermines the sales-demo's whole
+    # purpose if a prospect can't actually open a demo document.
+    from services import storage_service
     doc_defs = [
         (prop_riverside, DocumentCategory.lease, "Riverside Commons -- Master Lease Template",
          "This is a demo placeholder for a master lease template document.\nUsed to illustrate the Documents feature with a real, downloadable file.\n"),
@@ -367,17 +371,18 @@ def seed_demo_organization(db: Session) -> dict:
     documents = []
     for prop, cat, title, content in doc_defs:
         stored_name = f"{uuid.uuid4()}_{title.replace(' ', '_')}.txt"
-        file_path = os.path.join(org_dir, stored_name)
+        key = f"documents/{org.id}/{stored_name}"
+        data = content.encode("utf-8")
         try:
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(content)
-            file_size = len(content.encode("utf-8"))
-        except OSError as e:
-            logger.warning(f"Could not write demo document file {file_path}: {e}")
+            file_path = storage_service.save_file(key, data, "text/plain")
+            file_size = len(data)
+        except Exception as e:
+            logger.warning(f"Could not save demo document {key}: {e}")
+            file_path = key
             file_size = None
         documents.append(Document(
             organization_id=org.id, property_id=prop.id if prop else None, category=cat,
-            title=title, filename=os.path.basename(file_path), file_path=file_path,
+            title=title, filename=f"{title.replace(' ', '_')}.txt", file_path=file_path,
             file_size=file_size, mime_type="text/plain", extraction_status="unsupported",
         ))
     db.add_all(documents)

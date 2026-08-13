@@ -46,7 +46,15 @@ async def create_checkout(
     grant_trial = bool(org and not org.trial_used)
 
     try:
-        session = stripe.checkout.Session.create(
+        # Real gap found in a launch-readiness audit: this was a direct
+        # synchronous call, not offloaded via run_in_threadpool. This server
+        # runs a single worker/event loop -- a slow Stripe response here
+        # stalled EVERY concurrent user's request for its duration, on one
+        # of the most frequently hit endpoints (every trial->paid
+        # conversion). Same pattern /billing/portal already used correctly
+        # a few lines below.
+        session = await run_in_threadpool(
+            stripe.checkout.Session.create,
             mode="subscription",
             line_items=[{"price": price_id, "quantity": 1}],
             success_url=f"{settings.FRONTEND_URL}/dashboard?upgraded={plan}",
@@ -200,8 +208,12 @@ async def connect_onboard(
         raise HTTPException(status_code=404, detail="Organization not found")
 
     try:
+        # Same run_in_threadpool fix as /billing/checkout above -- these were
+        # direct synchronous Stripe calls, stalling every other user's
+        # request on this single-worker server for the round-trip.
         if not org.stripe_connect_account_id:
-            account = stripe.Account.create(
+            account = await run_in_threadpool(
+                stripe.Account.create,
                 type="express",
                 email=current_user.email,
                 capabilities={"card_payments": {"requested": True}, "transfers": {"requested": True}},
@@ -210,7 +222,8 @@ async def connect_onboard(
             org.stripe_connect_account_id = account.id
             db.commit()
 
-        account_link = stripe.AccountLink.create(
+        account_link = await run_in_threadpool(
+            stripe.AccountLink.create,
             account=org.stripe_connect_account_id,
             refresh_url=f"{settings.FRONTEND_URL}/dashboard/settings?connect=refresh",
             return_url=f"{settings.FRONTEND_URL}/dashboard/settings?connect=return",

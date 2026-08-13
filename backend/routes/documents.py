@@ -6,6 +6,7 @@ import uuid
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -166,7 +167,10 @@ async def upload_document(
     safe_filename = os.path.basename(file.filename or "upload")
     stored_name = f"{uuid.uuid4()}_{safe_filename}"
     key = f"documents/{current_user.organization_id}/{stored_name}"
-    file_path = storage_service.save_file(key, file_bytes, file.content_type or "application/octet-stream")
+    try:
+        file_path = await run_in_threadpool(storage_service.save_file, key, file_bytes, file.content_type or "application/octet-stream")
+    except Exception:
+        raise HTTPException(status_code=502, detail="Failed to save the uploaded file — please try again in a moment.")
 
     extracted, status = extract_text(file_bytes, file.content_type or "")
     fields = extract_fields(extracted) if extracted else {}
@@ -258,7 +262,10 @@ async def generate_document(
     safe_filename = os.path.basename(filename or "document.pdf")
     stored_name = f"{uuid.uuid4()}_{safe_filename}"
     key = f"documents/{current_user.organization_id}/{stored_name}"
-    file_path = storage_service.save_file(key, pdf_bytes, "application/pdf")
+    try:
+        file_path = await run_in_threadpool(storage_service.save_file, key, pdf_bytes, "application/pdf")
+    except Exception:
+        raise HTTPException(status_code=502, detail="Failed to save the generated document — please try again in a moment.")
 
     category = DocumentCategory.lease if payload.document_type in ("lease_agreement", "lease_renewal_notice") else DocumentCategory.other
 
@@ -299,7 +306,10 @@ async def download_document(
     # straight from Cloudflare's edge (free egress) instead of proxying the
     # full bytes through this backend. Local-disk fallback: serve directly,
     # same as before.
-    presigned = storage_service.get_download_url(doc.file_path, doc.filename or "document")
+    try:
+        presigned = await run_in_threadpool(storage_service.get_download_url, doc.file_path, doc.filename or "document")
+    except Exception:
+        raise HTTPException(status_code=502, detail="Failed to generate a download link — please try again in a moment.")
     if presigned:
         return RedirectResponse(presigned)
 
