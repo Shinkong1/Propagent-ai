@@ -47,8 +47,8 @@ function AgentCard({ agent }: { agent: any }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${agent.stats.length}, 1fr)`, gap: 8 }}>
-        {agent.stats.map((s: any) => (
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${(agent.stats || []).length || 1}, 1fr)`, gap: 8 }}>
+        {(agent.stats || []).map((s: any) => (
           <div key={s.label} style={{ background: 'var(--bg-app)', border: '1px solid var(--border-input)', borderRadius: 8, padding: '10px 10px' }}>
             <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>{s.value}</div>
             <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>

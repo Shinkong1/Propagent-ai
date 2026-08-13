@@ -198,7 +198,7 @@ export default function Inspections() {
                     {detail.inspector_name && (
                       <div style={{ fontSize: 12, color: 'var(--text-muted)', margin: '12px 0' }}>{t('inspections.inspector')}: {detail.inspector_name}</div>
                     )}
-                    {detail.photos.length === 0 ? (
+                    {(detail.photos || []).length === 0 ? (
                       <div style={{ fontSize: 12, color: '#475569', marginBottom: 12 }}>{t('inspections.noPhotos')}</div>
                     ) : (
                       <div style={{ display: 'grid', gap: 10, marginBottom: 16 }}>
@@ -215,7 +215,7 @@ export default function Inspections() {
                                 <AlertCircle size={12} /> {t('inspections.manualReviewNote')}
                               </div>
                             )}
-                            {photo.issues.map((issue: any, i: number) => (
+                            {(photo.issues || []).map((issue: any, i: number) => (
                               <div key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
                                 <span style={{ color: '#F97316', fontWeight: 600 }}>{t(`inspections.issueType.${issue.type}`)}</span> ({issue.severity}) — {issue.description} <span style={{ color: 'var(--text-muted)' }}>({fmtMoney(issue.estimated_cost)})</span>
                               </div>

@@ -5,7 +5,7 @@ export default function LanguagePage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/dashboard/settings?tab=language');
+    router.replace('/dashboard/settings?tab=language').catch(() => {});
   }, []);
 
   return null;

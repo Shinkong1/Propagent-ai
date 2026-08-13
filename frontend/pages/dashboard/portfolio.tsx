@@ -114,7 +114,7 @@ export default function PortfolioDashboard() {
                       <tr style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(255,255,255,0.02)' }}>
                         <td colSpan={8} style={{ padding: '14px' }}>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-                            {row.health_factors.map((f: any) => (
+                            {(row.health_factors || []).map((f: any) => (
                               <div key={f.name}>
                                 <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', textTransform: 'uppercase', marginBottom: 3 }}>{t(`portfolio.factor.${f.name}`)}</div>
                                 <div style={{ fontSize: 13, color: 'var(--text-primary)', fontFamily: 'IBM Plex Mono', marginBottom: 2 }}>{f.score}/100</div>
