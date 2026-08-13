@@ -65,3 +65,22 @@ services:
         sync: false
       - key: R2_BUCKET_NAME
         sync: false
+      # These six were referenced in code and already relied upon in
+      # production (confirmed live: the 6 /internal/cron/* jobs and lead
+      # scraping were both verified working this session) but were missing
+      # from this file entirely -- found in a launch-readiness audit. Not a
+      # behavior change (each already fails closed/no-ops safely if unset,
+      # per the code paths that use them), just documenting what's actually
+      # required so a from-scratch redeploy doesn't silently forget them.
+      - key: CRON_SECRET
+        sync: false
+      - key: EMAIL_WORKER_SECRET
+        sync: false
+      - key: STRIPE_CONNECT_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_CONNECT_WEBHOOK_SECRET_V2
+        sync: false
+      - key: GOOGLE_PLACES_API_KEY
+        sync: false
+      - key: LEAD_SCRAPE_LOCATIONS
+        sync: false

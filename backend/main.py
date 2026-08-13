@@ -34,7 +34,19 @@ async def lifespan(app: FastAPI):
         alembic_command.upgrade(alembic_cfg, "head")
         logger.info("✅ Database migrated to head")
     except Exception as e:
+        # Real gap found in a launch-readiness audit: this used to only log
+        # and then `yield` anyway, serving requests against a possibly
+        # stale/partially-migrated schema with no signal anywhere that
+        # anything was wrong. /health (below) was ALSO a static 200 with no
+        # DB check, so Render had no way to detect a broken instance and
+        # would keep routing real traffic to it instead of restarting it.
+        # Re-raising here means the container actually fails to start --
+        # Render's own deploy health check (render.yaml's healthCheckPath)
+        # then correctly refuses to cut traffic over to the broken deploy
+        # and keeps serving the last known-good version instead, rather
+        # than silently going live half-broken.
         logger.error(f"❌ Database migration failed: {e}")
+        raise
     yield
     logger.info("🛑 Shutting down PropAgent AI")
 
@@ -69,7 +81,7 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -129,6 +141,30 @@ async def root():
 
 @app.get("/health", tags=["health"])
 async def health():
+    # Used to be a static 200 regardless of whether the app could actually
+    # serve any real request -- render.yaml points its deploy health check
+    # here, so a DB outage/misconfiguration meant Render kept routing
+    # traffic to an instance where nearly every route (i.e. almost the
+    # entire API) would 500, with nothing anywhere signaling the instance
+    # was unhealthy. A lightweight `SELECT 1` is enough to catch a dead/
+    # misconfigured DATABASE_URL without adding meaningful latency.
+    from fastapi.concurrency import run_in_threadpool
+    from sqlalchemy import text
+    from database.base import SessionLocal
+
+    def _check_db():
+        db = SessionLocal()
+        try:
+            db.execute(text("SELECT 1"))
+        finally:
+            db.close()
+
+    try:
+        await run_in_threadpool(_check_db)
+    except Exception as e:
+        logger.error(f"Health check: database unreachable: {e}")
+        return JSONResponse(status_code=503, content={"status": "unhealthy", "detail": "database unreachable"})
+
     return {"status": "healthy", "version": settings.APP_VERSION}
 
 

@@ -80,7 +80,18 @@ class Settings(BaseSettings):
     # this via Render's env vars (the site works, so CORS isn't actually
     # blocking it) -- fixing the fallback here so it's not silently wrong
     # for any new environment that relies on the default.
-    ALLOWED_ORIGINS: list = ["http://localhost:3000", "https://propagent.app"]
+    #
+    # Deliberately a plain str, not list[str] -- pydantic-settings decodes
+    # complex-typed (list/dict) env vars as JSON at the settings-SOURCE
+    # level, before any field validator gets a chance to intercept it. If
+    # this were typed as a list and someone ever edits this env var in
+    # Render's dashboard as the intuitive plain comma-separated text (rather
+    # than a JSON array with quotes/brackets), `Settings()` -- which runs at
+    # IMPORT time (see get_settings() below, called at module scope) --
+    # would raise and crash the entire process before the app even starts.
+    # Kept as a string and parsed permissively in allowed_origins below, so
+    # either format works and a typo here can never take the whole app down.
+    ALLOWED_ORIGINS: str = "http://localhost:3000,https://propagent.app,https://www.propagent.app"
 
     # Google OAuth2/OIDC login — feature is simply hidden (never faked) until both
     # are configured with a real Google Cloud OAuth client.
@@ -158,6 +169,22 @@ class Settings(BaseSettings):
     R2_ACCESS_KEY_ID: str = ""
     R2_SECRET_ACCESS_KEY: str = ""
     R2_BUCKET_NAME: str = ""
+
+    @property
+    def allowed_origins(self) -> list:
+        """Parses ALLOWED_ORIGINS permissively -- accepts either a JSON
+        array (["https://a.com","https://b.com"]) or plain comma-separated
+        text (https://a.com,https://b.com), so however an operator actually
+        types it into Render's dashboard, it works rather than crashing the
+        app at startup."""
+        raw = self.ALLOWED_ORIGINS.strip()
+        if raw.startswith("["):
+            import json
+            try:
+                return json.loads(raw)
+            except ValueError:
+                pass  # fall through to comma-split below
+        return [origin.strip() for origin in raw.split(",") if origin.strip()]
 
     class Config:
         env_file = ".env"
