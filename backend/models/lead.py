@@ -95,6 +95,12 @@ class OutreachEmail(Base):
     # still send fine as plain-text-only, exactly as they did before.
     html_body = Column(Text, nullable=True)
     status = Column(String(50), default="pending")  # pending, sent, opened, replied, bounced
+    # Real gap found: a "failed" send only ever got logged (logger.warning in
+    # process_outreach_queue), never persisted anywhere -- neither the
+    # operator's Lead CRM UI nor any API response could show WHY a given
+    # email failed, only that it did. Nullable so existing rows are
+    # unaffected.
+    error_message = Column(String(500), nullable=True)
     sent_at = Column(DateTime, nullable=True)
     opened_at = Column(DateTime, nullable=True)
     replied_at = Column(DateTime, nullable=True)

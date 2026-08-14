@@ -37,11 +37,12 @@ async def list_leads(
 
     def _outreach_info(lead: Lead) -> dict:
         if not lead.outreach_emails:
-            return {"outreach_status": None, "outreach_sent_at": None}
+            return {"outreach_status": None, "outreach_sent_at": None, "outreach_error": None}
         latest = max(lead.outreach_emails, key=lambda e: e.created_at)
         return {
             "outreach_status": latest.status,
             "outreach_sent_at": str(latest.sent_at) if latest.sent_at else None,
+            "outreach_error": latest.error_message,
         }
 
     return [

@@ -238,10 +238,17 @@ def process_outreach_queue(db: Session, limit: int = 50) -> dict:
             email.status = status
             if status == "sent":
                 email.sent_at = datetime.utcnow()
+                email.error_message = None
                 sent += 1
             else:
+                # Real gap fixed here: this used to only be logged, never
+                # persisted -- nothing in the Lead CRM UI or any API
+                # response could show WHY a "failed" email actually failed.
+                email.error_message = (str(error) if error else status)[:500]
                 logger.warning(f"Outreach email {email.id} not sent (status={status}): {error}")
         except Exception as e:
+            email.status = "failed"
+            email.error_message = str(e)[:500]
             logger.error(f"Failed to send email {email.id}: {e}")
 
     db.commit()
@@ -397,9 +404,23 @@ If it is, reply here and I'll get you a login of your own to try it firsthand.
     return {"queued": queued, "checked": len(candidates)}
 
 
+# Forward-only ordering for mark_lead_replied's status advancement below --
+# closed_won/closed_lost share the top rank so a stray reply after either
+# can never un-close a lead.
+_STATUS_RANK = {
+    LeadStatus.new: 0,
+    LeadStatus.contacted: 1,
+    LeadStatus.interested: 2,
+    LeadStatus.demo_scheduled: 3,
+    LeadStatus.negotiating: 4,
+    LeadStatus.closed_won: 5,
+    LeadStatus.closed_lost: 5,
+}
+
+
 def mark_lead_replied(db: Session, lead_id) -> "Lead | None":
-    """Marks the lead's latest outreach email replied and moves a brand-new
-    lead to 'interested'. Shared by the manual 'mark replied' button
+    """Marks the lead's latest outreach email replied and advances lead
+    status accordingly. Shared by the manual 'mark replied' button
     (routes/leads.py) and the automated inbound-reply webhook
     (routes/internal_cron.py, fed by the Cloudflare Email Worker) -- same
     outcome regardless of whether a human or the worker noticed the reply.
@@ -408,7 +429,19 @@ def mark_lead_replied(db: Session, lead_id) -> "Lead | None":
     its own context (BackgroundTasks in an async route, run_in_threadpool
     callers use asyncio.run). Returns the Lead on success, None if the id
     doesn't match anything (logged, not raised -- the caller here is often
-    an unattended webhook)."""
+    an unattended webhook).
+
+    Real gap found and fixed: this used to only ever handle the FIRST reply
+    (new -> interested) and never advanced status any further -- a reply to
+    the step-2 follow-up (which links to the self-playing demo) or the
+    step-3 re-engagement email (same demo link) left the lead stuck at
+    "interested" forever, with no way to tell from the CRM that they'd
+    actually engaged with the demo. Step 1 has no demo link (just offers
+    one as a next step), so a reply there still just signals interest;
+    step 2/3 both ARE the demo link, so a reply there jumps straight to
+    demo_scheduled. Rank-checked so this only ever moves status forward,
+    never backward (e.g. a stray reply after a lead is already negotiating
+    or closed doesn't regress it)."""
     lead = db.query(Lead).filter(Lead.id == lead_id).first()
     if not lead:
         logger.warning(f"mark_lead_replied: no lead found for id {lead_id}")
@@ -419,7 +452,9 @@ def mark_lead_replied(db: Session, lead_id) -> "Lead | None":
         latest.status = "replied"
         latest.replied_at = latest.replied_at or datetime.utcnow()
 
-    if lead.status == LeadStatus.new:
-        lead.status = LeadStatus.interested
+        target = LeadStatus.demo_scheduled if latest.sequence_step >= 2 else LeadStatus.interested
+        if _STATUS_RANK[target] > _STATUS_RANK.get(lead.status, 0):
+            lead.status = target
+
     db.commit()
     return lead

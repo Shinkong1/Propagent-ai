@@ -254,7 +254,11 @@ export default function Leads() {
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     {l.outreach_status ? (
-                      <span title={l.outreach_sent_at ? `Sent ${new Date(l.outreach_sent_at).toLocaleString()}` : 'Waiting for the next send cycle (runs hourly)'}
+                      <span title={
+                        l.outreach_status === 'failed' && l.outreach_error ? `Failed: ${l.outreach_error}` :
+                        l.outreach_sent_at ? `Sent ${new Date(l.outreach_sent_at).toLocaleString()}` :
+                        'Waiting for the next send cycle (runs hourly)'
+                      }
                         style={{ padding: '4px 8px', borderRadius: 6, background: `${OUTREACH_COLOR[l.outreach_status] || '#64748B'}15`, border: `1px solid ${OUTREACH_COLOR[l.outreach_status] || '#64748B'}40`, color: OUTREACH_COLOR[l.outreach_status] || '#64748B', fontSize: 11, fontFamily: 'IBM Plex Mono' }}>
                         {OUTREACH_LABEL[l.outreach_status] || l.outreach_status}
                       </span>

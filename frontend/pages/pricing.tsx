@@ -21,18 +21,22 @@ import SalesChatWidget from '../components/SalesChatWidget';
 //    feature (routes/workflows.py + dashboard/workflows.tsx).
 //  - "Custom integrations" -> "API access": what's actually sold is a REST API +
 //    key (routes/public_api.py), not bespoke per-customer integration work.
+// Also added three real, working, previously-unadvertised features (per-plan
+// team-seat limits from middleware/plan_gate.py's PLAN_LIMITS, Fraud/Risk
+// detection at Professional (routes/fraud.py), Predictive Insights at
+// Enterprise (routes/predictive.py)) that gave zero marketing credit before.
 const PLANS = [
   {
     name: 'Starter', key: 'starter', price: 49, popular: false,
-    features: ['3 properties', '25 units', 'AI chat support', 'Maintenance tracking', 'Document uploads & search', 'Rental inquiry & prospect tracking', '100 AI chat messages/mo', 'Email support'],
+    features: ['3 properties', '25 units', '3 team members', 'AI chat support', 'Maintenance tracking', 'Document uploads & search', 'Rental inquiry & prospect tracking', '100 AI chat messages/mo', 'Email support'],
   },
   {
     name: 'Professional', key: 'professional', price: 149, popular: true,
-    features: ['15 properties', '150 units', 'Voice AI call center', 'Executive AI Assistant', 'Lease & notice generation', 'Inspection AI (photo damage detection)', 'Compliance, Collections & Communications agents', '1,000 AI chat & assistant queries/mo', 'Priority support'],
+    features: ['15 properties', '150 units', '10 team members', 'Voice AI call center', 'Executive AI Assistant', 'Lease & notice generation', 'Inspection AI (photo damage detection)', 'Fraud & risk detection', 'Compliance, Collections & Communications agents', '1,000 AI chat & assistant queries/mo', 'Priority support'],
   },
   {
     name: 'Enterprise', key: 'enterprise', price: 499, popular: false,
-    features: ['Unlimited properties', 'Unlimited units', 'Portfolio Dashboard', 'Investment Analysis', 'Pricing Intelligence', 'No-code workflow automation', 'API access', 'Dedicated CSM', 'Unlimited AI chat & assistant queries', 'SLA guarantee'],
+    features: ['Unlimited properties', 'Unlimited units', 'Unlimited team members', 'Portfolio Dashboard', 'Investment Analysis', 'Pricing Intelligence', 'Predictive insights', 'No-code workflow automation', 'API access', 'Dedicated CSM', 'Unlimited AI chat & assistant queries', 'SLA guarantee'],
   },
 ];
 
