@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Link from 'next/link';
-import { UserSearch, Plus, Mail, Zap, ExternalLink, Search, X, ShieldAlert, MessageCircle, Trash2 } from 'lucide-react';
+import { UserSearch, Plus, Mail, Zap, ExternalLink, Search, X, ShieldAlert, MessageCircle, Trash2, Sparkles } from 'lucide-react';
 import { leads as leadsApi } from '../../lib/api';
 import { getUser } from '../../lib/auth';
 import toast from 'react-hot-toast';
@@ -33,6 +33,7 @@ export default function Leads() {
   // since only a master account's render ever crosses that isMaster
   // false->true boundary.
   const [backfilling, setBackfilling] = useState(false);
+  const [cleaningEmails, setCleaningEmails] = useState(false);
 
   useEffect(() => { setIsMaster(!!getUser()?.is_master); }, []);
   useEffect(() => { if (isMaster) leadsApi.list().then(r => setLeadList(r.data || [])).catch(() => {}); }, [isMaster]);
@@ -96,6 +97,19 @@ export default function Leads() {
       toast.error(err?.response?.data?.detail || 'Failed to start backfill');
     } finally {
       setBackfilling(false);
+    }
+  };
+
+  const cleanupInvalidEmails = async () => {
+    setCleaningEmails(true);
+    try {
+      const res = await leadsApi.cleanupInvalidEmails();
+      toast.success(`Cleaned up ${res.data.cleaned} invalid email(s) out of ${res.data.checked} checked`);
+      leadsApi.list().then(r => setLeadList(r.data || [])).catch(() => {});
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Cleanup failed');
+    } finally {
+      setCleaningEmails(false);
     }
   };
 
@@ -172,6 +186,11 @@ export default function Leads() {
               title="Queues outreach for every lead with an email that's never been contacted -- catches leads scraped before auto-outreach existed, and any manually-added lead"
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'Syne', fontWeight: 700, cursor: backfilling ? 'default' : 'pointer', opacity: backfilling ? 0.6 : 1 }}>
               <Mail size={13} /> {backfilling ? 'Queuing…' : 'Queue Uncontacted'}
+            </button>
+            <button onClick={cleanupInvalidEmails} disabled={cleaningEmails}
+              title="Clears out scraped 'emails' that were never real -- image filenames, tracking-service IDs, and boilerplate placeholders that only ever bounce"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 12, fontFamily: 'Syne', fontWeight: 700, cursor: cleaningEmails ? 'default' : 'pointer', opacity: cleaningEmails ? 0.6 : 1 }}>
+              <Sparkles size={13} /> {cleaningEmails ? 'Cleaning…' : 'Clean Invalid Emails'}
             </button>
             <input
               value={scrapeLocation}

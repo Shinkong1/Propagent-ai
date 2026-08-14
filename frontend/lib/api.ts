@@ -138,6 +138,7 @@ export const leads = {
   delete: (id: string) => api.delete(`/leads/${id}`),
   scrape: (data: any) => api.post('/leads/scrape', data),
   queueUncontacted: () => api.post('/leads/queue-uncontacted'),
+  cleanupInvalidEmails: () => api.post('/leads/cleanup-invalid-emails'),
 };
 
 export const billing = {

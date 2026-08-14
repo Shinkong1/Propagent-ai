@@ -97,7 +97,28 @@ _PLACEHOLDER_EMAILS = {
     "user@domain.com", "your@email.com", "email@example.com", "example@example.com",
     "name@domain.com", "test@test.com", "you@example.com", "someone@example.com",
     "info@example.com", "email@domain.com",
+    # Found live in a real batch of scraped leads: same class of bug as the
+    # ones above (template/boilerplate contact-form example text a site
+    # never swapped out), just different literal strings.
+    "info@sampleaddress.com", "email@placeholder.com", "you@email.com",
+    "hello@email.com", "first.last@company.com", "mymail@mailservice.com",
 }
+
+# _EMAIL_RE above is purely syntactic ("word@word.letters") -- it has no
+# concept of "real TLD" vs. "this happens to look like one." Confirmed live
+# in the same batch: responsive-image filenames like "ajax-loader@2x.gif"
+# and "flags@2x.png" satisfy the pattern just as well as a real address
+# ("2x" reads as a domain label, "gif"/"png" as a 2+-letter TLD), and so do
+# Sentry/error-tracking DSN-style identifiers sites embed in their JS
+# bundles ("<32-char-hex>@sentry.io", "...@sentry-next.wixpress.com").
+# These aren't obscure edge cases -- across one real scrape batch they
+# accounted for a meaningful share of "discovered" emails, every one of
+# which would only ever bounce.
+_FAKE_TLD_SUFFIXES = (
+    '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.bmp',
+    '.css', '.js', '.woff', '.woff2', '.ttf', '.mp4', '.pdf',
+)
+_TRACKING_DOMAINS = ('sentry.io', 'wixpress.com')
 
 
 def _clean_email(raw: Optional[str]) -> Optional[str]:
@@ -107,14 +128,21 @@ def _clean_email(raw: Optional[str]) -> Optional[str]:
     plausible email -- not just whatever text happened to follow 'mailto:'
     in the HTML (also a real bug caught live: a mailto link with no real
     address in it came back as the literal company name, 'Evernest') --
-    and rejects known placeholder addresses. Returns None rather than a
-    guess for anything that fails these checks."""
+    and rejects known placeholder addresses, image-asset filenames
+    mismatched as emails, and tracking-service DSN identifiers. Returns
+    None rather than a guess for anything that fails these checks."""
     if not raw:
         return None
     candidate = raw.strip().strip('.,;:()[]{}<>"\'')
     if not _EMAIL_RE.fullmatch(candidate):
         return None
-    if candidate.lower() in _PLACEHOLDER_EMAILS:
+    lowered = candidate.lower()
+    if lowered in _PLACEHOLDER_EMAILS:
+        return None
+    if lowered.endswith(_FAKE_TLD_SUFFIXES):
+        return None
+    domain = lowered.rsplit('@', 1)[-1]
+    if any(domain == d or domain.endswith('.' + d) for d in _TRACKING_DOMAINS):
         return None
     return candidate
 

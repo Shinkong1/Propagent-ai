@@ -175,6 +175,42 @@ async def queue_uncontacted(
     return {"message": "Backfilling outreach for uncontacted leads"}
 
 
+@router.post("/cleanup-invalid-emails")
+async def cleanup_invalid_emails(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """One-off (or run-it-whenever) cleanup for leads whose scraped "email"
+    was actually never a real address -- a responsive-image filename
+    (ajax-loader@2x.gif), a Sentry/tracking-service DSN identifier, or
+    template boilerplate a site's contact form never had swapped out
+    (info@sampleaddress.com). Confirmed live: a real batch of scraped
+    leads had a meaningful share of exactly this. See
+    workers/tasks/lead_scraping.py's _clean_email() docstring for the
+    full story -- that function's validation rules were tightened after
+    finding these, and this endpoint re-applies the SAME (now stricter)
+    rules to what's already on file, so already-scraped leads benefit
+    too, not just future scrapes. Nulls the bad email and re-scores
+    (since _score_lead awards +10 for having one) so these stop showing
+    a perpetual "Failed" outreach status for an address that was never
+    real. Leaves existing OutreachEmail rows alone -- they stay an
+    honest record of what was actually attempted."""
+    from workers.tasks.lead_scraping import _clean_email, _score_lead
+    leads = db.query(Lead).filter(
+        Lead.organization_id == current_user.organization_id,
+        Lead.email.isnot(None),
+    ).all()
+    cleaned = 0
+    for lead in leads:
+        if _clean_email(lead.email) is None:
+            lead.email = None
+            lead.score = _score_lead(has_phone=bool(lead.phone), has_website=bool(lead.website), has_email=False)
+            cleaned += 1
+    if cleaned:
+        db.commit()
+    return {"cleaned": cleaned, "checked": len(leads)}
+
+
 @router.post("/{lead_id}/mark-replied")
 async def mark_replied(
     lead_id: UUID,
