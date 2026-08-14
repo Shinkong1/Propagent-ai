@@ -274,7 +274,8 @@ export default function Leads() {
                   <td style={{ padding: '12px 16px' }}>
                     {l.outreach_status ? (
                       <span title={
-                        l.outreach_status === 'failed' && l.outreach_error ? `Failed: ${l.outreach_error}` :
+                        l.outreach_status === 'failed' ?
+                          (l.outreach_error ? `Failed: ${l.outreach_error}` : 'Failed — no error detail was recorded for this one (it happened before error tracking was added). It will not be retried automatically.') :
                         l.outreach_sent_at ? `Sent ${new Date(l.outreach_sent_at).toLocaleString()}` :
                         'Waiting for the next send cycle (runs hourly)'
                       }
