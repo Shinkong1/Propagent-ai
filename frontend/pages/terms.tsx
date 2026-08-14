@@ -103,7 +103,7 @@ export default function Terms() {
           </Section>
 
           <Section title="18. Contact">
-            Questions about these Terms can be sent to propagentapp@gmail.com.
+            Questions about these Terms can be sent to propagentapp@gmail.com, or by mail to PropAgent, 9169 W State St #3241, Garden City, ID 83714.
           </Section>
         </div>
         <PublicFooter />

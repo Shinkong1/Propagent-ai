@@ -4,6 +4,7 @@ import Head from 'next/head';
 import { Zap, CheckCircle, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { publicContact } from '../lib/api';
+import PublicFooter from '../components/PublicFooter';
 
 const EMPTY = { name: '', email: '', company: '', message: '' };
 
@@ -84,6 +85,7 @@ export default function Contact() {
             </form>
           )}
         </div>
+        <PublicFooter />
       </div>
     </>
   );

@@ -17,16 +17,13 @@ REENGAGEMENT_SEQUENCE_STEP = 3
 # communication_agent.send_email()'s new `html` param, plus a real signature
 # block and a working opt-out line.
 #
-# NOT fixed here, flagged instead of guessed at: cold outreach emails like
-# these are commercial email under the US CAN-SPAM Act, which requires (1) a
-# valid physical postal address in the email and (2) a working opt-out --
-# the opt-out is covered below (reply routes through the Cloudflare Email
-# Worker to a real inbox, honored by simply not re-queuing that lead), but
-# there is nowhere in this codebase with a real business mailing address on
-# file, and one should not be invented. Add PHYSICAL_MAILING_ADDRESS to
-# config.py and wire it into SIGNATURE_HTML/SIGNATURE_TEXT below once you
-# have a real address to use.
-SIGNATURE_HTML = """
+# CAN-SPAM requires a valid physical postal address in every commercial
+# email -- satisfied below with the real business address on file.
+BUSINESS_NAME = "PropAgent"
+BUSINESS_ADDRESS_LINE1 = "9169 W State St #3241"
+BUSINESS_ADDRESS_LINE2 = "Garden City, ID 83714"
+
+SIGNATURE_HTML = f"""
 <table role="presentation" style="margin-top:28px;border-top:1px solid #e2e8f0;padding-top:16px;">
   <tr><td style="font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#1a202c;padding-bottom:2px;">The PropAgent Team</td></tr>
   <tr><td style="font-size:13px;color:#4a5568;padding-bottom:1px;">PropAgent AI</td></tr>
@@ -34,17 +31,19 @@ SIGNATURE_HTML = """
   <tr><td style="font-size:13px;color:#4a5568;">propagentapp@gmail.com &nbsp;·&nbsp; (617) 500-3821</td></tr>
 </table>
 <p style="font-size:12px;color:#a0aec0;margin-top:18px;">
+  {BUSINESS_NAME}, {BUSINESS_ADDRESS_LINE1}, {BUSINESS_ADDRESS_LINE2}<br>
   You're receiving this because your business appeared in a public directory of property management companies.
   Not interested? Just reply and let us know — we'll stop reaching out.
 </p>
 """
 
-SIGNATURE_TEXT = """
+SIGNATURE_TEXT = f"""
 Best,
 The PropAgent Team
 PropAgent AI — https://propagent.app
 propagentapp@gmail.com · (617) 500-3821
 
+{BUSINESS_NAME}, {BUSINESS_ADDRESS_LINE1}, {BUSINESS_ADDRESS_LINE2}
 You're receiving this because your business appeared in a public directory of property
 management companies. Not interested? Just reply and let us know — we'll stop reaching out.
 """

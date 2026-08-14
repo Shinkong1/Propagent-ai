@@ -82,7 +82,7 @@ export default function Privacy() {
           </Section>
 
           <Section title="12. Contact">
-            Questions about this Privacy Policy or our <Link href="/terms" style={{ color: '#FBC02D' }}>Terms of Service</Link> can be sent to propagentapp@gmail.com.
+            Questions about this Privacy Policy or our <Link href="/terms" style={{ color: '#FBC02D' }}>Terms of Service</Link> can be sent to propagentapp@gmail.com, or by mail to PropAgent, 9169 W State St #3241, Garden City, ID 83714.
           </Section>
         </div>
         <PublicFooter />

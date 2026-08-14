@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Mail, Phone } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
 
 export default function PublicFooter() {
   return (
@@ -11,6 +11,9 @@ export default function PublicFooter() {
         <a href="tel:+16175003821" style={{ color: 'var(--text-muted)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <Phone size={13} /> (617) 500-3821
         </a>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <MapPin size={13} /> 9169 W State St #3241, Garden City, ID 83714
+        </span>
       </div>
       © {new Date().getFullYear()} PropAgent AI · AI-Powered Property Management
       <span style={{ margin: '0 8px' }}>·</span>
