@@ -81,16 +81,27 @@ async def generate_marketing_copy(copy_type: str, extra_context: str = "") -> st
 
     try:
         from anthropic import AsyncAnthropic
-        client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+        # timeout=60: fail fast and clean rather than risk a long hang on a
+        # single-worker server -- the SDK default is 10 minutes, far too
+        # long for a request a human is waiting on in the dashboard.
+        client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=60.0)
         response = await client.messages.create(
             model="claude-opus-5",
             max_tokens=1500,
+            # Claude Opus 5 runs adaptive thinking by default (unlike prior
+            # Opus versions, where omitting `thinking` meant none) -- and
+            # max_tokens caps thinking + text together. For quick, shallow
+            # copywriting like this, thinking adds latency and eats into
+            # the budget for no real quality gain, and was risking the
+            # visible text getting truncated or empty. Disabled explicitly
+            # (allowed at the default effort level of "high" or below).
+            thinking={"type": "disabled"},
             system=PRODUCT_FACTS,
             messages=[{"role": "user", "content": user_content}],
         )
         text = "".join(block.text for block in response.content if block.type == "text").strip()
         if not text:
-            raise MarketingCopyError("Claude returned an empty response")
+            raise MarketingCopyError(f"Claude returned an empty response (stop_reason={response.stop_reason})")
         return text
     except MarketingCopyError:
         raise
