@@ -22,6 +22,15 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o"
 
+    # Anthropic Claude API -- used by services/marketing_ai_service.py to
+    # generate marketing copy (social posts, outreach variants, ad copy,
+    # blog ideas) on demand from Owner Admin's Marketing Hub. Separate key
+    # from OPENAI_API_KEY above -- that one powers in-app tenant/executive
+    # AI features, this one is purely for PropAgent's own external
+    # marketing content. Empty by default: the feature is hidden (never
+    # faked) until this is set.
+    ANTHROPIC_API_KEY: str = ""
+
     STRIPE_SECRET: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
     STRIPE_STARTER_PRICE_ID: str = "price_starter"

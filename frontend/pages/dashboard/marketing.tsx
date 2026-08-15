@@ -3,6 +3,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import {
   ShieldAlert, Megaphone, Search, Building2, Share2, Copy, ExternalLink,
   CheckCircle2, Circle, Linkedin, Twitter, Facebook, Instagram, Home, PlayCircle, RefreshCw, KeyRound,
+  Sparkles,
 } from 'lucide-react';
 import { getUser } from '../../lib/auth';
 import { publicListings, admin as adminApi } from '../../lib/api';
@@ -42,6 +43,11 @@ export default function MarketingHub() {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [rotating, setRotating] = useState(false);
   const [demoCreds, setDemoCreds] = useState<{ login_email: string; login_password: string } | null>(null);
+  const [copyType, setCopyType] = useState<'social_post' | 'outreach_variant' | 'ad_copy' | 'blog_ideas'>('social_post');
+  const [extraContext, setExtraContext] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [generatedText, setGeneratedText] = useState<string | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isMaster) return;
@@ -73,6 +79,20 @@ export default function MarketingHub() {
   };
 
   const doneCount = CHECKLIST_ITEMS.filter(i => checked[i.id]).length;
+
+  const generateCopy = async () => {
+    setGenerating(true);
+    setGenerateError(null);
+    setGeneratedText(null);
+    try {
+      const res = await adminApi.generateMarketingCopy(copyType, extraContext);
+      setGeneratedText(res.data.text);
+    } catch (err: any) {
+      setGenerateError(err?.response?.data?.detail || 'Generation failed — please try again.');
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   if (!isMaster) {
     return (
@@ -148,6 +168,59 @@ export default function MarketingHub() {
                 </div>
               )}
             </div>
+          </div>
+        </Section>
+
+        {/* AI Copywriter */}
+        <Section icon={Sparkles} title="AI copywriter (Claude)">
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 16 }}>
+            <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.5 }}>
+              Generates real marketing copy grounded in PropAgent's actual plans and features — never invented stats
+              or fake testimonials. Review everything before you post or send it.
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+              {([
+                ['social_post', 'Social posts'],
+                ['outreach_variant', 'Outreach openers'],
+                ['ad_copy', 'Ad copy'],
+                ['blog_ideas', 'Blog ideas'],
+              ] as const).map(([value, label]) => (
+                <button key={value} onClick={() => setCopyType(value)}
+                  style={{
+                    padding: '6px 12px', borderRadius: 6, fontSize: 11.5, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer',
+                    background: copyType === value ? 'rgba(251,192,45,0.12)' : 'var(--bg-app)',
+                    border: `1px solid ${copyType === value ? 'rgba(251,192,45,0.4)' : 'var(--border-strong)'}`,
+                    color: copyType === value ? '#FBC02D' : 'var(--text-secondary)',
+                  }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <input
+              value={extraContext}
+              onChange={e => setExtraContext(e.target.value)}
+              placeholder="Optional: steer it — e.g. 'focus on multi-family landlords'"
+              style={{ width: '100%', padding: '8px 12px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)', fontSize: 12.5, marginBottom: 12, boxSizing: 'border-box' }}
+            />
+            <button onClick={generateCopy} disabled={generating}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 6, background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', color: '#FBC02D', fontSize: 11.5, fontFamily: 'Syne', fontWeight: 600, cursor: generating ? 'default' : 'pointer', opacity: generating ? 0.6 : 1 }}>
+              <Sparkles size={12} /> {generating ? 'Generating…' : 'Generate'}
+            </button>
+
+            {generateError && (
+              <div style={{ marginTop: 12, fontSize: 12, color: '#EF4444', lineHeight: 1.5 }}>{generateError}</div>
+            )}
+
+            {generatedText && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: 14, fontSize: 12.5, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', lineHeight: 1.6, marginBottom: 10 }}>
+                  {generatedText}
+                </div>
+                <button onClick={() => copy(generatedText, 'Copied')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 11.5, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+                  <Copy size={11} /> Copy
+                </button>
+              </div>
+            )}
           </div>
         </Section>
 

@@ -708,3 +708,26 @@ async def delete_verification_file(file_id: UUID, db: Session = Depends(get_db))
         raise HTTPException(status_code=404, detail="Not found")
     db.delete(record)
     db.commit()
+
+
+# ── Claude-powered marketing copy generator (Marketing Hub) — on-demand
+# social posts / outreach variants / ad copy / blog ideas for PropAgent's
+# OWN marketing, grounded against real product facts so nothing is
+# invented. See services/marketing_ai_service.py. ──
+
+@router.post("/marketing/generate-copy")
+async def generate_marketing_copy_route(payload: dict):
+    from services.marketing_ai_service import generate_marketing_copy, MarketingCopyError, COPY_TYPES
+
+    copy_type = payload.get("copy_type", "")
+    if copy_type not in COPY_TYPES:
+        raise HTTPException(status_code=400, detail=f"copy_type must be one of: {', '.join(COPY_TYPES)}")
+
+    try:
+        text = await generate_marketing_copy(copy_type, extra_context=payload.get("extra_context", ""))
+        return {"copy_type": copy_type, "text": text}
+    except MarketingCopyError as e:
+        detail = str(e)
+        if "not configured" in detail:
+            raise HTTPException(status_code=503, detail="ANTHROPIC_API_KEY isn't configured yet — set it in Render to enable this.")
+        raise HTTPException(status_code=502, detail=f"Claude generation failed: {detail[:300]}")

@@ -269,6 +269,8 @@ export const admin = {
     api.post('/admin/testimonials', data),
   updateTestimonial: (id: string, data: any) => api.patch(`/admin/testimonials/${id}`, data),
   deleteTestimonial: (id: string) => api.delete(`/admin/testimonials/${id}`),
+  generateMarketingCopy: (copy_type: string, extra_context?: string) =>
+    api.post('/admin/marketing/generate-copy', { copy_type, extra_context }),
 };
 
 export const publicTestimonials = {
