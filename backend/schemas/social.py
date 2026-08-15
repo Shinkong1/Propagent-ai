@@ -44,3 +44,28 @@ class SocialPostResponse(BaseModel):
 class SocialConfigResponse(BaseModel):
     facebook_enabled: bool
     linkedin_enabled: bool
+
+
+class CreateDraftRequest(BaseModel):
+    message: str
+    image_url: Optional[str] = None
+    link: Optional[str] = None
+    property_id: Optional[UUID] = None
+
+
+class ApproveDraftRequest(BaseModel):
+    connection_ids: List[UUID]
+
+
+class SocialPostDraftResponse(BaseModel):
+    id: UUID
+    property_id: Optional[UUID] = None
+    message: str
+    image_url: Optional[str] = None
+    link: Optional[str] = None
+    status: str
+    source: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

@@ -194,3 +194,22 @@ async def lead_reengagement_endpoint(db: Session = Depends(get_db)):
     from services.lead_service import queue_lead_reengagement_emails
     result = await run_in_threadpool(queue_lead_reengagement_emails, db)
     return result
+
+
+@router.post("/social-draft-cadence", dependencies=[Depends(_require_cron_secret)])
+async def social_draft_cadence_endpoint(db: Session = Depends(get_db)):
+    """Regular posting-cadence mechanism for routes/social.py's draft
+    queue -- queues one templated draft per org with an active social
+    connection so there's always something fresh to review, but this
+    endpoint NEVER posts anything itself. Publishing only ever happens
+    through routes/social.py's POST /social/drafts/{id}/approve, which
+    requires an authenticated human to explicitly click 'Approve & Post'
+    in the dashboard -- see services/social_posting_service.py's
+    generate_cadence_drafts docstring for the full idempotency/rotation
+    behavior. Meant to be hit weekly by the same free external scheduler
+    already driving the other /internal/cron/* jobs; safe to hit more
+    often too since it skips any org that still has an un-actioned
+    pending draft."""
+    from services.social_posting_service import generate_cadence_drafts
+    result = await run_in_threadpool(generate_cadence_drafts, db)
+    return result

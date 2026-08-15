@@ -38,6 +38,17 @@ type Post = {
   created_at: string;
 };
 
+type Draft = {
+  id: string;
+  property_id: string | null;
+  message: string;
+  image_url: string | null;
+  link: string | null;
+  status: string;
+  source: 'manual' | 'cadence';
+  created_at: string;
+};
+
 const PLATFORM_META: Record<string, { label: string; icon: any; color: string }> = {
   facebook: { label: 'Facebook Page', icon: Facebook, color: '#1877F2' },
   instagram: { label: 'Instagram Business', icon: Instagram, color: '#E4405F' },
@@ -52,13 +63,17 @@ export default function SocialMedia() {
   const [linkedinEnabled, setLinkedinEnabled] = useState(false);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [drafts, setDrafts] = useState<Draft[]>([]);
   const [loadingConnections, setLoadingConnections] = useState(true);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingDrafts, setLoadingDrafts] = useState(true);
   const [message, setMessage] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [link, setLink] = useState('');
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [posting, setPosting] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [approvingDraftId, setApprovingDraftId] = useState<string | null>(null);
 
   const loadConnections = () => {
     setLoadingConnections(true);
@@ -68,6 +83,10 @@ export default function SocialMedia() {
     setLoadingPosts(true);
     socialApi.posts().then(r => setPosts(r.data || [])).catch(() => setPosts([])).finally(() => setLoadingPosts(false));
   };
+  const loadDrafts = () => {
+    setLoadingDrafts(true);
+    socialApi.drafts().then(r => setDrafts(r.data || [])).catch(() => setDrafts([])).finally(() => setLoadingDrafts(false));
+  };
 
   useEffect(() => {
     socialApi.config().then(r => {
@@ -76,6 +95,7 @@ export default function SocialMedia() {
     }).catch(() => {}).finally(() => setConfigLoaded(true));
     loadConnections();
     loadPosts();
+    loadDrafts();
   }, []);
 
   useEffect(() => {
@@ -138,7 +158,63 @@ export default function SocialMedia() {
     }
   };
 
+  const saveDraft = async () => {
+    if (!message.trim()) {
+      toast.error(t('social.toast.writeMessage'));
+      return;
+    }
+    setSavingDraft(true);
+    try {
+      await socialApi.createDraft({
+        message,
+        image_url: imageUrl.trim() || undefined,
+        link: link.trim() || undefined,
+      });
+      toast.success(t('social.toast.draftSaved'));
+      setMessage(''); setImageUrl(''); setLink(''); setSelected({});
+      loadDrafts();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || t('social.toast.draftSaveFailed'));
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
   const activeConnections = connections.filter(c => c.is_active);
+
+  const approveDraft = async (draft: Draft) => {
+    if (activeConnections.length === 0) {
+      toast.error(t('social.toast.selectAccount'));
+      return;
+    }
+    const names = activeConnections.map(c => c.page_name || PLATFORM_META[c.platform]?.label || c.platform).join(', ');
+    const confirmed = window.confirm(t('social.confirmApprove', { accounts: names }) + `\n\n"${draft.message}"`);
+    if (!confirmed) return;
+    setApprovingDraftId(draft.id);
+    try {
+      const res = await socialApi.approveDraft(draft.id, { connection_ids: activeConnections.map(c => c.id) });
+      const results: Post[] = res.data || [];
+      const succeeded = results.filter(r => r.status === 'posted').length;
+      const failed = results.filter(r => r.status === 'failed');
+      if (succeeded > 0) toast.success(t('social.toast.postedToAccounts', { count: succeeded, s: succeeded === 1 ? '' : 's' }));
+      failed.forEach(f => toast.error(`${PLATFORM_META[f.platform || '']?.label || f.platform}: ${f.error_message || t('social.status.failed')}`));
+      loadDrafts();
+      loadPosts();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || t('social.toast.postFailed'));
+    } finally {
+      setApprovingDraftId(null);
+    }
+  };
+
+  const discardDraft = async (draftId: string) => {
+    try {
+      await socialApi.discardDraft(draftId);
+      loadDrafts();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || t('social.toast.draftDiscardFailed'));
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -258,15 +334,76 @@ export default function SocialMedia() {
             </div>
           )}
 
-          <button onClick={post} disabled={posting || activeConnections.length === 0} style={{
-            display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-            background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)',
-            fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8,
-            cursor: posting || activeConnections.length === 0 ? 'not-allowed' : 'pointer',
-            opacity: posting || activeConnections.length === 0 ? 0.6 : 1,
-          }}>
-            <Send size={15} /> {posting ? t('social.posting') : t('social.postNow')}
-          </button>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button onClick={post} disabled={posting || activeConnections.length === 0} style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+              background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)',
+              fontWeight: 700, fontFamily: 'Syne', border: 'none', borderRadius: 8,
+              cursor: posting || activeConnections.length === 0 ? 'not-allowed' : 'pointer',
+              opacity: posting || activeConnections.length === 0 ? 0.6 : 1,
+            }}>
+              <Send size={15} /> {posting ? t('social.posting') : t('social.postNow')}
+            </button>
+            <button onClick={saveDraft} disabled={savingDraft || !message.trim()} style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+              background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-strong)',
+              fontWeight: 700, fontFamily: 'Syne', borderRadius: 8,
+              cursor: savingDraft || !message.trim() ? 'not-allowed' : 'pointer',
+              opacity: savingDraft || !message.trim() ? 0.6 : 1,
+            }}>
+              {savingDraft ? t('social.savingDraft') : t('social.saveAsDraft')}
+            </button>
+          </div>
+        </div>
+
+        {/* Draft queue -- regular posting cadence, human approval required per post */}
+        <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>{t('social.draftQueueTitle')}</h2>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>{t('social.draftQueueSubtitle')}</p>
+        <div style={{ marginBottom: 28 }}>
+          {loadingDrafts ? (
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('social.loading')}</p>
+          ) : drafts.length === 0 ? (
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('social.noDrafts')}</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {drafts.map(d => (
+                <div key={d.id} style={{ ...cardStyle, display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <span style={{ fontSize: 10, fontFamily: 'IBM Plex Mono', padding: '2px 8px', borderRadius: 4, background: d.source === 'cadence' ? '#8B5CF620' : '#64748B20', color: d.source === 'cadence' ? '#8B5CF6' : '#64748B' }}>
+                        {d.source === 'cadence' ? t('social.draftSourceCadence') : t('social.draftSourceManual')}
+                      </span>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{new Date(d.created_at).toLocaleString()}</span>
+                    </div>
+                    <p style={{ fontSize: 13, color: 'var(--text-primary)', margin: 0, wordBreak: 'break-word' }}>{d.message}</p>
+                    {d.link && <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '4px 0 0' }}>{d.link}</p>}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                    <button
+                      onClick={() => approveDraft(d)}
+                      disabled={approvingDraftId === d.id || activeConnections.length === 0}
+                      title={activeConnections.length === 0 ? t('social.connectFirst') : ''}
+                      style={{
+                        padding: '7px 14px', borderRadius: 8, border: 'none',
+                        background: 'linear-gradient(135deg, #FBC02D, #F57F17)', color: 'var(--bg-app)',
+                        fontWeight: 700, fontFamily: 'Syne', fontSize: 12,
+                        cursor: approvingDraftId === d.id || activeConnections.length === 0 ? 'not-allowed' : 'pointer',
+                        opacity: approvingDraftId === d.id || activeConnections.length === 0 ? 0.6 : 1,
+                      }}
+                    >
+                      {approvingDraftId === d.id ? t('social.posting') : t('social.approveAndPost')}
+                    </button>
+                    <button onClick={() => discardDraft(d.id)} style={{
+                      padding: '7px 14px', borderRadius: 8, border: '1px solid var(--border-strong)',
+                      background: 'transparent', color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer',
+                    }}>
+                      {t('social.discard')}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Post history */}
@@ -302,7 +439,9 @@ export default function SocialMedia() {
                           {p.status === 'posted' ? t('social.status.posted') : t('social.status.failed')}
                         </span>
                       </td>
-                      <td style={{ padding: '10px 14px', fontSize: 11, color: 'var(--text-muted)' }}>{p.trigger === 'auto_listing' ? t('social.triggerAuto') : t('social.triggerManual')}</td>
+                      <td style={{ padding: '10px 14px', fontSize: 11, color: 'var(--text-muted)' }}>
+                        {p.trigger === 'auto_listing' ? t('social.triggerAuto') : p.trigger === 'draft_approved' ? t('social.triggerDraftApproved') : t('social.triggerManual')}
+                      </td>
                       <td style={{ padding: '10px 14px', fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{new Date(p.created_at).toLocaleString()}</td>
                     </tr>
                   );

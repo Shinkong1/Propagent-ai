@@ -228,6 +228,73 @@ def build_listing_post_text(prop: Property) -> tuple:
     return message, link
 
 
+def generate_cadence_drafts(db: Session) -> dict:
+    """Regular posting-cadence mechanism: queues one templated draft post
+    per organization that has at least one active social connection and at
+    least one public listing to feature -- NEVER posts anything itself.
+    Meant to be called periodically (e.g. weekly) by
+    /internal/cron/social-draft-cadence so an org always has a fresh draft
+    waiting in the queue to review instead of the feed going silent
+    between manual posts and auto_post_new_listing's one-shot event
+    trigger. Publishing only ever happens through routes/social.py's
+    POST /social/drafts/{id}/approve, which requires an authenticated
+    human to explicitly click 'Approve & Post' in the dashboard -- this
+    function has no way to call publish_post and never does.
+
+    Idempotent per org per run: skips any org that still has an
+    un-actioned pending draft, so calling this as often as the external
+    scheduler likes never piles up duplicate drafts."""
+    from models.social_connection import SocialPostDraft
+    from models.property import Property
+
+    org_ids = [row[0] for row in db.query(SocialConnection.organization_id).filter(
+        SocialConnection.is_active == True
+    ).distinct().all()]
+
+    queued, skipped = [], []
+    for org_id in org_ids:
+        already_pending = db.query(SocialPostDraft).filter(
+            SocialPostDraft.organization_id == org_id,
+            SocialPostDraft.status == "pending",
+        ).first()
+        if already_pending:
+            skipped.append(str(org_id))
+            continue
+
+        candidates = db.query(Property).filter(
+            Property.organization_id == org_id,
+            Property.is_public_listing == True,
+        ).order_by(Property.public_listed_at.desc()).all()
+        if not candidates:
+            skipped.append(str(org_id))
+            continue
+
+        # Rotate through public listings that haven't had a cadence draft
+        # queued for them yet, so repeat runs feature different properties
+        # instead of the same one every time; once every listing has had a
+        # turn, fall back to the most recently listed one.
+        already_drafted_ids = {
+            row[0] for row in db.query(SocialPostDraft.property_id).filter(
+                SocialPostDraft.organization_id == org_id,
+                SocialPostDraft.property_id.isnot(None),
+            ).all()
+        }
+        prop = next((p for p in candidates if p.id not in already_drafted_ids), candidates[0])
+
+        message, link = build_listing_post_text(prop)
+        db.add(SocialPostDraft(
+            organization_id=org_id,
+            property_id=prop.id,
+            message=message,
+            link=link,
+            source="cadence",
+        ))
+        queued.append(str(org_id))
+
+    db.commit()
+    return {"queued": queued, "skipped": skipped}
+
+
 def auto_post_new_listing(property_id: str):
     """Background task entrypoint -- fired from routes/properties.py the
     moment Property.is_public_listing flips False -> True. Opens its own DB
