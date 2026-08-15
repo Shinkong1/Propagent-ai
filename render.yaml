@@ -29,6 +29,8 @@ services:
         sync: false
       - key: STRIPE_ENTERPRISE_PRICE_ID
         sync: false
+      - key: STRIPE_VOICE_NUMBER_PRICE_ID
+        sync: false
       - key: TWILIO_SID
         sync: false
       - key: TWILIO_TOKEN

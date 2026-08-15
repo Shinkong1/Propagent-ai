@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     STRIPE_STARTER_PRICE_ID: str = "price_starter"
     STRIPE_PRO_PRICE_ID: str = "price_pro"
     STRIPE_ENTERPRISE_PRICE_ID: str = "price_enterprise"
+    # $19/mo addon: a dedicated Voice AI phone number for one org, instead of
+    # sharing the platform's single Twilio number with every other org (see
+    # services/voice_number_service.py). Create this Price in the Stripe
+    # Dashboard yourself (recurring, $19/mo) and set its price_xxx id here --
+    # empty by default, which /billing/voice-number/checkout treats as "not
+    # configured yet" and refuses to sell an addon with no real price behind it.
+    STRIPE_VOICE_NUMBER_PRICE_ID: str = ""
     # Stripe Connect — separate webhook endpoint/secret from the platform
     # subscription webhook above, since these events describe *tenants'* rent
     # payments into a connected org's own account, not PropAgent's own billing.

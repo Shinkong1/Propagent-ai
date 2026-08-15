@@ -72,6 +72,92 @@ async def create_checkout(
         raise HTTPException(status_code=500, detail="Payment processing error")
 
 
+@router.post("/voice-number/checkout")
+async def create_voice_number_checkout(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _=Depends(require_role(UserRole.owner)),
+):
+    """Start Stripe Checkout for the $19/mo dedicated Voice AI number addon.
+    The actual Twilio number is NOT purchased here -- only after the
+    webhook below confirms the subscription's first payment succeeded, so
+    a real per-month Twilio charge never happens ahead of the customer
+    actually paying for it."""
+    if not settings.STRIPE_VOICE_NUMBER_PRICE_ID:
+        raise HTTPException(status_code=503, detail="This addon isn't configured yet -- contact support.")
+
+    from models.user import Organization, PlanType as _PlanType
+    org = db.query(Organization).filter(Organization.id == current_user.organization_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    if org.plan == _PlanType.starter:
+        raise HTTPException(status_code=400, detail="Voice AI (and this addon) requires the Professional plan or higher.")
+    if org.voice_number:
+        raise HTTPException(status_code=400, detail=f"This organization already has a dedicated number: {org.voice_number}")
+
+    try:
+        session = await run_in_threadpool(
+            stripe.checkout.Session.create,
+            mode="subscription",
+            line_items=[{"price": settings.STRIPE_VOICE_NUMBER_PRICE_ID, "quantity": 1}],
+            success_url=f"{settings.FRONTEND_URL}/dashboard/settings?tab=payments&voice_number=purchased",
+            cancel_url=f"{settings.FRONTEND_URL}/dashboard/settings?tab=payments",
+            metadata={"org_id": str(current_user.organization_id), "type": "voice_number_addon"},
+            managed_payments={"enabled": False},
+            **({"customer": org.stripe_customer_id} if org.stripe_customer_id else {}),
+        )
+        return {"url": session.url}
+    except Exception as e:
+        logger.error(f"Voice number addon checkout error for org {org.id}: {e}")
+        raise HTTPException(status_code=500, detail="Payment processing error")
+
+
+@router.post("/voice-number/cancel")
+async def cancel_voice_number(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _=Depends(require_role(UserRole.owner)),
+):
+    """Cancel the dedicated-number addon: stop the $19/mo Stripe charge and
+    release the Twilio number. The org's Voice AI calls keep working
+    afterward via the shared platform number, same as before they bought
+    the addon -- this only removes the isolation/attribution benefit, not
+    Voice AI access itself (that's still governed by the base plan)."""
+    from models.user import Organization
+    org = db.query(Organization).filter(Organization.id == current_user.organization_id).first()
+    if not org or not org.voice_number:
+        raise HTTPException(status_code=400, detail="No dedicated Voice AI number to cancel.")
+
+    if org.voice_number_subscription_item_id:
+        try:
+            item = await run_in_threadpool(stripe.SubscriptionItem.retrieve, org.voice_number_subscription_item_id)
+            await run_in_threadpool(stripe.Subscription.cancel, item.subscription)
+        except Exception as e:
+            logger.error(f"Failed to cancel voice-number Stripe subscription for org {org.id}: {e}")
+            raise HTTPException(status_code=502, detail="Couldn't cancel the Stripe subscription -- please try again or contact support.")
+
+    from services.voice_number_service import release_voice_number
+    await run_in_threadpool(release_voice_number, org.voice_number_sid)
+
+    org.voice_number = None
+    org.voice_number_sid = None
+    org.voice_number_subscription_item_id = None
+    db.commit()
+    return {"message": "Dedicated Voice AI number canceled and released."}
+
+
+@router.get("/voice-number/status")
+async def voice_number_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from models.user import Organization
+    org = db.query(Organization).filter(Organization.id == current_user.organization_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    return {"voice_number": org.voice_number, "addon_available": bool(settings.STRIPE_VOICE_NUMBER_PRICE_ID)}
+
+
 @router.post("/portal")
 async def create_billing_portal_session(
     db: Session = Depends(get_db),
@@ -142,6 +228,11 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     if event["type"] == "checkout.session.completed":
         session_data = event["data"]["object"]
         org_id = session_data["metadata"].get("org_id")
+
+        if session_data["metadata"].get("type") == "voice_number_addon":
+            await run_in_threadpool(_handle_voice_number_addon_paid, db, org_id, session_data)
+            return {"status": "ok"}
+
         plan = session_data["metadata"].get("plan", "starter")
 
         org = db.query(Organization).filter(Organization.id == UUID(org_id)).first()
@@ -191,6 +282,65 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             log_org_event(db, org.id, OrgEventType.payment_failed)
 
     return {"status": "ok"}
+
+
+def _handle_voice_number_addon_paid(db: Session, org_id: str, session_data: dict) -> None:
+    """Runs after Stripe confirms the $19/mo voice-number addon's first
+    payment succeeded -- only now is it safe to actually buy a real Twilio
+    number (a real recurring charge on PropAgent's own Twilio account).
+
+    Idempotent: Stripe can and does redeliver this event, and org.voice_number
+    being already set is the guard against buying a second number for an org
+    that already has one."""
+    from models.user import Organization
+    from uuid import UUID as _UUID
+
+    org = db.query(Organization).filter(Organization.id == _UUID(org_id)).first()
+    if not org or org.voice_number:
+        return
+
+    subscription_item_id = None
+    try:
+        sub_id = session_data.get("subscription")
+        if sub_id:
+            sub = stripe.Subscription.retrieve(sub_id)
+            items = sub["items"]["data"] if isinstance(sub, dict) else sub.items.data
+            if items:
+                subscription_item_id = items[0]["id"] if isinstance(items[0], dict) else items[0].id
+    except Exception as e:
+        logger.error(f"Couldn't resolve subscription item for org {org_id}'s voice-number addon: {e}")
+
+    from services.voice_number_service import purchase_voice_number, VoiceNumberProvisionError
+    try:
+        result = purchase_voice_number(str(org.id))
+    except VoiceNumberProvisionError as e:
+        # The customer has already been charged -- this must never fail
+        # silently. Alert the platform owner so it can be fixed by hand
+        # (buy/assign a number manually, or refund), rather than leaving a
+        # paying customer with nothing and no one aware of it.
+        logger.error(f"Voice number provisioning FAILED after payment for org {org_id}: {e}")
+        try:
+            from models.user import User
+            from services.communication_agent import send_email
+            owner = db.query(User).filter(User.is_master == True, User.is_active == True).first()
+            if owner and owner.email:
+                send_email(
+                    owner.email,
+                    f"[ACTION NEEDED] Voice number addon paid but provisioning failed — org {org_id}",
+                    f"Org {org_id} paid for the $19/mo dedicated Voice AI number addon, but Twilio "
+                    f"provisioning failed: {e}\n\nThey've been charged with nothing to show for it yet. "
+                    f"Provision a number manually in the Twilio console and set Organization.voice_number "
+                    f"(+ voice_number_sid) directly in the database, or refund the charge in Stripe.",
+                )
+        except Exception as alert_error:
+            logger.error(f"Also failed to send the provisioning-failure alert email: {alert_error}")
+        return
+
+    org.voice_number = result["phone_number"]
+    org.voice_number_sid = result["sid"]
+    org.voice_number_subscription_item_id = subscription_item_id
+    db.commit()
+    logger.info(f"Org {org_id} voice-number addon provisioned: {result['phone_number']}")
 
 
 @router.post("/connect/onboard")

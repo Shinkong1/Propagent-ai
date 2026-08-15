@@ -147,6 +147,9 @@ export const billing = {
   portal: () => api.post('/billing/portal'),
   connectOnboard: () => api.post('/billing/connect/onboard'),
   connectStatus: () => api.get('/billing/connect/status'),
+  voiceNumberStatus: () => api.get('/billing/voice-number/status'),
+  voiceNumberCheckout: () => api.post('/billing/voice-number/checkout'),
+  voiceNumberCancel: () => api.post('/billing/voice-number/cancel'),
 };
 
 export const portfolio = {
@@ -324,6 +327,17 @@ export const social = {
   posts: (limit?: number) => api.get('/social/posts', { params: { limit } }),
   compose: (data: { connection_ids: string[]; message: string; image_url?: string; link?: string }) =>
     api.post('/social/compose', data),
+  // Draft queue -- a regular posting cadence with a required human
+  // approval step per post (see backend/routes/social.py). Drafts are
+  // queued manually here or by the weekly /internal/cron/social-draft-
+  // cadence job; nothing is ever actually published until approveDraft
+  // is called.
+  drafts: () => api.get('/social/drafts'),
+  createDraft: (data: { message: string; image_url?: string; link?: string; property_id?: string }) =>
+    api.post('/social/drafts', data),
+  discardDraft: (draftId: string) => api.delete(`/social/drafts/${draftId}`),
+  approveDraft: (draftId: string, data: { connection_ids: string[] }) =>
+    api.post(`/social/drafts/${draftId}/approve`, data),
   // Full-navigation OAuth connect links -- the JWT is passed as a query
   // param because these are top-level browser redirects to Facebook/
   // LinkedIn's own login pages, which can't carry an Authorization header.

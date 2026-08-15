@@ -120,6 +120,12 @@ export default function SettingsPage() {
   const [loadingConnect, setLoadingConnect] = useState(false);
   const [startingOnboard, setStartingOnboard] = useState(false);
 
+  const [voiceNumberStatus, setVoiceNumberStatus] = useState<{ voice_number: string | null; addon_available: boolean } | null>(null);
+  const [loadingVoiceNumber, setLoadingVoiceNumber] = useState(false);
+  const [purchasingVoiceNumber, setPurchasingVoiceNumber] = useState(false);
+  const [cancelingVoiceNumber, setCancelingVoiceNumber] = useState(false);
+  const [confirmCancelVoiceNumber, setConfirmCancelVoiceNumber] = useState(false);
+
   const loadConnectStatus = async () => {
     setLoadingConnect(true);
     try {
@@ -140,6 +146,43 @@ export default function SettingsPage() {
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || 'Could not start Stripe onboarding');
       setStartingOnboard(false);
+    }
+  };
+
+  const loadVoiceNumberStatus = async () => {
+    setLoadingVoiceNumber(true);
+    try {
+      const res = await billingApi.voiceNumberStatus();
+      setVoiceNumberStatus(res.data);
+    } catch {
+      // leave null — the card just won't render extra detail
+    } finally {
+      setLoadingVoiceNumber(false);
+    }
+  };
+
+  const purchaseVoiceNumber = async () => {
+    setPurchasingVoiceNumber(true);
+    try {
+      const res = await billingApi.voiceNumberCheckout();
+      window.location.href = res.data.url;
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Could not start checkout for the dedicated number');
+      setPurchasingVoiceNumber(false);
+    }
+  };
+
+  const cancelVoiceNumber = async () => {
+    setCancelingVoiceNumber(true);
+    try {
+      await billingApi.voiceNumberCancel();
+      toast.success('Dedicated Voice AI number canceled.');
+      setConfirmCancelVoiceNumber(false);
+      loadVoiceNumberStatus();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Could not cancel the dedicated number');
+    } finally {
+      setCancelingVoiceNumber(false);
     }
   };
 
@@ -179,7 +222,7 @@ export default function SettingsPage() {
     if (tab === 'team') loadMembers();
     if (tab === 'security') loadMfaStatus();
     if (tab === 'api') loadApiKey();
-    if (tab === 'payments') loadConnectStatus();
+    if (tab === 'payments') { loadConnectStatus(); loadVoiceNumberStatus(); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
@@ -823,6 +866,49 @@ export default function SettingsPage() {
                 <li>Tenants pay by card or bank transfer — funds go straight to your account.</li>
                 <li>Payments are marked paid here automatically once they clear.</li>
               </ul>
+            </div>
+
+            <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--border-strong)' }}>
+              <h2 style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 4 }}>Dedicated Voice AI Number</h2>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 18, lineHeight: 1.6 }}>
+                By default, Voice AI calls come in on PropAgent's shared number and are attributed by matching the
+                caller against your existing tenants and inquiries — which means a caller who isn't in your system
+                yet can't be matched to your account. $19/mo gets your organization its own dedicated number, so
+                every call to it is unambiguously yours, including from brand-new callers. Requires Professional plan or higher.
+              </p>
+
+              {loadingVoiceNumber ? (
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('nav.loading')}</p>
+              ) : voiceNumberStatus?.voice_number ? (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 10, marginBottom: 12 }}>
+                    <CheckCircle size={18} color="#10B981" />
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{voiceNumberStatus.voice_number}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Active — $19/mo, calls to this number are always yours.</div>
+                    </div>
+                  </div>
+                  {confirmCancelVoiceNumber ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 12, color: '#EF4444' }}>Cancel the addon and release this number?</span>
+                      <button onClick={cancelVoiceNumber} disabled={cancelingVoiceNumber} style={{ ...btn, background: '#EF4444', borderColor: '#EF4444' }}>
+                        {cancelingVoiceNumber ? 'Canceling...' : 'Yes, cancel'}
+                      </button>
+                      <button onClick={() => setConfirmCancelVoiceNumber(false)} style={{ ...btn, background: 'transparent' }}>Keep it</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setConfirmCancelVoiceNumber(true)} style={{ ...btn, background: 'transparent', color: '#EF4444', borderColor: 'rgba(239,68,68,0.4)' }}>
+                      Cancel dedicated number
+                    </button>
+                  )}
+                </div>
+              ) : voiceNumberStatus?.addon_available === false ? (
+                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>This addon isn't available yet — check back soon.</p>
+              ) : (
+                <button onClick={purchaseVoiceNumber} disabled={purchasingVoiceNumber} style={{ ...btn, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <ExternalLink size={14} /> {purchasingVoiceNumber ? 'Starting...' : 'Get a dedicated number — $19/mo'}
+                </button>
+              )}
             </div>
           </div>
         )}

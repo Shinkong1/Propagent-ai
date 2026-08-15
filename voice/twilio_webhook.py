@@ -2,7 +2,7 @@
 import logging
 from fastapi import Request
 from fastapi.concurrency import run_in_threadpool
-from voice.voice_i18n import get_voice_config, get_prompt, get_org_language, get_org_for_phone
+from voice.voice_i18n import get_voice_config, get_prompt, get_org_for_call
 
 logger = logging.getLogger(__name__)
 
@@ -55,16 +55,22 @@ async def handle_incoming_call(request: Request) -> str:
 
     Voice AI requires the Professional plan or higher. If the caller resolves to a
     known tenant whose organization is on Starter, we short-circuit to a recording
-    prompt instead of the full AI flow. Unknown/unresolvable callers (e.g. a
-    prospective tenant who isn't in the system yet) pass through — there's no
-    organization to gate against since this demo shares a single Twilio number
-    across all organizations rather than provisioning one per org.
+    prompt instead of the full AI flow.
+
+    Org resolution prefers the number actually dialed (`to_number`): an org that
+    bought the dedicated Voice AI number addon is matched unambiguously via
+    get_org_for_call, with zero risk of cross-org attribution. Orgs without a
+    dedicated number (still calling in on the shared platform number) fall back
+    to caller-ID matching against known Tenants/RentalInquiries -- unknown/
+    unresolvable callers on that path (e.g. a prospective tenant who isn't in
+    the system yet) still pass through with no organization to gate against,
+    a known limitation of sharing one number across every such org.
     """
     form = await request.form()
     caller = form.get("From", "Unknown")
     call_sid = form.get("CallSid", "")
     to_number = form.get("To", "")
-    logger.info(f"Incoming call from {caller}")
+    logger.info(f"Incoming call from {caller} to {to_number}")
 
     # Blocking DB work (org lookup + call-record write) -- must not run
     # inline on this single-worker server.
@@ -79,7 +85,7 @@ async def handle_incoming_call(request: Request) -> str:
 
 
 def _resolve_and_record_call(caller: str, call_sid: str, to_number: str) -> "dict | None":
-    org = get_org_for_phone(caller)
+    org = get_org_for_call(caller, to_number)
     _create_call_record(call_sid, caller, to_number, org)
     return org
 

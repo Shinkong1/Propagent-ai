@@ -85,9 +85,84 @@ def get_prompt(language: str, key: str) -> str:
     return PROMPTS.get(language, PROMPTS["en"]).get(key, PROMPTS["en"][key])
 
 
+def get_org_for_call(caller_phone: str, to_number: str = ""):
+    """Resolve the organization for an inbound call, preferring the number
+    actually dialed over guessing from the caller's own number.
+
+    If `to_number` matches an org's dedicated Voice AI number (the $19/mo
+    addon -- see services/voice_number_service.py), that org is the
+    unambiguous answer; no other organization's number could have received
+    this call. Tenant/property attribution is then looked up *within that
+    org only*, via get_org_for_phone's caller-matching helper below, scoped
+    so a caller who happens to share a phone number pattern with another
+    org's tenant can never cross-attribute.
+
+    Falls back to the old global caller-ID matching (get_org_for_phone)
+    when there's no dedicated-number match -- either `to_number` is the
+    shared platform number (no org owns it), or the org hasn't bought a
+    dedicated number yet.
+    """
+    if to_number:
+        try:
+            from database.base import SessionLocal
+            from models.user import Organization
+
+            db = SessionLocal()
+            try:
+                org = db.query(Organization).filter(Organization.voice_number == to_number).first()
+                if org:
+                    return _attribute_within_org(db, org, caller_phone)
+            finally:
+                db.close()
+        except Exception as e:
+            logger.warning(f"Dedicated-number org lookup failed for {to_number}: {e}")
+
+    return get_org_for_phone(caller_phone)
+
+
+def _attribute_within_org(db, org, caller_phone: str) -> dict:
+    """Same tenant/prospect attribution get_org_for_phone does below, but
+    scoped to a single already-known organization (dedicated-number path)
+    instead of searching every org's Tenants/RentalInquiries globally."""
+    from models.tenant import Tenant
+    from models.inquiry import RentalInquiry
+    from voice.phone_match import phone_match_filter
+
+    base = {"id": str(org.id), "language": org.language, "plan": org.plan.value,
+            "tenant_id": None, "inquiry_id": None, "property_id": None}
+    if not caller_phone:
+        return base
+
+    tenant = db.query(Tenant).filter(
+        Tenant.organization_id == org.id, phone_match_filter(Tenant.phone, caller_phone)
+    ).first()
+    if tenant:
+        lease = tenant.active_lease
+        base["tenant_id"] = str(tenant.id)
+        base["property_id"] = str(lease.unit.property_id) if lease and lease.unit else None
+        return base
+
+    inquiry = (
+        db.query(RentalInquiry)
+        .filter(RentalInquiry.organization_id == org.id, phone_match_filter(RentalInquiry.phone, caller_phone))
+        .order_by(RentalInquiry.created_at.desc())
+        .first()
+    )
+    if inquiry:
+        base["inquiry_id"] = str(inquiry.id)
+        base["property_id"] = str(inquiry.property_id) if inquiry.property_id else None
+    return base
+
+
 def get_org_for_phone(caller_phone: str):
     """Look up the organization (and, if resolvable, the specific tenant/
-    prospect/property) that a calling phone number belongs to.
+    prospect/property) that a calling phone number belongs to, by matching
+    the CALLER's number globally across every org's Tenants/RentalInquiries.
+
+    Used as the fallback path when the dialed number isn't any org's
+    dedicated Voice AI number (get_org_for_call above) -- e.g. the shared
+    platform number, still used by every org that hasn't bought the
+    dedicated-number addon.
 
     Tries an existing Tenant first (a verified lease relationship). If
     that doesn't match, falls back to the most recent RentalInquiry with

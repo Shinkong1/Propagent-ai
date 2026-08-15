@@ -35,6 +35,14 @@ class Organization(Base):
     # controlled account.
     stripe_connect_account_id = Column(String(255), nullable=True)
     stripe_connect_onboarded = Column(Boolean, default=False, nullable=False)
+    # Dedicated Voice AI phone number addon ($19/mo, Professional+ only) --
+    # see services/voice_number_service.py. Null until purchased: without
+    # one, this org's Voice AI calls still work via the shared platform
+    # number (voice/twilio_webhook.py's caller-ID matching fallback), just
+    # without the isolation a dedicated number gives.
+    voice_number = Column(String(20), nullable=True, unique=True)
+    voice_number_sid = Column(String(64), nullable=True)
+    voice_number_subscription_item_id = Column(String(255), nullable=True)
     # Real Stripe subscription status (trialing/active/past_due/canceled/unpaid), kept in
     # sync via billing webhook events — null when no Stripe subscription exists yet (e.g.
     # manually created orgs), never fabricated.
