@@ -1,6 +1,6 @@
 """social post drafts (approval queue for regular posting cadence)
 
-Revision ID: a1b2c3d4e5f6
+Revision ID: a9b0c1d2e3f4
 Revises: f8a9b0c1d2e3
 Create Date: 2026-08-14 21:30:00.000000
 
@@ -13,7 +13,7 @@ from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'a1b2c3d4e5f6'
+revision: str = 'a9b0c1d2e3f4'
 down_revision: Union[str, Sequence[str], None] = 'f8a9b0c1d2e3'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
