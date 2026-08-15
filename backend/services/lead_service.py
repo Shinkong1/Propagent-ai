@@ -217,10 +217,34 @@ def process_outreach_queue(db: Session, limit: int = 50) -> dict:
     /internal/cron HTTP endpoint (for production, where no paid background
     worker is deployed — an external free scheduler hits that endpoint
     instead). Plain sync function either way; callers on the async side are
-    responsible for running it in a threadpool."""
+    responsible for running it in a threadpool.
+
+    No inter-send delay by design, not by oversight: this runs synchronously
+    inside the HTTP request the external scheduler makes (see
+    routes/internal_cron.py's /process-outreach-queue, and contrast with
+    /lead-scrape, which had to move onto a BackgroundTask specifically
+    because it kept exceeding the scheduler's ~30s request timeout) — adding
+    a sleep() here per email would just trade one risk (a burst of `limit`
+    emails going out back-to-back within one cron run) for another (the
+    request timing out, which a free scheduler can only see as a hard
+    failure, not a partial success). If large-backlog sends turn out to be
+    hurting deliverability in practice, the safer fix is lowering `limit`
+    (smaller bursts, same per-run latency budget) and/or having the external
+    scheduler call this more often, not adding a blocking delay in-process."""
     from services.communication_agent import send_email
 
-    pending = db.query(OutreachEmail).filter(OutreachEmail.status == "queued").limit(limit).all()
+    # order_by is required, not cosmetic: without it Postgres can return
+    # `queued` rows in an arbitrary order under LIMIT, so a bounded batch
+    # (see limit's docstring reasoning below) could keep skipping over the
+    # same recently-queued leads while older ones sit unsent indefinitely.
+    # Oldest-queued-first ensures every lead eventually gets its turn.
+    pending = (
+        db.query(OutreachEmail)
+        .filter(OutreachEmail.status == "queued")
+        .order_by(OutreachEmail.created_at)
+        .limit(limit)
+        .all()
+    )
 
     sent = 0
     for email in pending:
