@@ -17,6 +17,8 @@ export default function PublicFooter() {
       </div>
       © {new Date().getFullYear()} PropAgent AI · AI-Powered Property Management
       <span style={{ margin: '0 8px' }}>·</span>
+      <Link href="/resources" style={{ color: '#475569', textDecoration: 'none' }}>Resources</Link>
+      <span style={{ margin: '0 8px' }}>·</span>
       <Link href="/terms" style={{ color: '#475569', textDecoration: 'none' }}>Terms</Link>
       <span style={{ margin: '0 8px' }}>·</span>
       <Link href="/privacy" style={{ color: '#475569', textDecoration: 'none' }}>Privacy</Link>

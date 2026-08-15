@@ -8,6 +8,12 @@ const STATIC_ROUTES: { path: string; changefreq: string; priority: string }[] = 
   { path: '/pricing', changefreq: 'monthly', priority: '0.8' },
   { path: '/signup', changefreq: 'monthly', priority: '0.8' },
   { path: '/listings', changefreq: 'daily', priority: '0.9' },
+  { path: '/resources', changefreq: 'weekly', priority: '0.8' },
+  { path: '/resources/how-to-screen-tenants', changefreq: 'monthly', priority: '0.7' },
+  { path: '/resources/property-management-software-features', changefreq: 'monthly', priority: '0.7' },
+  { path: '/resources/handling-maintenance-requests', changefreq: 'monthly', priority: '0.7' },
+  { path: '/resources/ai-in-property-management', changefreq: 'monthly', priority: '0.7' },
+  { path: '/resources/rent-collection-best-practices', changefreq: 'monthly', priority: '0.7' },
   { path: '/terms', changefreq: 'yearly', priority: '0.3' },
   { path: '/privacy', changefreq: 'yearly', priority: '0.3' },
 ];
