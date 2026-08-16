@@ -6,7 +6,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { getUser } from '../../lib/auth';
-import { publicListings, admin as adminApi } from '../../lib/api';
+import { publicListings, admin as adminApi, social as socialApi } from '../../lib/api';
 import toast from 'react-hot-toast';
 
 const SITE_URL = 'https://propagent.app';
@@ -48,6 +48,7 @@ export default function MarketingHub() {
   const [generating, setGenerating] = useState(false);
   const [generatedText, setGeneratedText] = useState<string | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [savingDraft, setSavingDraft] = useState(false);
 
   useEffect(() => {
     if (!isMaster) return;
@@ -91,6 +92,19 @@ export default function MarketingHub() {
       setGenerateError(err?.response?.data?.detail || 'Generation failed — please try again.');
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const saveAsDraft = async () => {
+    if (!generatedText?.trim()) return;
+    setSavingDraft(true);
+    try {
+      await socialApi.createDraft({ message: generatedText.trim(), link: SITE_URL });
+      toast.success('Saved to draft queue — review it under Dashboard → Social');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Could not save draft');
+    } finally {
+      setSavingDraft(false);
     }
   };
 
@@ -213,12 +227,27 @@ export default function MarketingHub() {
 
             {generatedText && (
               <div style={{ marginTop: 14 }}>
-                <div style={{ background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: 14, fontSize: 12.5, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', lineHeight: 1.6, marginBottom: 10 }}>
-                  {generatedText}
+                <textarea
+                  value={generatedText}
+                  onChange={e => setGeneratedText(e.target.value)}
+                  rows={10}
+                  style={{ width: '100%', boxSizing: 'border-box', background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: 14, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 8, resize: 'vertical', fontFamily: 'inherit' }}
+                />
+                {copyType === 'social_post' && (
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10, lineHeight: 1.5 }}>
+                    This box is editable — trim it down to the one variant you actually want to post before saving as a draft. Drafts can't be edited later, only approved or discarded.
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button onClick={() => copy(generatedText, 'Copied')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 11.5, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
+                    <Copy size={11} /> Copy
+                  </button>
+                  {copyType === 'social_post' && (
+                    <button onClick={saveAsDraft} disabled={savingDraft} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', color: '#FBC02D', fontSize: 11.5, fontFamily: 'Syne', fontWeight: 600, cursor: savingDraft ? 'default' : 'pointer', opacity: savingDraft ? 0.6 : 1 }}>
+                      <Sparkles size={11} /> {savingDraft ? 'Saving…' : 'Save as draft'}
+                    </button>
+                  )}
                 </div>
-                <button onClick={() => copy(generatedText, 'Copied')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 11.5, fontFamily: 'IBM Plex Mono', cursor: 'pointer' }}>
-                  <Copy size={11} /> Copy
-                </button>
               </div>
             )}
           </div>
