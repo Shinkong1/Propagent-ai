@@ -96,7 +96,10 @@ export default function MarketingHub() {
   };
 
   const saveAsDraft = async () => {
-    if (!generatedText?.trim()) return;
+    if (!generatedText?.trim()) {
+      toast.error('Nothing to save — the box is empty.');
+      return;
+    }
     setSavingDraft(true);
     try {
       await socialApi.createDraft({ message: generatedText.trim(), link: SITE_URL });
@@ -225,7 +228,11 @@ export default function MarketingHub() {
               <div style={{ marginTop: 12, fontSize: 12, color: '#EF4444', lineHeight: 1.5 }}>{generateError}</div>
             )}
 
-            {generatedText && (
+            {/* !== null (not truthy) so the box doesn't unmount out from under
+                the user the moment they select-all-and-delete while trimming
+                the 3 variants down to one -- that's the exact editing
+                workflow this panel exists for. */}
+            {generatedText !== null && (
               <div style={{ marginTop: 14 }}>
                 <textarea
                   value={generatedText}
