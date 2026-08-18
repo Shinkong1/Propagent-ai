@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Settings as SettingsIcon, Check, Sun, Moon, Building2, Bell, Lock, Globe, DollarSign, HelpCircle, Users, Mail, UserPlus, Code, Eye, EyeOff, Copy, RefreshCw, CreditCard, ExternalLink, CheckCircle } from 'lucide-react';
+import { Settings as SettingsIcon, Check, Sun, Moon, Building2, Bell, Lock, Globe, DollarSign, HelpCircle, Users, Mail, UserPlus, Code, Copy, RefreshCw, CreditCard, ExternalLink, CheckCircle } from 'lucide-react';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { useLanguage } from '../../lib/LanguageContext';
 import { useTheme } from '../../lib/ThemeContext';
@@ -110,8 +110,14 @@ export default function SettingsPage() {
     }
   };
 
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  const [apiKeyRevealed, setApiKeyRevealed] = useState(false);
+  // The backend only ever stores a hash of the key (see backend/models/user.py
+  // Organization.api_key_hash) -- it can't hand the full key back on a normal
+  // GET, only a masked preview. `newApiKey` holds the one-time plaintext value
+  // that comes back right after Generate/Regenerate, same "shown once" pattern
+  // already used for MFA backup codes.
+  const [apiKeyPreview, setApiKeyPreview] = useState<{ key_preview: string; created_at: string | null } | null>(null);
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const [newApiKey, setNewApiKey] = useState<string | null>(null);
   const [loadingApiKey, setLoadingApiKey] = useState(false);
   const [regeneratingApiKey, setRegeneratingApiKey] = useState(false);
   const [confirmRegenerate, setConfirmRegenerate] = useState(false);
@@ -190,7 +196,8 @@ export default function SettingsPage() {
     setLoadingApiKey(true);
     try {
       const res = await authApi.getApiKey();
-      setApiKey(res.data.api_key);
+      setHasApiKey(!!res.data.has_key);
+      setApiKeyPreview(res.data.has_key ? { key_preview: res.data.key_preview, created_at: res.data.created_at } : null);
     } catch {
       // silent — tab still usable to generate a first key
     } finally {
@@ -202,8 +209,9 @@ export default function SettingsPage() {
     setRegeneratingApiKey(true);
     try {
       const res = await authApi.regenerateApiKey();
-      setApiKey(res.data.api_key);
-      setApiKeyRevealed(true);
+      setNewApiKey(res.data.api_key);
+      setHasApiKey(true);
+      setApiKeyPreview({ key_preview: res.data.key_preview, created_at: res.data.created_at });
       toast.success(t('settings.apiKeyRegenerated'));
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || t('settings.saveFailed'));
@@ -213,8 +221,8 @@ export default function SettingsPage() {
   };
 
   const copyApiKey = () => {
-    if (!apiKey) return;
-    navigator.clipboard.writeText(apiKey);
+    if (!newApiKey) return;
+    navigator.clipboard.writeText(newApiKey);
     toast.success(t('settings.apiKeyCopied'));
   };
 
@@ -921,31 +929,44 @@ export default function SettingsPage() {
 
             {loadingApiKey ? (
               <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('nav.loading')}</p>
-            ) : apiKey ? (
-              <div>
-                <label style={lbl}>{t('settings.apiKeyLabel')}</label>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <div style={{ ...inp, fontFamily: 'IBM Plex Mono', fontSize: 12.5, flex: 1, letterSpacing: 0.3 } as any}>
-                    {apiKeyRevealed ? apiKey : `${apiKey.slice(0, 11)}${'•'.repeat(28)}`}
-                  </div>
-                  <button onClick={() => setApiKeyRevealed(r => !r)} title={apiKeyRevealed ? t('settings.apiKeyHide') : t('settings.apiKeyReveal')} style={{ background: 'var(--bg-app)', border: '1px solid var(--border-strong)', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0 }}>
-                    {apiKeyRevealed ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                  <button onClick={copyApiKey} title={t('settings.apiKeyCopy')} style={{ background: 'var(--bg-app)', border: '1px solid var(--border-strong)', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0 }}>
-                    <Copy size={15} />
-                  </button>
-                </div>
-                <button onClick={() => setConfirmRegenerate(true)} disabled={regeneratingApiKey} style={{ ...btn, marginTop: 18, background: 'var(--bg-app)', color: 'var(--text-secondary)', border: '1px solid var(--border-strong)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <RefreshCw size={14} /> {regeneratingApiKey ? t('settings.saving') : t('settings.apiKeyRegenerate')}
-                </button>
-                <p style={{ fontSize: 11, color: '#475569', marginTop: 10, lineHeight: 1.6 }}>{t('settings.apiKeyWarning')}</p>
-              </div>
             ) : (
               <div>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14 }}>{t('settings.apiKeyNone')}</p>
-                <button onClick={regenerateApiKey} disabled={regeneratingApiKey} style={btn}>
-                  {regeneratingApiKey ? t('settings.saving') : t('settings.apiKeyGenerate')}
-                </button>
+                {newApiKey && (
+                  <div style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.35)', borderRadius: 10, padding: 14, marginBottom: 18 }}>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>{t('settings.apiKeyShownOnce')}</p>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <div style={{ ...inp, fontFamily: 'IBM Plex Mono', fontSize: 12.5, flex: 1, letterSpacing: 0.3 } as any}>
+                        {newApiKey}
+                      </div>
+                      <button onClick={copyApiKey} title={t('settings.apiKeyCopy')} style={{ background: 'var(--bg-app)', border: '1px solid var(--border-strong)', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0 }}>
+                        <Copy size={15} />
+                      </button>
+                    </div>
+                    <button onClick={() => setNewApiKey(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 11, marginTop: 8, cursor: 'pointer', padding: 0 }}>
+                      {t('settings.apiKeyDismiss')}
+                    </button>
+                  </div>
+                )}
+
+                {hasApiKey ? (
+                  <div>
+                    <label style={lbl}>{t('settings.apiKeyLabel')}</label>
+                    <div style={{ ...inp, fontFamily: 'IBM Plex Mono', fontSize: 12.5, letterSpacing: 0.3 } as any}>
+                      {apiKeyPreview?.key_preview}{'•'.repeat(24)}
+                    </div>
+                    <button onClick={() => setConfirmRegenerate(true)} disabled={regeneratingApiKey} style={{ ...btn, marginTop: 18, background: 'var(--bg-app)', color: 'var(--text-secondary)', border: '1px solid var(--border-strong)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <RefreshCw size={14} /> {regeneratingApiKey ? t('settings.saving') : t('settings.apiKeyRegenerate')}
+                    </button>
+                    <p style={{ fontSize: 11, color: '#475569', marginTop: 10, lineHeight: 1.6 }}>{t('settings.apiKeyWarning')} {t('settings.apiKeyNoReveal')}</p>
+                  </div>
+                ) : !newApiKey ? (
+                  <div>
+                    <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14 }}>{t('settings.apiKeyNone')}</p>
+                    <button onClick={regenerateApiKey} disabled={regeneratingApiKey} style={btn}>
+                      {regeneratingApiKey ? t('settings.saving') : t('settings.apiKeyGenerate')}
+                    </button>
+                  </div>
+                ) : null}
               </div>
             )}
 

@@ -1,6 +1,8 @@
 """Authentication routes — signup, login, token refresh"""
+import hashlib
 import logging
 import re
+import secrets
 from uuid import UUID
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from jose import JWTError
@@ -29,6 +31,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 SUPPORTED_CURRENCIES = {"USD", "EUR", "GBP", "CAD", "AUD", "JPY", "MXN", "INR"}
 PASSWORD_RESET_EXPIRY = timedelta(minutes=30)
 EMAIL_VERIFY_EXPIRY = timedelta(hours=48)
+# Per-account brute-force lockout (on top of the existing per-IP rate limit
+# below) -- see models/user.py's failed_login_attempts/locked_until docstring.
+LOGIN_LOCKOUT_THRESHOLD = 10
+LOGIN_LOCKOUT_DURATION = timedelta(minutes=15)
 
 
 def slugify(text: str) -> str:
@@ -51,8 +57,11 @@ def _send_verification_email(user_id: str, email: str, first_name: str):
     send_email(email, "Confirm your email — PropAgent AI", body)
 
 
-def _send_password_reset_email(user_id: str, email: str, first_name: str):
-    token = create_access_token({"sub": user_id, "purpose": "password_reset"}, expires_delta=PASSWORD_RESET_EXPIRY)
+def _send_password_reset_email(email: str, first_name: str, token: str):
+    """Takes the already-issued token (see forgot_password) rather than
+    building one itself -- issuing it here would happen after the jti has
+    already been committed to the user row by the caller, but backwards, so
+    the two must stay in the same request."""
     link = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password?token={token}"
     body = (
         f"Hi {first_name or 'there'},\n\n"
@@ -135,12 +144,31 @@ async def signup(request: Request, payload: SignupRequest, background_tasks: Bac
 @limiter.limit("10/minute")
 async def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == payload.email).first()
+
+    # Per-account lockout -- checked before the password comparison so a
+    # locked account can't be probed further even with the right password.
+    if user and user.locked_until and user.locked_until > datetime.utcnow():
+        raise HTTPException(status_code=423, detail="Too many failed login attempts on this account. Try again in a few minutes.")
+
     if not user or not verify_password(payload.password, user.hashed_password):
+        if user:
+            user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
+            if user.failed_login_attempts >= LOGIN_LOCKOUT_THRESHOLD:
+                user.locked_until = datetime.utcnow() + LOGIN_LOCKOUT_DURATION
+            db.commit()
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account is deactivated")
 
+    if user.failed_login_attempts:
+        user.failed_login_attempts = 0
+        user.locked_until = None
+
     if user.mfa_enabled:
+        # The password check just passed -- clear the counter now. Any
+        # further lockout for this login attempt is tracked by the MFA code
+        # itself in routes/mfa.py's login_verify, on the same two columns.
+        db.commit()
         from routes.mfa import issue_mfa_challenge
         return issue_mfa_challenge(user)
 
@@ -196,7 +224,18 @@ async def me(current_user: User = Depends(get_current_user)):
 async def forgot_password(request: Request, payload: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == payload.email).first()
     if user and user.is_active:
-        background_tasks.add_task(_send_password_reset_email, str(user.id), user.email, user.first_name)
+        # A random jti stored on the user row, embedded in the JWT, and
+        # cleared the moment it's redeemed -- the JWT itself is stateless
+        # and stays "valid" to decode_token for the whole 30-minute window
+        # regardless of use, so without this a single emailed link could be
+        # replayed more than once. Overwriting it here also invalidates any
+        # earlier still-unused reset link the moment a new one is requested.
+        # Found and fixed in a security audit.
+        jti = secrets.token_urlsafe(16)
+        user.password_reset_jti = jti
+        db.commit()
+        token = create_access_token({"sub": str(user.id), "purpose": "password_reset", "jti": jti}, expires_delta=PASSWORD_RESET_EXPIRY)
+        background_tasks.add_task(_send_password_reset_email, user.email, user.first_name, token)
     # Same response either way -- confirming/denying a registered email to an
     # unauthenticated caller is an account-enumeration leak.
     return {"message": "If that email is registered, a reset link is on its way."}
@@ -210,14 +249,16 @@ async def reset_password(request: Request, payload: ResetPasswordRequest, db: Se
         if claims.get("purpose") != "password_reset":
             raise ValueError("wrong purpose")
         user_id = claims["sub"]
+        jti = claims["jti"]
     except (JWTError, ValueError, KeyError):
         raise HTTPException(status_code=400, detail="This reset link is invalid or has expired. Request a new one.")
 
     user = db.query(User).filter(User.id == UUID(user_id)).first()
-    if not user or not user.is_active:
+    if not user or not user.is_active or not user.password_reset_jti or user.password_reset_jti != jti:
         raise HTTPException(status_code=400, detail="This reset link is invalid or has expired. Request a new one.")
 
     user.hashed_password = hash_password(payload.new_password)
+    user.password_reset_jti = None  # burn it -- one redemption per emailed link, no replay
     db.commit()
     return {"message": "Password updated — you can now log in."}
 
@@ -311,10 +352,18 @@ async def get_organization_api_key(
     _=Depends(require_role(UserRole.owner)),
     __=Depends(require_plan(PlanType.enterprise)),
 ):
+    """Only the hash is stored (see models/user.py Organization.api_key_hash),
+    so the full key can't be shown again after it was first generated --
+    this returns just enough to recognize which key is active. Regenerate
+    to see a full key again."""
     org = current_user.organization
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
-    return {"api_key": org.api_key}
+    return {
+        "has_key": bool(org.api_key_hash),
+        "key_preview": org.api_key_prefix,
+        "created_at": str(org.api_key_created_at) if org.api_key_created_at else None,
+    }
 
 
 @router.post("/organization/api-key")
@@ -324,13 +373,17 @@ async def regenerate_organization_api_key(
     _=Depends(require_role(UserRole.owner)),
     __=Depends(require_plan(PlanType.enterprise)),
 ):
-    import secrets
     org = current_user.organization
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
-    org.api_key = f"pa_live_{secrets.token_urlsafe(32)}"
+    plain_key = f"pa_live_{secrets.token_urlsafe(32)}"
+    org.api_key_hash = hashlib.sha256(plain_key.encode()).hexdigest()
+    org.api_key_prefix = plain_key[:12] + "…"
+    org.api_key_created_at = datetime.utcnow()
     db.commit()
-    return {"api_key": org.api_key}
+    # The only time the plaintext key is ever available -- not stored anywhere,
+    # same "shown once" pattern already used for MFA backup codes.
+    return {"api_key": plain_key, "key_preview": org.api_key_prefix, "created_at": str(org.api_key_created_at)}
 
 
 @router.get("/organization/referral")

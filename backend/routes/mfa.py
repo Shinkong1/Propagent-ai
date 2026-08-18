@@ -5,7 +5,7 @@ import io
 import json
 import logging
 import secrets
-from datetime import timedelta
+from datetime import datetime, timedelta
 from uuid import UUID
 
 import pyotp
@@ -31,6 +31,13 @@ router = APIRouter(prefix="/auth/mfa", tags=["mfa"])
 ISSUER = "PropAgent AI"
 MFA_CHALLENGE_EXPIRY_MINUTES = 5
 BACKUP_CODE_COUNT = 10
+# Same per-account lockout as routes/auth.py's login() -- a wrong MFA/backup
+# code is the second half of the same login attempt, so it shares the
+# counter on the user row rather than getting its own. Duplicated (not
+# imported) to avoid a circular import between auth.py and mfa.py, which
+# already lazily import each other for the same reason.
+LOGIN_LOCKOUT_THRESHOLD = 10
+LOGIN_LOCKOUT_DURATION = timedelta(minutes=15)
 
 
 def _generate_backup_codes() -> list:
@@ -213,14 +220,22 @@ async def login_verify(request: Request, payload: MFALoginVerifyRequest, db: Ses
     if not user or not user.is_active or not user.mfa_enabled or not user.mfa_secret:
         raise HTTPException(status_code=401, detail="MFA challenge is no longer valid.")
 
+    if user.locked_until and user.locked_until > datetime.utcnow():
+        raise HTTPException(status_code=423, detail="Too many failed attempts on this account. Try again in a few minutes.")
+
     valid_totp = pyotp.TOTP(user.mfa_secret).verify(payload.code, valid_window=1)
     used_backup_code = False
     if not valid_totp:
         used_backup_code = _consume_backup_code(user, payload.code)
         if not used_backup_code:
+            user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
+            if user.failed_login_attempts >= LOGIN_LOCKOUT_THRESHOLD:
+                user.locked_until = datetime.utcnow() + LOGIN_LOCKOUT_DURATION
+            db.commit()
             raise HTTPException(status_code=400, detail="Invalid code. Check your authenticator app and try again.")
 
-    from datetime import datetime
+    user.failed_login_attempts = 0
+    user.locked_until = None
     user.last_login_at = datetime.utcnow()
     db.commit()
 

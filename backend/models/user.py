@@ -99,7 +99,19 @@ class Organization(Base):
     # External API access (Zapier/Make/custom integrations) — a per-org secret
     # sent as the X-API-Key header, distinct from user JWTs. Null until the
     # owner first generates one from Settings > API.
-    api_key = Column(String(64), unique=True, nullable=True, index=True)
+    #
+    # Stored as a SHA-256 hash, never plaintext — a DB-level leak used to
+    # hand out live, directly usable keys instead of useless digests. SHA-256
+    # (not bcrypt) is deliberate: the key itself is a 256-bit random token
+    # (secrets.token_urlsafe(32)), not a human-chosen password, so it isn't
+    # brute-forceable even via a fast deterministic hash, and a fast hash is
+    # what makes an indexed exact-match lookup on every API request possible.
+    # api_key_prefix is stored in the clear purely so the owner can recognize
+    # which key is active in Settings — nowhere near enough of the key to
+    # reconstruct or use it. Found and fixed in a security audit.
+    api_key_hash = Column(String(64), unique=True, nullable=True, index=True)
+    api_key_prefix = Column(String(20), nullable=True)
+    api_key_created_at = Column(DateTime, nullable=True)
 
     users = relationship("User", back_populates="organization")
     properties = relationship("Property", back_populates="organization")
@@ -126,6 +138,23 @@ class User(Base):
                                                       # removed from the list the moment it's used. Recovery path
                                                       # for a lost/desynced authenticator app -- without this,
                                                       # a user whose TOTP goes out of sync has no way back in.
+    # Single-use marker for the current outstanding password-reset JWT (see
+    # routes/auth.py forgot_password/reset_password). The JWT itself is
+    # stateless and stays "valid" to jose.decode for its whole 30-minute
+    # window, so without a server-side value to burn on redemption, the same
+    # emailed link could be replayed more than once inside that window.
+    # Cleared (set back to None) the moment a reset actually succeeds, and
+    # overwritten every time a new reset is requested, so only the most
+    # recently issued link ever works. Found and fixed in a security audit.
+    password_reset_jti = Column(String(32), nullable=True)
+    # Per-account brute-force lockout, distinct from the existing per-IP rate
+    # limit on /auth/login — a credential-stuffing attempt spread across many
+    # source IPs isn't meaningfully slowed by an IP-based limit alone.
+    # Incremented on a wrong password (routes/auth.py) or a wrong MFA/backup
+    # code (routes/mfa.py) for this account; reset to 0 on any successful
+    # login. Found and fixed in a security audit.
+    failed_login_attempts = Column(Integer, default=0, nullable=False)
+    locked_until = Column(DateTime, nullable=True)
     last_login_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

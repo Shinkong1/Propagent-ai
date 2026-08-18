@@ -110,7 +110,12 @@ async def get_org_from_api_key(
     per-org API key instead of a user JWT. Scoped to the org, not a specific user."""
     if not x_api_key:
         raise HTTPException(status_code=401, detail="Missing X-API-Key header")
-    org = db.query(Organization).filter(Organization.api_key == x_api_key).first()
+    # Keys are stored hashed (see models/user.py Organization.api_key_hash) --
+    # SHA-256 is fine here despite being fast/unsalted since the key itself
+    # is a 256-bit random token, not a guessable password.
+    import hashlib
+    key_hash = hashlib.sha256(x_api_key.encode()).hexdigest()
+    org = db.query(Organization).filter(Organization.api_key_hash == key_hash).first()
     if org is None:
         raise HTTPException(status_code=401, detail="Invalid API key")
     if not org.is_active:
