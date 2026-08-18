@@ -8,11 +8,12 @@ sales outreach on PropAgent's behalf."""
 import logging
 from typing import List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from database.session import get_db
+from middleware.rate_limit import limiter
 from models.user import User
 from models.lead import Lead, OutreachEmail, LeadStatus, LeadSource
 from middleware.auth import get_current_user
@@ -236,7 +237,13 @@ async def mark_replied(
 
 
 @router.post("/scrape")
+# Each call queues a real, billed Google Places API scrape (and, per-result,
+# an outbound fetch to that business's website) with no dedup/cooldown and
+# no other cost control -- a looped call here has no built-in ceiling.
+# Found in a security audit.
+@limiter.limit("10/minute")
 async def trigger_scrape(
+    request: Request,
     payload: dict,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),

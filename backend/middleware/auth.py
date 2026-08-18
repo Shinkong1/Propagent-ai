@@ -73,7 +73,17 @@ async def get_current_user(
         # state) are short-lived and single-purpose by design -- a real
         # session token never carries a "purpose" claim, so reject any that
         # do rather than let a leaked reset/verify link double as a login.
-        if user_id is None or payload.get("purpose") is not None:
+        #
+        # mfa_pending is the same class of token under a different key: the
+        # 5-minute challenge issued by /auth/login when the account has MFA
+        # enabled, meant to be redeemable ONLY via /auth/mfa/login-verify
+        # after a correct TOTP/backup code. Without this check it decoded
+        # and passed every test above exactly like a real session token --
+        # a real, confirmed full MFA bypass: anyone with just the password
+        # (the one thing MFA exists to add a second factor against) could
+        # call GET /auth/me or any other authenticated route directly with
+        # the pending token, no code ever required. Found in a security audit.
+        if user_id is None or payload.get("purpose") is not None or payload.get("mfa_pending"):
             raise credentials_exception
     except JWTError:
         raise credentials_exception

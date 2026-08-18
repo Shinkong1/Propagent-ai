@@ -1,5 +1,7 @@
 """Lead generation and outreach service"""
 import logging
+import html as html_lib  # aliased -- this module already uses `html` as a
+# local variable name for the rendered HTML email body string below.
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session, joinedload, aliased
 from models.lead import Lead, OutreachEmail, LeadStatus
@@ -91,8 +93,18 @@ Most of our clients save 15+ hours/week on tenant communication alone.
 Would you be open to a 15-minute demo this week?
 """ + SIGNATURE_TEXT
 
-        html = _html_wrapper(f"""<p>Hi {first},</p>
-<p>I noticed you manage {num} properties in {city}, and I wanted to reach out about PropAgent AI.</p>
+        # Escaped separately for the HTML body only -- these fields are
+        # scraped from public Google Business Profile data (fully
+        # attacker-controllable by whoever owns that listing) or typed into
+        # POST /leads with zero sanitization, and were being interpolated
+        # into this HTML email with no output encoding: a company name like
+        # "</p><a href=...>phish</a>" would inject real markup/links into
+        # the outreach email. Plain-text body above is unaffected (no HTML
+        # to break out of) and deliberately keeps the raw values. Found in
+        # a security audit.
+        first_e, city_e, num_e = html_lib.escape(first), html_lib.escape(city), html_lib.escape(str(num))
+        html = _html_wrapper(f"""<p>Hi {first_e},</p>
+<p>I noticed you manage {num_e} properties in {city_e}, and I wanted to reach out about PropAgent AI.</p>
 <p>We help property managers like you automate:</p>
 <ul style="margin:0 0 16px;padding-left:20px;">
   <li style="margin-bottom:6px;">Tenant communications (24/7 AI responses)</li>
@@ -143,10 +155,13 @@ your own to click around in, or we can find 15 minutes to talk through your
 specific properties.
 """ + SIGNATURE_TEXT
 
-        html = _html_wrapper(f"""<p>Hi {first},</p>
+        # See the escaping note in queue_outreach_email above -- same issue,
+        # same fix.
+        first_e, company_e = html_lib.escape(first), html_lib.escape(company)
+        html = _html_wrapper(f"""<p>Hi {first_e},</p>
 <p>Thanks for getting back to me. Instead of finding time on both our calendars, here's a 2-minute look at PropAgent AI running on a real account — real inquiries, real maintenance tickets, real AI screening decisions. It plays itself:</p>
 <p><a href="https://propagent.app/demo" style="color:#b7791f;">propagent.app/demo</a></p>
-<p>If it looks like a fit for {company}, reply here and I'll get you a login of your own to click around in, or we can find 15 minutes to talk through your specific properties.</p>""")
+<p>If it looks like a fit for {company_e}, reply here and I'll get you a login of your own to click around in, or we can find 15 minutes to talk through your specific properties.</p>""")
 
         email = OutreachEmail(
             lead_id=lead.id, subject=subject, body=body, html_body=html,
@@ -398,8 +413,11 @@ If it's not a fit right now, no worries -- just reply "not now" and I'll stop fo
 If it is, reply here and I'll get you a login of your own to try it firsthand.
 """ + SIGNATURE_TEXT
 
-            html = _html_wrapper(f"""<p>Hi {first},</p>
-<p>I reached out a little while back about PropAgent AI for {company} and never heard back, so I didn't want it to just sit forgotten in your inbox.</p>
+            # See the escaping note in queue_outreach_email above -- same
+            # issue, same fix.
+            first_e, company_e = html_lib.escape(first), html_lib.escape(company)
+            html = _html_wrapper(f"""<p>Hi {first_e},</p>
+<p>I reached out a little while back about PropAgent AI for {company_e} and never heard back, so I didn't want it to just sit forgotten in your inbox.</p>
 <p>Different angle this time, no call required: here's a 2-minute self-playing demo of PropAgent running on a real account — real tenant inquiries, real maintenance tickets, real AI screening decisions, start to finish.</p>
 <p><a href="https://propagent.app/demo" style="color:#b7791f;">propagent.app/demo</a></p>
 <p>If it's not a fit right now, no worries — just reply "not now" and I'll stop following up. If it is, reply here and I'll get you a login of your own to try it firsthand.</p>""")

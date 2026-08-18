@@ -26,6 +26,28 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(f"🚀 Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+
+    # Refuse to boot in production with the hardcoded placeholder secrets
+    # still in place. render.yaml's generateValue: true means the documented
+    # deploy path never actually hits this, but nothing in the code itself
+    # enforced that -- any other deploy path (docker-compose, a self-hosted
+    # copy, a Render env var accidentally dropped during a service
+    # recreation) would otherwise run with a secret that's committed to
+    # source and searchable by anyone. If DEBUG, allow it (local dev only
+    # ever runs with DEBUG=true). Found in a security audit.
+    if not settings.DEBUG:
+        _placeholder_secrets = {
+            "SECRET_KEY": "change-me-in-production",
+            "JWT_SECRET": "jwt-secret-change-me",
+        }
+        _still_default = [name for name, placeholder in _placeholder_secrets.items() if getattr(settings, name) == placeholder]
+        if _still_default:
+            raise RuntimeError(
+                f"Refusing to start: {', '.join(_still_default)} still has its hardcoded placeholder value. "
+                f"Set a real, random value for {'each of these' if len(_still_default) > 1 else 'it'} in your "
+                f"environment before running with DEBUG=false."
+            )
+
     try:
         from alembic.config import Config
         from alembic import command as alembic_command
@@ -79,13 +101,47 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
         content={"detail": "Too many attempts. Please wait a minute and try again."},
     )
 
+_cors_origins = settings.allowed_origins
+if "*" in _cors_origins:
+    # allow_credentials=True + a wildcard origin is a real misconfiguration:
+    # Starlette's CORS middleware special-cases this by reflecting back
+    # whatever Origin header the request actually sent (browsers won't
+    # allow literal "*" alongside credentials), which silently turns into
+    # "any origin, with credentials" for the whole API. ALLOWED_ORIGINS is
+    # a plain env var an operator could type "*" into by hand -- refuse to
+    # boot rather than silently run with this combination. Found in a
+    # security audit.
+    raise RuntimeError(
+        "ALLOWED_ORIGINS includes '*', which combined with credentialed "
+        "requests (cookies/Authorization headers) effectively allows any "
+        "origin. Set ALLOWED_ORIGINS to an explicit list of real origins."
+    )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    # The frontend (Next.js) already sends these via next.config.js, but
+    # the API itself sent none -- meaning /docs and /redoc (interactive,
+    # unauthenticated-to-view API documentation, both HTML) had no
+    # clickjacking protection, and no response from this service carried
+    # any of these headers at all. security.tsx's own copy claims these
+    # apply to "every response" -- this makes that actually true instead
+    # of only true for the frontend half of the stack. Found in a security audit.
+    response = await call_next(request)
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    return response
+
 
 # ── Routes ──
 from routes.auth import router as auth_router

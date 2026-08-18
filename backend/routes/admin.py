@@ -9,12 +9,13 @@ import logging
 from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 
 from database.session import get_db
+from middleware.rate_limit import limiter
 from models.user import User, Organization, PlanType
 from models.property import Property, Unit
 from models.owner_message import OwnerMessage
@@ -716,7 +717,12 @@ async def delete_verification_file(file_id: UUID, db: Session = Depends(get_db))
 # invented. See services/marketing_ai_service.py. ──
 
 @router.post("/marketing/generate-copy")
-async def generate_marketing_copy_route(payload: dict):
+# Each call is a real, billed Claude API request with no other cost
+# control -- master-only gating stops outside abuse, but nothing stopped a
+# compromised master account (or a buggy frontend retry loop) from looping
+# this endpoint for unbounded Anthropic billing. Found in a security audit.
+@limiter.limit("15/minute")
+async def generate_marketing_copy_route(request: Request, payload: dict):
     from services.marketing_ai_service import generate_marketing_copy, MarketingCopyError, COPY_TYPES
 
     copy_type = payload.get("copy_type", "")

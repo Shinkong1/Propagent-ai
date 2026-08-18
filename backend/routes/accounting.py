@@ -102,6 +102,15 @@ async def record_expense(
     current_user: User = Depends(get_current_user)
 ):
     _verify_property(db, payload.property_id, current_user.organization_id)
+    # vendor_id is optional and was previously persisted unchecked -- a
+    # foreign org's real vendor_id would create a cross-org dangling
+    # reference and leak that vendor's name back via ExpenseResponse.
+    # Found in a security audit.
+    if payload.vendor_id:
+        from models.maintenance import Vendor
+        owns_vendor = db.query(Vendor.id).filter(Vendor.id == payload.vendor_id, Vendor.organization_id == current_user.organization_id).first()
+        if not owns_vendor:
+            raise HTTPException(status_code=404, detail="Vendor not found")
     expense = Expense(**payload.dict())
     db.add(expense)
     db.commit()

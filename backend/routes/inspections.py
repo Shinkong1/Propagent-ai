@@ -5,7 +5,7 @@ import os
 import uuid
 from typing import List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Response
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Response, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import Response as FastAPIResponse
 from sqlalchemy.orm import Session
@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from database.session import get_db
 from models.user import User, PlanType
 from middleware.plan_gate import require_plan
+from middleware.rate_limit import limiter
 from models.property import Property, Unit
 from models.inspection import Inspection, InspectionPhoto, InspectionType, InspectionStatus
 from schemas.inspection import InspectionCreate, InspectionUpdate, InspectionResponse, InspectionListItem
@@ -139,7 +140,14 @@ async def delete_inspection(
 
 
 @router.post("/{inspection_id}/photos", response_model=InspectionResponse, status_code=201)
+# Each upload triggers a real, billed AI vision call (services/inspection_agent.py)
+# with no other cost control on this route -- previously nothing stopped a
+# scripted loop from running up unlimited OpenAI billing. 20/minute is
+# generous for a person actually taking inspection photos, tight enough to
+# stop a runaway script. Found in a security audit.
+@limiter.limit("20/minute")
 async def upload_inspection_photo(
+    request: Request,
     inspection_id: UUID,
     room_area: str = Form(...),
     file: UploadFile = File(...),

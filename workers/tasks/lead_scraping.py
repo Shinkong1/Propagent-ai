@@ -7,10 +7,13 @@ inserts NOTHING rather than falling back to fake/demo leads. That fake
 fallback ("John Smith / Smith Property Management", etc, inserted on every
 call regardless of the requested location) was the bug this file replaces.
 """
+import ipaddress
 import logging
 import re
+import socket
 from datetime import date
 from typing import List, Optional, Tuple
+from urllib.parse import urlparse
 from uuid import UUID
 
 import requests
@@ -18,6 +21,32 @@ import requests
 from workers.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
+
+
+def _is_safe_fetch_target(url: str) -> bool:
+    """SSRF guard for _discover_email below. website_url comes from a
+    Places-listed business's own self-reported Google Business Profile
+    metadata -- attacker-controllable by whoever owns that listing, not
+    validated by Google. Without this check, a listing whose website is set
+    to e.g. http://169.254.169.254/latest/meta-data/ (cloud metadata) or an
+    internal RFC1918 address would have this server fetch it blind. Found
+    in a security audit."""
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            return False
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+        for family, _, _, _, sockaddr in socket.getaddrinfo(hostname, None):
+            ip = ipaddress.ip_address(sockaddr[0])
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast or ip.is_unspecified:
+                return False
+        return True
+    except Exception:
+        # DNS failure, malformed URL, etc -- treat as unsafe rather than
+        # letting an edge case slip through unvalidated.
+        return False
 
 # Places API (New) Text Search -- NOT the legacy Places API.
 PLACES_SEARCH_URL = "https://places.googleapis.com/v1/places:searchText"
@@ -225,13 +254,36 @@ def _discover_email(website_url: str) -> Optional[str]:
     pipeline, since it just bounces and burns sender reputation.
     """
     try:
-        resp = requests.get(
-            website_url,
-            timeout=8,
-            allow_redirects=True,
-            headers={"User-Agent": "Mozilla/5.0 (compatible; PropAgentLeadBot/1.0)"},
-        )
-        if not resp.ok:
+        if not _is_safe_fetch_target(website_url):
+            logger.info(f"Email discovery skipped for {website_url}: fails SSRF safety check")
+            return None
+        # allow_redirects=False + a manual, re-validated hop loop -- a
+        # redirect target isn't covered by the safety check above (that
+        # only validates the URL we were given), so a listing's website
+        # could pass the check and then 302 straight to an internal
+        # address. Each hop is re-validated before being followed; capped
+        # at 5 to match requests' own default redirect ceiling.
+        current_url = website_url
+        resp = None
+        for _ in range(5):
+            resp = requests.get(
+                current_url,
+                timeout=8,
+                allow_redirects=False,
+                headers={"User-Agent": "Mozilla/5.0 (compatible; PropAgentLeadBot/1.0)"},
+            )
+            if resp.is_redirect and resp.headers.get("Location"):
+                next_url = resp.headers["Location"]
+                if not next_url.startswith("http"):
+                    from urllib.parse import urljoin
+                    next_url = urljoin(current_url, next_url)
+                if not _is_safe_fetch_target(next_url):
+                    logger.info(f"Email discovery skipped for {website_url}: redirect to unsafe target {next_url}")
+                    return None
+                current_url = next_url
+                continue
+            break
+        if resp is None or not resp.ok:
             return None
         html = resp.text
         m = _MAILTO_RE.search(html)

@@ -14,12 +14,17 @@ logger = logging.getLogger(__name__)
 
 
 async def verify_twilio_signature(request: Request) -> None:
-    if not settings.TWILIO_TOKEN:
-        logger.warning("TWILIO_TOKEN not configured — skipping Twilio signature verification.")
-        return
-    if not settings.PUBLIC_BASE_URL:
-        logger.warning("PUBLIC_BASE_URL not configured — skipping Twilio signature verification.")
-        return
+    # Fail CLOSED, not open, when unconfigured -- same pattern as
+    # CRON_SECRET/EMAIL_WORKER_SECRET in internal_cron.py/internal_email.py.
+    # This used to just log a warning and let the request through
+    # unverified, which meant a forgotten/misconfigured TWILIO_TOKEN or
+    # PUBLIC_BASE_URL (both manually-set env vars, not auto-generated)
+    # turned every /voice/* endpoint into an open, unauthenticated POST
+    # anyone could hit to inject fake call transcripts/status updates.
+    # Found in a security audit.
+    if not settings.TWILIO_TOKEN or not settings.PUBLIC_BASE_URL:
+        logger.error("TWILIO_TOKEN or PUBLIC_BASE_URL not configured — refusing all Twilio webhook calls rather than accepting them unverified.")
+        raise HTTPException(status_code=503, detail="Voice webhook verification is not configured")
 
     signature = request.headers.get("X-Twilio-Signature", "")
     form = await request.form()

@@ -57,6 +57,22 @@ async def create_ticket(
     if not prop:
         raise HTTPException(status_code=404, detail="Property not found")
 
+    # unit_id/tenant_id are optional on this payload and were previously
+    # persisted unchecked -- a foreign org's real unit_id/tenant_id would
+    # both create a cross-org dangling reference AND leak that unit's
+    # unit_number back in the response (MaintenanceResponse.unit_number is
+    # a computed property off the real relationship). Found in a security audit.
+    if payload.unit_id:
+        from models.property import Unit
+        owns_unit = db.query(Unit.id).filter(Unit.id == payload.unit_id, Unit.property_id == payload.property_id).first()
+        if not owns_unit:
+            raise HTTPException(status_code=404, detail="Unit not found")
+    if payload.tenant_id:
+        from models.tenant import Tenant
+        owns_tenant = db.query(Tenant.id).filter(Tenant.id == payload.tenant_id, Tenant.organization_id == current_user.organization_id).first()
+        if not owns_tenant:
+            raise HTTPException(status_code=404, detail="Tenant not found")
+
     ticket = MaintenanceTicket(**payload.dict())
     db.add(ticket)
     db.commit()

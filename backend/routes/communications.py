@@ -56,7 +56,15 @@ def _build_context(tenant: Tenant, template: str, payload: SendCommunicationRequ
     if template == "rent_reminder" and lease:
         context["amount"] = f"{lease.monthly_rent:,.2f}"
     if template == "maintenance_update" and payload.ticket_id:
-        ticket = db.query(MaintenanceTicket).filter(MaintenanceTicket.id == payload.ticket_id).first()
+        # Org-scoped via the property join (MaintenanceTicket has no direct
+        # organization_id column) -- unlike every sibling lookup in this
+        # codebase, this one was missing org scoping entirely, letting any
+        # staff user reference (and leak the title/status of) another org's
+        # maintenance ticket by UUID. Found in a security audit.
+        ticket = db.query(MaintenanceTicket).join(Property).filter(
+            MaintenanceTicket.id == payload.ticket_id,
+            Property.organization_id == tenant.organization_id,
+        ).first()
         if ticket:
             context["ticket_title"] = ticket.title
             context["ticket_status"] = ticket.status.value.replace("_", " ")
