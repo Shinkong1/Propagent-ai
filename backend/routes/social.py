@@ -196,6 +196,13 @@ async def list_drafts(db: Session = Depends(get_db), current_user: User = Depend
 async def create_draft(payload: CreateDraftRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if not payload.message or not payload.message.strip():
         raise HTTPException(status_code=422, detail="Draft message can't be empty.")
+    if payload.property_id:
+        from models.property import Property
+        owns_property = db.query(Property.id).filter(
+            Property.id == payload.property_id, Property.organization_id == current_user.organization_id,
+        ).first()
+        if not owns_property:
+            raise HTTPException(status_code=404, detail="Property not found.")
     draft = SocialPostDraft(
         organization_id=current_user.organization_id,
         property_id=payload.property_id,

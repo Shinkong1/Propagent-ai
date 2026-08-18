@@ -128,22 +128,72 @@ async def cancel_voice_number(
     if not org or not org.voice_number:
         raise HTTPException(status_code=400, detail="No dedicated Voice AI number to cancel.")
 
-    if org.voice_number_subscription_item_id:
-        try:
-            item = await run_in_threadpool(stripe.SubscriptionItem.retrieve, org.voice_number_subscription_item_id)
+    canceled_stripe = False
+    try:
+        item_id = org.voice_number_subscription_item_id
+        if not item_id and org.stripe_customer_id and settings.STRIPE_VOICE_NUMBER_PRICE_ID:
+            # Fallback for orgs whose subscription_item_id was never
+            # recorded (a transient Stripe error during provisioning) --
+            # search Stripe directly by customer + price rather than
+            # silently no-op the cancellation and leave the customer
+            # billed forever with no stored way to find the subscription.
+            subs = await run_in_threadpool(
+                stripe.Subscription.list,
+                customer=org.stripe_customer_id,
+                price=settings.STRIPE_VOICE_NUMBER_PRICE_ID,
+                status="active",
+                limit=5,
+            )
+            sub_list = subs["data"] if isinstance(subs, dict) else subs.data
+            if sub_list:
+                first = sub_list[0]
+                sub_items = first["items"]["data"] if isinstance(first, dict) else first.items.data
+                if sub_items:
+                    item_id = sub_items[0]["id"] if isinstance(sub_items[0], dict) else sub_items[0].id
+
+        if item_id:
+            item = await run_in_threadpool(stripe.SubscriptionItem.retrieve, item_id)
             await run_in_threadpool(stripe.Subscription.cancel, item.subscription)
-        except Exception as e:
-            logger.error(f"Failed to cancel voice-number Stripe subscription for org {org.id}: {e}")
-            raise HTTPException(status_code=502, detail="Couldn't cancel the Stripe subscription -- please try again or contact support.")
+            canceled_stripe = True
+        else:
+            logger.error(f"cancel_voice_number: org {org.id} has no findable Stripe subscription for the addon (checked stored item id and a live Stripe search) -- releasing the Twilio number without canceling any charge.")
+    except Exception as e:
+        logger.error(f"Failed to cancel voice-number Stripe subscription for org {org.id}: {e}")
+        raise HTTPException(status_code=502, detail="Couldn't cancel the Stripe subscription -- please try again or contact support.")
 
     from services.voice_number_service import release_voice_number
-    await run_in_threadpool(release_voice_number, org.voice_number_sid)
+    released = await run_in_threadpool(release_voice_number, org.voice_number_sid)
+
+    if not canceled_stripe or not released:
+        # Money or infrastructure may still be leaking -- alert rather than
+        # let a clean-looking "canceled" response hide it.
+        try:
+            from models.user import User
+            from services.communication_agent import send_email
+            owner = db.query(User).filter(User.is_master == True, User.is_active == True).first()
+            if owner and owner.email:
+                problems = []
+                if not canceled_stripe:
+                    problems.append("could not find/cancel the Stripe subscription for this addon — the customer may still be charged $19/mo")
+                if not released:
+                    problems.append(f"could not release Twilio number {org.voice_number} ({org.voice_number_sid}) — PropAgent may still be charged for it")
+                send_email(
+                    owner.email,
+                    f"[ACTION NEEDED] Voice number cancellation incomplete — org {org.id}",
+                    f"Org {org.id} canceled its dedicated Voice AI number addon, but: " + "; ".join(problems)
+                    + f".\n\nCheck Stripe customer {org.stripe_customer_id or '(unknown)'} and the Twilio console manually.",
+                )
+        except Exception as alert_error:
+            logger.error(f"Also failed to send the cancellation-incomplete alert email: {alert_error}")
 
     org.voice_number = None
     org.voice_number_sid = None
     org.voice_number_subscription_item_id = None
     db.commit()
-    return {"message": "Dedicated Voice AI number canceled and released."}
+
+    if canceled_stripe:
+        return {"message": "Dedicated Voice AI number canceled and released."}
+    return {"message": "Dedicated Voice AI number released, but we couldn't confirm the Stripe subscription was canceled — our team has been notified and will follow up."}
 
 
 @router.get("/voice-number/status")
@@ -289,26 +339,45 @@ def _handle_voice_number_addon_paid(db: Session, org_id: str, session_data: dict
     payment succeeded -- only now is it safe to actually buy a real Twilio
     number (a real recurring charge on PropAgent's own Twilio account).
 
-    Idempotent: Stripe can and does redeliver this event, and org.voice_number
-    being already set is the guard against buying a second number for an org
-    that already has one."""
+    Idempotent AND concurrency-safe: Stripe can and does redeliver this
+    event, and the Twilio purchase below is a slow network round-trip that
+    can outlast Stripe's retry window -- with_for_update() row-locks this
+    org for the duration of the transaction so a second near-simultaneous
+    delivery blocks until the first commits, then sees org.voice_number
+    already set and returns, rather than both passing the check and
+    buying two real Twilio numbers for one org."""
     from models.user import Organization
     from uuid import UUID as _UUID
 
-    org = db.query(Organization).filter(Organization.id == _UUID(org_id)).first()
+    org = db.query(Organization).filter(Organization.id == _UUID(org_id)).with_for_update().first()
     if not org or org.voice_number:
         return
 
+    payment_status = session_data.get("payment_status")
+    if payment_status not in ("paid", None):
+        # "paid" is normal for card payments; None is tolerated since some
+        # event shapes omit the field. Anything explicitly NOT paid (e.g.
+        # "unpaid") means a delayed payment method (ACH, SEPA, ...) is still
+        # settling -- checkout.session.completed can fire before money has
+        # actually moved for those. Do not provision a real, billed Twilio
+        # number ahead of confirmed payment; a later successful payment
+        # event will need to be handled to complete this (not yet built --
+        # flagging as a known gap, not silently pretending it's covered).
+        logger.warning(f"checkout.session.completed for org {org_id}'s voice-number addon has payment_status={payment_status!r} -- not provisioning yet.")
+        return
+
     subscription_item_id = None
-    try:
-        sub_id = session_data.get("subscription")
-        if sub_id:
-            sub = stripe.Subscription.retrieve(sub_id)
-            items = sub["items"]["data"] if isinstance(sub, dict) else sub.items.data
-            if items:
-                subscription_item_id = items[0]["id"] if isinstance(items[0], dict) else items[0].id
-    except Exception as e:
-        logger.error(f"Couldn't resolve subscription item for org {org_id}'s voice-number addon: {e}")
+    sub_id = session_data.get("subscription")
+    for attempt in range(2):
+        try:
+            if sub_id:
+                sub = stripe.Subscription.retrieve(sub_id)
+                items = sub["items"]["data"] if isinstance(sub, dict) else sub.items.data
+                if items:
+                    subscription_item_id = items[0]["id"] if isinstance(items[0], dict) else items[0].id
+            break
+        except Exception as e:
+            logger.error(f"Couldn't resolve subscription item for org {org_id}'s voice-number addon (attempt {attempt + 1}/2): {e}")
 
     from services.voice_number_service import purchase_voice_number, VoiceNumberProvisionError
     try:
@@ -341,6 +410,31 @@ def _handle_voice_number_addon_paid(db: Session, org_id: str, session_data: dict
     org.voice_number_subscription_item_id = subscription_item_id
     db.commit()
     logger.info(f"Org {org_id} voice-number addon provisioned: {result['phone_number']}")
+
+    if not subscription_item_id:
+        # Provisioned successfully, but we still don't know which Stripe
+        # subscription item is billing for it. cancel_voice_number can
+        # still find it later by searching Stripe directly (customer +
+        # price), but alert now rather than silently hoping that path
+        # works when the customer eventually cancels -- this exact gap
+        # (a lost subscription reference) was found to let a canceled
+        # addon keep charging forever with no stored way to stop it.
+        try:
+            from models.user import User
+            from services.communication_agent import send_email
+            owner = db.query(User).filter(User.is_master == True, User.is_active == True).first()
+            if owner and owner.email:
+                send_email(
+                    owner.email,
+                    f"[Heads up] Voice number provisioned but subscription link missing — org {org_id}",
+                    f"Org {org_id}'s dedicated Voice AI number ({result['phone_number']}) provisioned "
+                    f"successfully, but a Stripe API error prevented confirming which subscription item "
+                    f"is billing for it. Cancellation will still work by searching Stripe directly for "
+                    f"this org's subscription, but if that ever fails too, check Stripe customer "
+                    f"{org.stripe_customer_id or '(unknown)'} manually.",
+                )
+        except Exception as alert_error:
+            logger.error(f"Also failed to send the missing-subscription-link alert email: {alert_error}")
 
 
 @router.post("/connect/onboard")

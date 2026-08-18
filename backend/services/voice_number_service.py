@@ -86,18 +86,24 @@ def purchase_voice_number(org_id: str) -> dict:
     raise VoiceNumberProvisionError(f"Could not purchase any candidate number: {last_error}")
 
 
-def release_voice_number(number_sid: str) -> None:
+def release_voice_number(number_sid: str) -> bool:
     """Release a previously-purchased number back to Twilio -- called when
     an org cancels the addon, so PropAgent stops paying Twilio for a number
-    nobody's using. Best-effort: logs and swallows failures rather than
-    blocking the cancellation flow, since the org's subscription item is
-    already canceled by the time this runs and a stuck Twilio number is a
-    smaller problem than a customer who can't cancel."""
+    nobody's using. Best-effort: never raises, so a Twilio-side failure
+    can't block the customer's cancellation flow -- but returns False on
+    failure (rather than swallowing silently) so the caller can alert
+    someone that the number may still be sitting there costing money,
+    instead of that only being discoverable by grepping logs.
+
+    Returns True if the number was released (or there was nothing to
+    release), False if Twilio's API call failed."""
     if not number_sid:
-        return
+        return True
     try:
         client = _client()
         client.incoming_phone_numbers(number_sid).delete()
         logger.info(f"Released Voice AI number {number_sid}")
+        return True
     except Exception as e:
         logger.error(f"Failed to release Voice AI number {number_sid} -- may need manual cleanup in Twilio console: {e}")
+        return False

@@ -34,6 +34,7 @@ def wipe_organization_data(db: Session, org_id) -> dict:
     from models.owner_message import OwnerMessage
     from models.platform import AICallLog, OrganizationEvent
     from models.property import Property, Unit
+    from models.social_connection import SocialConnection, SocialPost, SocialPostDraft
 
     property_ids = [r[0] for r in db.query(Property.id).filter(Property.organization_id == org_id).all()]
     unit_ids = [r[0] for r in db.query(Unit.id).join(Property).filter(Property.organization_id == org_id).all()]
@@ -55,6 +56,14 @@ def wipe_organization_data(db: Session, org_id) -> dict:
         _del('collections_actions', db.query(CollectionsAction).filter(CollectionsAction.rent_payment_id.in_(rent_payment_ids)))
     if lead_ids:
         _del('outreach_emails', db.query(OutreachEmail).filter(OutreachEmail.lead_id.in_(lead_ids)))
+    # social_posts references both social_connections and properties -- must
+    # go before either. Added when the social-posting feature (and later the
+    # draft queue) landed after this file was written; missing this was a
+    # real regression -- any org that had connected a social account or
+    # saved a draft would hit an IntegrityError on wipe/delete, breaking
+    # POST /admin/demo-org/seed the moment the demo org touched Social.
+    _del('social_posts', db.query(SocialPost).filter(SocialPost.organization_id == org_id))
+    _del('social_post_drafts', db.query(SocialPostDraft).filter(SocialPostDraft.organization_id == org_id))
 
     # Depend only on leaves / org id
     _del('inspections', db.query(Inspection).filter(Inspection.organization_id == org_id))
@@ -68,6 +77,8 @@ def wipe_organization_data(db: Session, org_id) -> dict:
     _del('owner_messages', db.query(OwnerMessage).filter(OwnerMessage.organization_id == org_id))
     _del('org_events', db.query(OrganizationEvent).filter(OrganizationEvent.organization_id == org_id))
     _del('workflow_rules', db.query(WorkflowRule).filter(WorkflowRule.organization_id == org_id))
+    # Safe now: social_posts (the only referencer) is already gone.
+    _del('social_connections', db.query(SocialConnection).filter(SocialConnection.organization_id == org_id))
 
     # Depend on the above
     if lease_ids:
