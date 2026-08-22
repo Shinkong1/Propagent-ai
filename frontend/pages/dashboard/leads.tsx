@@ -177,7 +177,7 @@ export default function Leads() {
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Lead CRM</h1>
             <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{leadList.length} leads · AI-powered outreach</p>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button onClick={() => setShowAddModal(true)}
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', background: 'linear-gradient(135deg, #FBC02D, #F57F17)', border: 'none', borderRadius: 8, color: 'var(--bg-app)', fontSize: 12, fontFamily: 'Syne', fontWeight: 700, cursor: 'pointer' }}>
               <Plus size={13} /> Add Lead
