@@ -183,7 +183,7 @@ export default function Documents() {
             <FileText size={24} color="#FBC02D" />
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 26, color: 'var(--text-primary)' }}>{t('documents.title')}</h1>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {canGenerate && (
               <button onClick={openTemplatesModal} title={t('documents.templatesEdit')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', borderRadius: 8, fontWeight: 700, fontFamily: 'Syne', fontSize: 14, cursor: 'pointer' }}>
                 <FileText size={16} /> {t('documents.templates')}

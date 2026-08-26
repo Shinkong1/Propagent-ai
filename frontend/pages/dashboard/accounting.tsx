@@ -119,7 +119,7 @@ export default function Accounting() {
               {report ? `${report.period_start} → ${report.period_end}` : t('accounting.loading')}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <select value={propertyFilter} onChange={e => changePropertyFilter(e.target.value)}
               style={{ padding: '9px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none' }}>
               <option value="all">{t('common.allProperties')}</option>

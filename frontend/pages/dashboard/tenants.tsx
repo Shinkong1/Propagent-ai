@@ -252,7 +252,7 @@ export default function Tenants() {
             <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>{t('tenants.title')}</h1>
             <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>{t('tenants.activeCount', { count: tenantList.length })}</p>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <select value={propertyFilter} onChange={e => changePropertyFilter(e.target.value)}
               style={{ padding: '9px 14px', background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text-secondary)', fontSize: 13, fontFamily: 'IBM Plex Sans', outline: 'none' }}>
               <option value="all">{t('common.allProperties')}</option>
