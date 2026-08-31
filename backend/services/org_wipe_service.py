@@ -35,6 +35,7 @@ def wipe_organization_data(db: Session, org_id) -> dict:
     from models.platform import AICallLog, OrganizationEvent
     from models.property import Property, Unit
     from models.social_connection import SocialConnection, SocialPost, SocialPostDraft
+    from models.user import OrgTrialEmail
 
     property_ids = [r[0] for r in db.query(Property.id).filter(Property.organization_id == org_id).all()]
     unit_ids = [r[0] for r in db.query(Unit.id).join(Property).filter(Property.organization_id == org_id).all()]
@@ -64,6 +65,13 @@ def wipe_organization_data(db: Session, org_id) -> dict:
     # POST /admin/demo-org/seed the moment the demo org touched Social.
     _del('social_posts', db.query(SocialPost).filter(SocialPost.organization_id == org_id))
     _del('social_post_drafts', db.query(SocialPostDraft).filter(SocialPostDraft.organization_id == org_id))
+    # org_trial_emails FKs to organizations.id with no ON DELETE CASCADE and
+    # nothing references it back -- a pure leaf. Missing this meant
+    # delete_organization() below hit an IntegrityError on the Organization
+    # row for any org that ever received a trial-activation email (i.e. every
+    # real trial org the cron job reached), since this table was added after
+    # this file was written and never wired in here.
+    _del('org_trial_emails', db.query(OrgTrialEmail).filter(OrgTrialEmail.organization_id == org_id))
 
     # Depend only on leaves / org id
     _del('inspections', db.query(Inspection).filter(Inspection.organization_id == org_id))
