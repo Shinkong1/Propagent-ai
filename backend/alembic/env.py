@@ -53,10 +53,18 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
+    # connect_timeout: matches the same fix in database/base.py -- without
+    # it, a database that's unreachable at startup leaves this connect()
+    # call hanging indefinitely with zero log output, which is exactly what
+    # turned a real outage into an undiagnosable silent restart loop (every
+    # boot logged Alembic's plugin-setup lines, then nothing, until Render's
+    # port-scan timeout killed the instance). 10s surfaces that as a fast,
+    # loud, logged connection error instead.
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args={"connect_timeout": 10},
     )
 
     with connectable.connect() as connection:
