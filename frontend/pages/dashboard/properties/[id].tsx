@@ -258,7 +258,7 @@ export default function PropertyDetail() {
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6, background: `${TYPE_COLOR[property.property_type] || '#3B82F6'}20`, color: TYPE_COLOR[property.property_type] || '#3B82F6', fontFamily: 'IBM Plex Mono', textTransform: 'capitalize' }}>
               {property.property_type?.replace('_', ' ')}
             </span>
