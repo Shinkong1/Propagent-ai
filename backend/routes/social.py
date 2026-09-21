@@ -72,6 +72,13 @@ def _user_from_query_token(token: str, db: Session) -> User:
     try:
         claims = decode_token(token)
         user_id = claims.get("sub")
+        # Same purpose-scoped-token rejection as middleware/auth.py's
+        # get_current_user -- without it, a leaked verify_email (48h) or
+        # password_reset (30min) link's token, both of which carry a real
+        # "sub", would authenticate here as a full session and let the
+        # holder connect Facebook/LinkedIn on the victim's behalf.
+        if user_id is None or claims.get("purpose") is not None or claims.get("mfa_pending"):
+            raise HTTPException(status_code=401, detail="Invalid or expired session.")
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired session.")
     user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
