@@ -245,7 +245,7 @@ export default function PropertyDetail() {
         </Link>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, marginBottom: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 52, height: 52, borderRadius: 12, background: `${TYPE_COLOR[property.property_type] || '#3B82F6'}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Building2 size={26} color={TYPE_COLOR[property.property_type] || '#3B82F6'} />
