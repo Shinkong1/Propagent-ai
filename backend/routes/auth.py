@@ -197,6 +197,57 @@ async def login(request: Request, payload: LoginRequest, db: Session = Depends(g
     )
 
 
+@router.post("/demo-login")
+@limiter.limit("10/minute")
+async def demo_login(request: Request, db: Session = Depends(get_db)):
+    """Public, credential-free login for the self-serve 'View Demo Dashboard'
+    button on the marketing site. Always logs into whichever organization is
+    currently the seeded demo org (services/demo_seed_service.py) -- no
+    password involved, so it can never go stale the way a hardcoded frontend
+    credential did.
+
+    Real bug this replaces: the homepage's demo button POSTed a literal
+    email/password pair hardcoded in frontend source
+    (demo@propagentai.com / PropAgentDemo2026!) to the normal /login
+    endpoint. services/demo_seed_service.py rotates the demo account's
+    email AND password (rotate_demo_credentials, meant for handing an
+    individual prospect their own one-time credential) -- the first time
+    that ever ran, the hardcoded frontend pair silently stopped matching
+    anything, and the button started returning a generic "temporarily
+    unavailable" toast with no error surfaced anywhere. Confirmed dead in
+    production: POST /auth/login with the hardcoded pair returns 401.
+
+    Not affected by per-account lockout -- there's no password to fail, so
+    nothing increments failed_login_attempts here."""
+    from services.demo_seed_service import get_demo_user
+    org, user = get_demo_user(db)
+    if not org or not user:
+        raise HTTPException(status_code=503, detail="Demo is temporarily unavailable — please try again shortly.")
+
+    user.last_login_at = datetime.utcnow()
+    db.commit()
+
+    token = create_access_token({"sub": str(user.id)})
+    return TokenResponse(
+        access_token=token,
+        user_id=str(user.id),
+        organization_id=str(org.id),
+        organization_name=org.name,
+        full_name=user.full_name,
+        email=user.email,
+        plan=org.plan.value,
+        language=org.language,
+        theme=org.theme,
+        timezone=org.timezone,
+        currency=org.currency,
+        notify_email_enabled=org.notify_email_enabled,
+        notify_sms_enabled=org.notify_sms_enabled,
+        is_master=user.is_master,
+        role=user.role.value,
+        is_verified=user.is_verified,
+    )
+
+
 @router.get("/me")
 async def me(current_user: User = Depends(get_current_user)):
     org = current_user.organization

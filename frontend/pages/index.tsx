@@ -11,9 +11,6 @@ import { auth, publicTestimonials } from '../lib/api';
 import { setToken, setUser } from '../lib/auth';
 import toast from 'react-hot-toast';
 
-const DEMO_EMAIL = 'demo@propagentai.com';
-const DEMO_PASSWORD = 'PropAgentDemo2026!';
-
 // Design rules for this page (documented so they stay consistent):
 // - One accent: brand gold, used for the primary CTA, the headline emphasis
 //   word and interactive states only. Nothing else on the page is gold.
@@ -326,7 +323,7 @@ export default function Home() {
   const handleViewDemo = async () => {
     setDemoLoading(true);
     try {
-      const res = await auth.login({ email: DEMO_EMAIL, password: DEMO_PASSWORD });
+      const res = await auth.demoLogin();
       setToken(res.data.access_token);
       setUser(res.data);
       router.push('/dashboard');

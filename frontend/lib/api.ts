@@ -35,6 +35,11 @@ api.interceptors.response.use(
 export const auth = {
   signup: (data: any) => api.post('/auth/signup', data),
   login: (data: any) => api.post('/auth/login', data),
+  // Public, credential-free login for the homepage's "View Demo Dashboard"
+  // button -- see backend/routes/auth.py's demo_login() docstring for the
+  // real bug this replaces (a hardcoded email/password pair that went stale
+  // the first time the demo account's credentials were ever rotated).
+  demoLogin: () => api.post('/auth/demo-login'),
   me: () => api.get('/auth/me'),
   updateLanguage: (language: string) => api.patch('/auth/organization/language', { language }),
   updateTheme: (theme: string) => api.patch('/auth/organization/theme', { theme }),
