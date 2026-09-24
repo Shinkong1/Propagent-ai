@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '../../components/DashboardLayout';
 import MetricCard from '../../components/MetricCard';
 import OnboardingChecklist from '../../components/OnboardingChecklist';
+import ReferralNudge from '../../components/ReferralNudge';
 import { Building2, Users, Wrench, DollarSign, TrendingUp, MessageSquare, Send, X } from 'lucide-react';
 import { properties, maintenance, leads as leadsApi } from '../../lib/api';
 import { getUser } from '../../lib/auth';
@@ -113,6 +114,7 @@ export default function Dashboard() {
         </div>
 
         <OnboardingChecklist stats={stats} />
+        <ReferralNudge />
 
         {/* Metrics Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 28 }}>

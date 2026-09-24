@@ -14,6 +14,8 @@ const STATIC_ROUTES: { path: string; changefreq: string; priority: string }[] = 
   { path: '/resources/handling-maintenance-requests', changefreq: 'monthly', priority: '0.7' },
   { path: '/resources/ai-in-property-management', changefreq: 'monthly', priority: '0.7' },
   { path: '/resources/rent-collection-best-practices', changefreq: 'monthly', priority: '0.7' },
+  { path: '/resources/how-much-does-a-property-manager-cost', changefreq: 'monthly', priority: '0.7' },
+  { path: '/resources/security-deposit-deductions', changefreq: 'monthly', priority: '0.7' },
   { path: '/terms', changefreq: 'yearly', priority: '0.3' },
   { path: '/privacy', changefreq: 'yearly', priority: '0.3' },
 ];

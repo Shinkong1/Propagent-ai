@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { ArrowRight, ShieldCheck, Wrench, Sparkles, ListChecks, DollarSign } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Wrench, Sparkles, ListChecks, DollarSign, Wallet, ClipboardCheck } from 'lucide-react';
 import PublicFooter from '../../components/PublicFooter';
 import PublicNav from '../../components/PublicNav';
 
@@ -41,6 +41,20 @@ const ARTICLES = [
     title: 'Rent Collection Best Practices: A Guide for Landlords',
     dek: 'How to set up a rent collection process that gets paid on time more often -- online payments, late fee policy, and a consistent escalation process.',
     readTime: '8 min read',
+  },
+  {
+    slug: 'how-much-does-a-property-manager-cost',
+    icon: Wallet,
+    title: 'How Much Does a Property Manager Cost?',
+    dek: 'A breakdown of typical property management fee structures -- monthly percentage fees, leasing fees, renewal fees -- and how the math changes with self-management or software.',
+    readTime: '7 min read',
+  },
+  {
+    slug: 'security-deposit-deductions',
+    icon: ClipboardCheck,
+    title: "Security Deposit Deductions: What Landlords Can (and Can't) Charge For",
+    dek: 'The general rule behind deposit deductions -- damage versus normal wear and tear -- and why documentation is what actually wins or loses a dispute.',
+    readTime: '7 min read',
   },
 ];
 
