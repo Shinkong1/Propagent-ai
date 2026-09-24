@@ -35,19 +35,19 @@ SIGNATURE_HTML = f"""
 <p style="font-size:12px;color:#a0aec0;margin-top:18px;">
   {BUSINESS_NAME}, {BUSINESS_ADDRESS_LINE1}, {BUSINESS_ADDRESS_LINE2}<br>
   You're receiving this because your business appeared in a public directory of property management companies.
-  Not interested? Just reply and let us know — we'll stop reaching out.
+  Not interested? Just reply and let us know, we'll stop reaching out.
 </p>
 """
 
 SIGNATURE_TEXT = f"""
 Best,
 The PropAgent Team
-PropAgent AI — https://propagent.app
+PropAgent AI, https://propagent.app
 propagentapp@gmail.com · (617) 500-3821
 
 {BUSINESS_NAME}, {BUSINESS_ADDRESS_LINE1}, {BUSINESS_ADDRESS_LINE2}
 You're receiving this because your business appeared in a public directory of property
-management companies. Not interested? Just reply and let us know — we'll stop reaching out.
+management companies. Not interested? Just reply and let us know, we'll stop reaching out.
 """
 
 
@@ -73,24 +73,40 @@ def queue_outreach_email(lead: Lead, db: Session) -> None:
     `await` in its body anyway, so dropping `async` changes nothing for the
     existing BackgroundTasks caller in routes/leads.py."""
     try:
-        subject = f"Automate {lead.company or 'Your Properties'} with AI — PropAgent"
+        # v2 copy (previous version tightened for reply rate -- see the
+        # session notes referenced in queue_lead_reengagement_emails below).
+        # Three real problems with the old version: (1) subject line and
+        # opener were the exact "I noticed you manage X properties in Y"
+        # template shape a cold-email-jaded reader has seen a hundred times,
+        # (2) it led with a bullet-point feature dump instead of one
+        # concrete pain point, (3) "Most of our clients save 15+ hours/week"
+        # is a real problem, not just weak copy -- there are no clients yet
+        # to back that claim, so it was an outright false statement, not an
+        # exaggeration. And the highest-friction ask (book 15 minutes) was
+        # on the coldest touch, while the *lower*-friction demo-link ask was
+        # saved for the warmer follow-ups -- backwards, given trust is
+        # lowest on this first email. Now leads with the working demo
+        # (routes/auth.py's demo-login fix made this a real, working link,
+        # not a maybe) instead of a meeting ask.
+        subject = "quick question about after-hours tenant calls"
         first = lead.first_name or 'there'
         city = lead.city or 'your area'
-        num = lead.num_properties or 'several'
+        num = lead.num_properties or 'a few'
 
         body = f"""Hi {first},
 
-I noticed you manage {num} properties in {city}, and I wanted to reach out about PropAgent AI.
+Random question: with {num} properties in {city}, who picks up when a tenant has a real
+emergency at 2am?
 
-We help property managers like you automate:
-• Tenant communications (24/7 AI responses)
-• Maintenance requests (auto-ticketing + vendor dispatch)
-• Leasing inquiries (AI books tours, qualifies leads)
-• Screening workflows (automated recommendations)
+That's basically what PropAgent AI does. It answers the call itself, figures out if it's
+actually urgent, and texts the right vendor before you've even seen the message. Same AI
+also handles routine tenant questions, screens applicants, and collects rent online.
 
-Most of our clients save 15+ hours/week on tenant communication alone.
+Not asking for a call. Just this: worth two minutes to see it running on a real account?
 
-Would you be open to a 15-minute demo this week?
+https://propagent.app/demo
+
+Not a fit? Just say so and I'll leave it there.
 """ + SIGNATURE_TEXT
 
         # Escaped separately for the HTML body only -- these fields are
@@ -104,16 +120,11 @@ Would you be open to a 15-minute demo this week?
         # a security audit.
         first_e, city_e, num_e = html_lib.escape(first), html_lib.escape(city), html_lib.escape(str(num))
         html = _html_wrapper(f"""<p>Hi {first_e},</p>
-<p>I noticed you manage {num_e} properties in {city_e}, and I wanted to reach out about PropAgent AI.</p>
-<p>We help property managers like you automate:</p>
-<ul style="margin:0 0 16px;padding-left:20px;">
-  <li style="margin-bottom:6px;">Tenant communications (24/7 AI responses)</li>
-  <li style="margin-bottom:6px;">Maintenance requests (auto-ticketing + vendor dispatch)</li>
-  <li style="margin-bottom:6px;">Leasing inquiries (AI books tours, qualifies leads)</li>
-  <li>Screening workflows (automated recommendations)</li>
-</ul>
-<p>Most of our clients save <strong>15+ hours/week</strong> on tenant communication alone.</p>
-<p>Would you be open to a 15-minute demo this week?</p>""")
+<p>Random question: with {num_e} properties in {city_e}, who picks up when a tenant has a real emergency at 2am?</p>
+<p>That's basically what PropAgent AI does. It answers the call itself, figures out if it's actually urgent, and texts the right vendor before you've even seen the message. Same AI also handles routine tenant questions, screens applicants, and collects rent online.</p>
+<p>Not asking for a call. Just this: worth two minutes to see it running on a real account?</p>
+<p><a href="https://propagent.app/demo" style="color:#b7791f;">propagent.app/demo</a></p>
+<p>Not a fit? Just say so and I'll leave it there.</p>""")
 
         email = OutreachEmail(
             lead_id=lead.id,
@@ -135,33 +146,39 @@ async def queue_followup_email(lead: Lead, db: Session) -> None:
     """Step 2 of the sequence -- sent once a human confirms the lead
     replied to the first outreach email (see mark_replied in routes/leads.py;
     there's no inbound-email parsing here, so a reply is a human-confirmed
-    signal, not an automatically detected one). Points them at the
-    self-playing demo instead of asking them to book a call outright."""
+    signal, not an automatically detected one).
+
+    v2: the first email (queue_outreach_email above) now leads with the
+    demo link itself, so repeating "here's a demo" here has nothing new to
+    offer someone who already replied -- this step is the actual warm
+    moment, so it makes the higher-touch asks (their own trial login, a
+    real call) instead, which is what a reply signals they're ready for."""
     try:
-        subject = f"Following up — see PropAgent AI in action, {lead.first_name or 'no call needed'}"
+        subject = f"Setting you up, {lead.first_name or 'there'}?"
         first = lead.first_name or 'there'
         company = lead.company or 'your portfolio'
 
         body = f"""Hi {first},
 
-Thanks for getting back to me. Instead of finding time on both our calendars,
-here's a 2-minute look at PropAgent AI running on a real account — real inquiries,
-real maintenance tickets, real AI screening decisions. It plays itself:
+Thanks for getting back to me. Two ways to keep going, whichever's easier:
 
-https://propagent.app/demo
+1. I set up a real trial login for {company} specifically -- 14 days, your own
+   properties, cancel anytime, no card needed.
+2. We find 15 minutes to talk through your specific portfolio first.
 
-If it looks like a fit for {company}, reply here and I'll get you a login of
-your own to click around in, or we can find 15 minutes to talk through your
-specific properties.
+Either works. Just let me know which.
 """ + SIGNATURE_TEXT
 
         # See the escaping note in queue_outreach_email above -- same issue,
         # same fix.
         first_e, company_e = html_lib.escape(first), html_lib.escape(company)
         html = _html_wrapper(f"""<p>Hi {first_e},</p>
-<p>Thanks for getting back to me. Instead of finding time on both our calendars, here's a 2-minute look at PropAgent AI running on a real account — real inquiries, real maintenance tickets, real AI screening decisions. It plays itself:</p>
-<p><a href="https://propagent.app/demo" style="color:#b7791f;">propagent.app/demo</a></p>
-<p>If it looks like a fit for {company_e}, reply here and I'll get you a login of your own to click around in, or we can find 15 minutes to talk through your specific properties.</p>""")
+<p>Thanks for getting back to me. Two ways to keep going, whichever's easier:</p>
+<ol style="margin:0 0 16px;padding-left:20px;">
+  <li style="margin-bottom:6px;">I set up a real trial login for {company_e} specifically. 14 days, your own properties, cancel anytime, no card needed.</li>
+  <li>We find 15 minutes to talk through your specific portfolio first.</li>
+</ol>
+<p>Either works. Just let me know which.</p>""")
 
         email = OutreachEmail(
             lead_id=lead.id, subject=subject, body=body, html_body=html,
@@ -394,6 +411,13 @@ def queue_lead_reengagement_emails(db: Session, limit: int = 30, stale_days: int
             continue
 
         try:
+            # v2: the first email (queue_outreach_email) already sends the
+            # demo link, so "different angle, here's a demo" was no longer
+            # actually different by the time a lead reaches this step --
+            # the real unused lever left is the trial itself: skip the
+            # video, offer direct access. Keeps the low-effort "not now"
+            # close-the-loop option, since getting a clean opt-out signal
+            # is still worth more than silence for list hygiene.
             subject = f"Still worth a look, {lead.first_name or 'there'}?"
             first = lead.first_name or 'there'
             company = lead.company or 'your properties'
@@ -403,14 +427,12 @@ def queue_lead_reengagement_emails(db: Session, limit: int = 30, stale_days: int
 I reached out a little while back about PropAgent AI for {company}
 and never heard back, so I didn't want it to just sit forgotten in your inbox.
 
-Different angle this time, no call required: here's a 2-minute self-playing demo of
-PropAgent running on a real account -- real tenant inquiries, real maintenance tickets,
-real AI screening decisions, start to finish.
+Different angle this time: skip the demo, just try it. 14 days, your own properties,
+no card needed, cancel anytime. If it's not useful you've lost nothing but a signup form.
 
-https://propagent.app/demo
+https://propagent.app/signup
 
-If it's not a fit right now, no worries -- just reply "not now" and I'll stop following up.
-If it is, reply here and I'll get you a login of your own to try it firsthand.
+If it's not a fit right now, no worries, just reply "not now" and I'll stop following up.
 """ + SIGNATURE_TEXT
 
             # See the escaping note in queue_outreach_email above -- same
@@ -418,9 +440,9 @@ If it is, reply here and I'll get you a login of your own to try it firsthand.
             first_e, company_e = html_lib.escape(first), html_lib.escape(company)
             html = _html_wrapper(f"""<p>Hi {first_e},</p>
 <p>I reached out a little while back about PropAgent AI for {company_e} and never heard back, so I didn't want it to just sit forgotten in your inbox.</p>
-<p>Different angle this time, no call required: here's a 2-minute self-playing demo of PropAgent running on a real account — real tenant inquiries, real maintenance tickets, real AI screening decisions, start to finish.</p>
-<p><a href="https://propagent.app/demo" style="color:#b7791f;">propagent.app/demo</a></p>
-<p>If it's not a fit right now, no worries — just reply "not now" and I'll stop following up. If it is, reply here and I'll get you a login of your own to try it firsthand.</p>""")
+<p>Different angle this time: skip the demo, just try it. 14 days, your own properties, no card needed, cancel anytime. If it's not useful you've lost nothing but a signup form.</p>
+<p><a href="https://propagent.app/signup" style="color:#b7791f;">propagent.app/signup</a></p>
+<p>If it's not a fit right now, no worries, just reply "not now" and I'll stop following up.</p>""")
 
             email = OutreachEmail(
                 lead_id=lead.id,
