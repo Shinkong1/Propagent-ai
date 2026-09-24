@@ -1,9 +1,9 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { Zap, Play, Pause, ChevronLeft, ChevronRight, Phone, PhoneCall } from 'lucide-react';
-import { isAuthenticated } from '../lib/auth';
+import { Play, Pause, ChevronLeft, ChevronRight, Phone, PhoneCall } from 'lucide-react';
 import PublicFooter from '../components/PublicFooter';
+import PublicNav from '../components/PublicNav';
 
 const DURATION = 6000;
 const URLS = [
@@ -90,18 +90,8 @@ export default function Demo() {
         <title>See PropAgent AI in action — automated demo</title>
         <meta name="description" content="A self-playing walkthrough of PropAgent AI using real data from a live demo account — no slides, no narration needed." />
       </Head>
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 48px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={16} color="var(--bg-app)" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>PropAgent AI</span>
-          </Link>
-          <Link href={isAuthenticated() ? '/dashboard' : '/login'} style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14 }}>
-            {isAuthenticated() ? 'Dashboard' : 'Sign in'}
-          </Link>
-        </nav>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
+        <PublicNav />
 
         <div style={{ maxWidth: 880, margin: '0 auto', padding: '56px 20px 40px' }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
@@ -115,7 +105,7 @@ export default function Demo() {
               <div style={{ display: 'flex', gap: 6 }}>
                 {[0, 1, 2].map(i => <span key={i} style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--border-strong)' }} />)}
               </div>
-              <div style={{ flex: 1, fontFamily: 'IBM Plex Mono', fontSize: 11.5, color: '#475569', background: 'var(--bg-app)', borderRadius: 6, padding: '5px 10px', textAlign: 'center', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+              <div style={{ flex: 1, fontFamily: 'IBM Plex Mono', fontSize: 11.5, color: 'var(--text-muted)', background: 'var(--bg-app)', borderRadius: 6, padding: '5px 10px', textAlign: 'center', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                 {URLS[scene]}
               </div>
             </div>
@@ -153,7 +143,7 @@ export default function Demo() {
                         </div>
                         {w.stats.map(([l, v]) => (
                           <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '3px 0' }}>
-                            <span style={{ color: '#475569' }}>{l}</span><span style={{ fontFamily: 'IBM Plex Mono', fontWeight: 600 }}>{v}</span>
+                            <span style={{ color: 'var(--text-muted)' }}>{l}</span><span style={{ fontFamily: 'IBM Plex Mono', fontWeight: 600 }}>{v}</span>
                           </div>
                         ))}
                       </div>
@@ -173,10 +163,10 @@ export default function Demo() {
                           <PhoneCall size={14} color="#FBC02D" />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 600 }}>{c.who} <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#475569', marginLeft: 6 }}>{c.tag}</span></div>
+                          <div style={{ fontSize: 13, fontWeight: 600 }}>{c.who} <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: 'var(--text-muted)', marginLeft: 6 }}>{c.tag}</span></div>
                           <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>{c.txt}</div>
                         </div>
-                        <div style={{ marginLeft: 'auto', textAlign: 'right', fontFamily: 'IBM Plex Mono', fontSize: 10.5, color: '#475569', whiteSpace: 'nowrap' }}>{c.dur}<br />completed</div>
+                        <div style={{ marginLeft: 'auto', textAlign: 'right', fontFamily: 'IBM Plex Mono', fontSize: 10.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{c.dur}<br />completed</div>
                       </div>
                     ))}
                   </div>
@@ -193,7 +183,7 @@ export default function Demo() {
                         <div style={{ width: 4, alignSelf: 'stretch', borderRadius: 3, flexShrink: 0, background: t.color }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 12.5, fontWeight: 600 }}>{t.t}</div>
-                          <div style={{ fontSize: 11, color: '#475569', marginTop: 1 }}>{t.m}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>{t.m}</div>
                         </div>
                         <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 9.5, padding: '3px 8px', borderRadius: 4, whiteSpace: 'nowrap', background: t.bg, color: t.color }}>{t.st}</div>
                       </div>
@@ -211,7 +201,7 @@ export default function Demo() {
                       <div key={f.nm} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 8, padding: '9px 12px', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 12.5, fontWeight: 600, minWidth: 92 }}>{f.nm}</span>
                         <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 9.5, padding: '3px 8px', borderRadius: 4, whiteSpace: 'nowrap', background: f.bg, color: f.color }}>{f.chip}</span>
-                        {f.sc && <span style={{ marginLeft: 'auto', fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#475569' }}>{f.sc}</span>}
+                        {f.sc && <span style={{ marginLeft: 'auto', fontFamily: 'IBM Plex Mono', fontSize: 11, color: 'var(--text-muted)' }}>{f.sc}</span>}
                       </div>
                     ))}
                   </div>
@@ -246,7 +236,7 @@ export default function Demo() {
             </div>
           </div>
 
-          <div style={{ textAlign: 'center', marginTop: 20, fontSize: 12.5, color: '#475569', fontFamily: 'IBM Plex Sans' }}>
+          <div style={{ textAlign: 'center', marginTop: 20, fontSize: 12.5, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>
             Want the guided version? <a href="mailto:propagentapp@gmail.com" style={{ color: '#FBC02D', textDecoration: 'none' }}>Ask us for demo login access</a> and click around yourself.
           </div>
         </div>

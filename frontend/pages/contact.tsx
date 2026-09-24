@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
-import { Zap, CheckCircle, Mail } from 'lucide-react';
+import { CheckCircle, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { publicContact } from '../lib/api';
 import PublicFooter from '../components/PublicFooter';
+import PublicNav from '../components/PublicNav';
 
 const EMPTY = { name: '', email: '', company: '', message: '' };
 
@@ -36,15 +37,8 @@ export default function Contact() {
         <title>Talk to Us — PropAgent AI</title>
         <meta name="description" content="Questions about PropAgent AI for your property management company? Get in touch before you sign up." />
       </Head>
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={14} color="var(--bg-app)" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-secondary)' }}>PropAgent AI</span>
-          </Link>
-        </nav>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
+        <PublicNav />
 
         <div style={{ maxWidth: 560, margin: '0 auto', padding: '56px 20px 80px' }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 32, color: 'var(--text-primary)', marginBottom: 10 }}>Talk to us</h1>

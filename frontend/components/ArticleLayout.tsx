@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { Zap, ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import PublicFooter from './PublicFooter';
-import { isAuthenticated } from '../lib/auth';
+import PublicNav from './PublicNav';
 
 // Shared chrome for /resources articles -- nav + title block + footer, built
 // to match the header/footer pattern already used on pricing.tsx, compare.tsx,
@@ -19,21 +19,8 @@ export default function ArticleLayout({ eyebrow, title, dek, readTime, children 
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
-      <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 48px', borderBottom: '1px solid var(--border-subtle)' }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={16} color="var(--bg-app)" strokeWidth={2.5} />
-          </div>
-          <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>PropAgent AI</span>
-        </Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <Link href="/resources" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14, fontFamily: 'IBM Plex Sans' }}>Resources</Link>
-          <Link href={isAuthenticated() ? '/dashboard' : '/login'} style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14 }}>
-            {isAuthenticated() ? 'Dashboard' : 'Sign in'}
-          </Link>
-        </div>
-      </nav>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
+      <PublicNav />
 
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '56px 24px 32px' }}>
         <Link href="/resources" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', textDecoration: 'none', fontSize: 13, fontFamily: 'IBM Plex Mono', marginBottom: 28 }}>
@@ -94,7 +81,7 @@ export function CTABox({ heading, body }: { heading: string; body: string }) {
         </Link>
         <Link href="/pricing" style={{
           display: 'inline-flex', alignItems: 'center', gap: 8,
-          background: 'transparent', color: '#E2E8F0', border: '1px solid var(--border-strong)',
+          background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-strong)',
           fontFamily: 'Syne', fontWeight: 700, fontSize: 14, padding: '12px 24px', borderRadius: 8,
           textDecoration: 'none',
         }}>

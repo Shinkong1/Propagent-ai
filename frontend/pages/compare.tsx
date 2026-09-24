@@ -1,7 +1,8 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { Zap, Check, X, Minus, ArrowRight } from 'lucide-react';
+import { Check, X, Minus, ArrowRight } from 'lucide-react';
 import PublicFooter from '../components/PublicFooter';
+import PublicNav from '../components/PublicNav';
 
 type Cell = { state: 'yes' | 'no' | 'partial'; note?: string };
 
@@ -99,15 +100,8 @@ export default function Compare() {
         <title>PropAgent AI vs. Traditional Property Management Software</title>
         <meta name="description" content="How PropAgent AI compares to traditional property management software (like AppFolio and Buildium) and to running things on spreadsheets." />
       </Head>
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', padding: '20px 48px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={16} color="var(--bg-app)" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>PropAgent AI</span>
-          </Link>
-        </nav>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
+        <PublicNav />
 
         <div style={{ maxWidth: 1000, margin: '0 auto', padding: '64px 24px 80px' }}>
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
@@ -173,7 +167,7 @@ export default function Compare() {
               </Link>
               <Link href="/pricing" style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
-                background: 'transparent', color: '#E2E8F0', border: '1px solid var(--border-strong)',
+                background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-strong)',
                 fontFamily: 'Syne', fontWeight: 700, fontSize: 14, padding: '12px 24px', borderRadius: 8,
                 textDecoration: 'none',
               }}>
@@ -194,7 +188,7 @@ export default function Compare() {
 }
 
 function CellIcon({ cell, highlight }: { cell: Cell; highlight?: boolean }) {
-  const color = cell.state === 'yes' ? (highlight ? '#FBC02D' : '#22C55E') : cell.state === 'no' ? '#475569' : '#F59E0B';
+  const color = cell.state === 'yes' ? (highlight ? '#FBC02D' : '#22C55E') : cell.state === 'no' ? 'var(--text-muted)' : '#F59E0B';
   const Icon = cell.state === 'yes' ? Check : cell.state === 'no' ? X : Minus;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>

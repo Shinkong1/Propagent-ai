@@ -1,8 +1,8 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { Zap, ArrowRight, ShieldCheck, Wrench, Sparkles, ListChecks, DollarSign } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Wrench, Sparkles, ListChecks, DollarSign } from 'lucide-react';
 import PublicFooter from '../../components/PublicFooter';
-import { isAuthenticated } from '../../lib/auth';
+import PublicNav from '../../components/PublicNav';
 
 const SITE_URL = 'https://propagent.app';
 
@@ -56,18 +56,8 @@ export default function ResourcesIndex() {
         <meta property="og:title" content="Resources for Landlords & Property Managers | PropAgent AI" />
         <meta property="og:description" content="Practical, honest guides on tenant screening, maintenance, rent collection, AI in property management, and choosing property management software." />
       </Head>
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 48px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={16} color="var(--bg-app)" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>PropAgent AI</span>
-          </Link>
-          <Link href={isAuthenticated() ? '/dashboard' : '/login'} style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14 }}>
-            {isAuthenticated() ? 'Dashboard' : 'Sign in'}
-          </Link>
-        </nav>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
+        <PublicNav />
 
         <div style={{ maxWidth: 1000, margin: '0 auto', padding: '64px 24px 80px' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
@@ -126,7 +116,7 @@ export default function ResourcesIndex() {
               </Link>
               <Link href="/compare" style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
-                background: 'transparent', color: '#E2E8F0', border: '1px solid var(--border-strong)',
+                background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-strong)',
                 fontFamily: 'Syne', fontWeight: 700, fontSize: 14, padding: '12px 24px', borderRadius: 8,
                 textDecoration: 'none',
               }}>
@@ -134,7 +124,7 @@ export default function ResourcesIndex() {
               </Link>
               <Link href="/listings" style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
-                background: 'transparent', color: '#E2E8F0', border: '1px solid var(--border-strong)',
+                background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-strong)',
                 fontFamily: 'Syne', fontWeight: 700, fontSize: 14, padding: '12px 24px', borderRadius: 8,
                 textDecoration: 'none',
               }}>

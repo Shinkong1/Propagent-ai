@@ -1,7 +1,8 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { Zap, KeyRound, Globe, AlertTriangle, Terminal } from 'lucide-react';
+import { KeyRound, Globe, AlertTriangle, Terminal } from 'lucide-react';
 import PublicFooter from '../components/PublicFooter';
+import PublicNav from '../components/PublicNav';
 
 const BASE_URL = 'https://propagent-api.onrender.com/api/v1';
 
@@ -196,15 +197,8 @@ export default function ApiDocs() {
         <title>API Docs — PropAgent AI</title>
         <meta name="description" content="Developer documentation for the PropAgent AI public REST API — authentication, endpoints, and example requests." />
       </Head>
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', padding: '20px 48px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={16} color="var(--bg-app)" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>PropAgent AI</span>
-          </Link>
-        </nav>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
+        <PublicNav />
 
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 24px 80px' }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 36, color: 'var(--text-primary)', marginBottom: 10 }}>API Documentation</h1>
@@ -297,7 +291,7 @@ function CodeBlock({ children }: { children: string }) {
     <pre style={{
       background: 'var(--bg-app)', border: '1px solid var(--border-strong)', borderRadius: 10,
       padding: '14px 16px', overflowX: 'auto', margin: 0,
-      fontFamily: 'IBM Plex Mono', fontSize: 12.5, lineHeight: 1.6, color: '#E2E8F0',
+      fontFamily: 'IBM Plex Mono', fontSize: 12.5, lineHeight: 1.6, color: 'var(--text-primary)',
     }}>
       <code>{children}</code>
     </pre>

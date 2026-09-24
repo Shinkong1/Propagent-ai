@@ -34,8 +34,8 @@
   --text-primary: #F8FAFC;
   --text-hover: #CBD5E1;
   --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --text-faint: #475569;
+  --text-muted: #8391A7;   /* was #64748B (3.8:1 on surfaces, failed WCAG AA); now 5.7:1 */
+  --text-faint: #748399;   /* was #475569 (2.4:1); now 4.7:1 */
   --accent: #FBC02D;
   --accent-dark: #F57F17;
   --accent-rgb: 251,192,45;
@@ -113,3 +113,70 @@ select option {
 .amber-glow { box-shadow: 0 0 20px rgba(251,192,45,0.2); }
 .card-hover { transition: all 0.2s ease; }
 .card-hover:hover { transform: translateY(-1px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Interaction + typography primitives, shared by the whole site.
+   ───────────────────────────────────────────────────────────────────────── */
+:root { --pa-gold-text: #FBC02D; }
+:root[data-theme="light"] { --pa-gold-text: #8A5F00; }   /* gold text needs a darker value on light surfaces */
+
+html { scroll-behavior: smooth; }
+body { text-rendering: optimizeLegibility; -webkit-tap-highlight-color: transparent; }
+h1, h2, h3 { text-wrap: balance; }
+p { text-wrap: pretty; }
+::selection { background: rgba(251,192,45,0.3); }
+
+/* Clickable things look clickable, disabled things look disabled. */
+a[href], button:not(:disabled), [role="button"], summary { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
+/* Every link and button gets the same hover / press feedback. Inline styles that
+   set their own transition or transform still win, so nothing existing breaks. */
+a[href], button {
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease,
+              opacity 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+a[href]:hover, button:not(:disabled):hover { filter: brightness(1.12); }
+:root[data-theme="light"] a[href]:hover,
+:root[data-theme="light"] button:not(:disabled):hover { filter: brightness(0.94); }
+button:not(:disabled):active { transform: translateY(1px); }
+
+/* Keyboard focus is always visible (mouse clicks don't trigger it). */
+a:focus-visible, button:focus-visible, summary:focus-visible, [role="tab"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid var(--pa-gold-text);
+  outline-offset: 2px;
+}
+
+/* Nav / footer text links: color shift plus an underline that draws in. */
+.pa-navlink {
+  position: relative; color: var(--text-secondary); text-decoration: none; white-space: nowrap;
+  font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; padding: 6px 2px;
+  transition: color 0.15s ease;
+}
+.pa-navlink::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 1px;
+  background: var(--pa-gold-text); transform: scaleX(0); transform-origin: left; transition: transform 0.2s ease;
+}
+.pa-navlink:hover, .pa-navlink[aria-current="page"] { color: var(--text-primary); filter: none; }
+.pa-navlink:hover::after, .pa-navlink[aria-current="page"]::after { transform: scaleX(1); }
+
+.pa-textlink { color: var(--text-secondary); text-decoration: none; transition: color 0.15s ease; }
+.pa-textlink:hover { color: var(--text-primary); text-decoration: underline; text-underline-offset: 3px; filter: none; }
+
+/* Cards that respond to hover */
+.pa-lift { transition: transform 0.25s ease, border-color 0.25s ease; }
+.pa-lift:hover { transform: translateY(-3px); border-color: rgba(251,192,45,0.7) !important; }
+
+/* Buttons: primary gets brighter, ghost gets a gold edge, both feel physical on press. */
+.pa-btn { transition: background 0.2s ease, transform 0.1s ease, border-color 0.2s ease; }
+.pa-btn:active { transform: translateY(1px) scale(0.99); }
+.pa-btn-primary:hover { background: #FFD24D !important; filter: none; }
+.pa-btn-ghost:hover { border-color: var(--pa-gold-text) !important; filter: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  .pa-lift:hover { transform: none; }
+}

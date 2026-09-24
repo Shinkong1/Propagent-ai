@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
-import { MapPin, Home, DollarSign, Maximize2, CheckCircle, Zap } from 'lucide-react';
+import { MapPin, Home, DollarSign, Maximize2, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { publicListings } from '../../lib/api';
+import PublicNav from '../../components/PublicNav';
+import PublicFooter from '../../components/PublicFooter';
 
 const SITE_URL = 'https://propagent.app';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -81,15 +83,8 @@ export default function PublicListing({ listing, notFound: listingNotFound, prop
         <meta name="twitter:title" content={`${listing.name} — ${listing.city}, ${listing.state} | For Rent`} />
         <meta name="twitter:description" content={`${listing.units.length} unit(s) available at ${listing.name}, ${listing.address}, ${listing.city}, ${listing.state}.`} />
       </Head>
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={14} color="var(--bg-app)" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-secondary)' }}>Listed via PropAgent AI</span>
-          </div>
-        </nav>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
+        <PublicNav />
 
         <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 20px 80px' }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 32, color: 'var(--text-primary)', marginBottom: 8 }}>{listing.name}</h1>
@@ -175,6 +170,7 @@ export default function PublicListing({ listing, notFound: listingNotFound, prop
             </div>
           )}
         </div>
+        <PublicFooter />
       </div>
     </>
   );

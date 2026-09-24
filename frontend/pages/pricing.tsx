@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { Zap, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useState } from 'react';
 import { billing } from '../lib/api';
 import { isAuthenticated } from '../lib/auth';
@@ -8,6 +8,7 @@ import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import PublicFooter from '../components/PublicFooter';
 import SalesChatWidget from '../components/SalesChatWidget';
+import PublicNav from '../components/PublicNav';
 
 // Feature wording audited against actual enforcement (backend/middleware/plan_gate.py,
 // routes/*.py require_plan checks) -- see commit history for the full audit. Two
@@ -63,18 +64,8 @@ export default function Pricing() {
         <title>Pricing — PropAgent AI</title>
         <meta name="description" content="Simple, transparent pricing for AI-powered property management. Starter, Professional, and Enterprise plans." />
       </Head>
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 48px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={16} color="var(--bg-app)" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>PropAgent AI</span>
-          </Link>
-          <Link href={isAuthenticated() ? '/dashboard' : '/login'} style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: 14 }}>
-            {isAuthenticated() ? 'Dashboard' : 'Sign in'}
-          </Link>
-        </nav>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
+        <PublicNav />
 
         <div style={{ maxWidth: 1000, margin: '0 auto', padding: '72px 24px' }}>
           {router.query.trialEnded && (
@@ -120,7 +111,7 @@ export default function Pricing() {
                 <button onClick={() => handleSelect(plan.key)} disabled={loading === plan.key} style={{
                   width: '100%', padding: '12px', borderRadius: 8, cursor: 'pointer',
                   background: plan.popular ? 'linear-gradient(135deg, #FBC02D, #F57F17)' : 'transparent',
-                  color: plan.popular ? 'var(--bg-app)' : '#E2E8F0',
+                  color: plan.popular ? 'var(--bg-app)' : 'var(--text-primary)',
                   border: plan.popular ? 'none' : '1px solid var(--border-strong)',
                   fontWeight: 700, fontFamily: 'Syne', fontSize: 14,
                 } as any}>
@@ -130,7 +121,7 @@ export default function Pricing() {
             ))}
           </div>
 
-          <p style={{ textAlign: 'center', marginTop: 32, color: '#475569', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>
+          <p style={{ textAlign: 'center', marginTop: 32, color: 'var(--text-muted)', fontSize: 13, fontFamily: 'IBM Plex Sans' }}>
             All plans include 14-day free trial · Cancel anytime · No setup fees
           </p>
 

@@ -1,7 +1,8 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { Zap, Lock, ShieldCheck, KeyRound, Database, CreditCard, Server, Timer, Mail, Check, Building2 } from 'lucide-react';
+import { Lock, ShieldCheck, KeyRound, Database, CreditCard, Server, Timer, Mail, Check, Building2 } from 'lucide-react';
 import PublicFooter from '../components/PublicFooter';
+import PublicNav from '../components/PublicNav';
 
 const LAST_UPDATED = 'August 7, 2026';
 
@@ -12,15 +13,8 @@ export default function Security() {
         <title>Security &amp; Data Handling — PropAgent AI</title>
         <meta name="description" content="How PropAgent AI protects your account, your tenants' data, and your payment information." />
       </Head>
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', padding: '20px 48px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={16} color="var(--bg-app)" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>PropAgent AI</span>
-          </Link>
-        </nav>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
+        <PublicNav />
 
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '48px 24px 80px' }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 36, color: 'var(--text-primary)', marginBottom: 10 }}>Security &amp; Data Handling</h1>

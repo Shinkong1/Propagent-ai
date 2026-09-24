@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
-import { MapPin, Home, Search, Zap, Building2, Sparkles } from 'lucide-react';
+import { MapPin, Home, Search, Building2, Sparkles } from 'lucide-react';
 import { publicListings } from '../../lib/api';
+import PublicNav from '../../components/PublicNav';
+import PublicFooter from '../../components/PublicFooter';
 
 const NEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -48,15 +50,8 @@ export default function ListingsDirectory() {
         <title>Browse Rentals — Apartments &amp; Homes for Rent | PropAgent AI</title>
         <meta name="description" content="Search available apartments and rental homes listed by property managers on PropAgent AI. Browse by city and state." />
       </Head>
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: '#E2E8F0' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #FBC02D, #F57F17)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={14} color="var(--bg-app)" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-secondary)' }}>PropAgent AI</span>
-          </Link>
-        </nav>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
+        <PublicNav />
 
         <div style={{ maxWidth: 960, margin: '0 auto', padding: '48px 20px 80px' }}>
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 34, color: 'var(--text-primary)', marginBottom: 8 }}>Browse Rentals</h1>
@@ -140,6 +135,7 @@ export default function ListingsDirectory() {
             </div>
           )}
         </div>
+        <PublicFooter />
       </div>
     </>
   );
