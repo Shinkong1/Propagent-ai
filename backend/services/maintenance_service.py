@@ -1,6 +1,7 @@
 """Maintenance service — AI classification and vendor dispatch"""
 import json
 import logging
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 from models.maintenance import MaintenanceTicket, Vendor, TicketCategory, TicketPriority
 
@@ -86,7 +87,7 @@ async def auto_assign_vendor(ticket: MaintenanceTicket, db: Session) -> None:
             # Twilio voice line and in-app chat) would then tell the tenant
             # a vendor was being dispatched, which was never true. Now the
             # flag only flips once a real send actually succeeds.
-            ticket.vendor_notified = _notify_vendor(best_vendor, ticket)
+            ticket.vendor_notified = await run_in_threadpool(_notify_vendor, best_vendor, ticket)
             db.commit()
             logger.info(f"Assigned vendor {best_vendor.name} to ticket {ticket.id} (notified={ticket.vendor_notified})")
     except Exception as e:
