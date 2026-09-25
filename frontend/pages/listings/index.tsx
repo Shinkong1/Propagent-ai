@@ -69,7 +69,7 @@ export default function ListingsDirectory() {
             </button>
           </form>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'IBM Plex Sans' }}>Sort:</span>
             {(['default', 'newest'] as const).map(opt => (
               <button
