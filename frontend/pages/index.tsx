@@ -27,11 +27,20 @@ export default function Home() {
         <meta property="og:url" content="https://propagent.app" />
         <meta property="og:title" content="PropAgent — AI property management" />
         <meta property="og:description" content="An AI agent that answers tenant calls and texts, dispatches vendors, books showings and collects rent, day or night." />
-        <meta property="og:image" content="/video/propagent-commercial-poster.jpg" />
+        <meta property="og:image" content="https://propagent.app/video/propagent-commercial-poster.jpg" />
+        {/* og:video lets Facebook/LinkedIn preview the real commercial inline on a
+            shared link instead of a static image. Support is platform-dependent
+            (LinkedIn honors it more reliably than Facebook for self-hosted mp4s),
+            so this is a bonus, not a guarantee -- og:image above is the fallback. */}
+        <meta property="og:video" content="https://propagent.app/video/propagent-commercial.mp4" />
+        <meta property="og:video:secure_url" content="https://propagent.app/video/propagent-commercial.mp4" />
+        <meta property="og:video:type" content="video/mp4" />
+        <meta property="og:video:width" content="1920" />
+        <meta property="og:video:height" content="1080" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="PropAgent — AI property management" />
         <meta name="twitter:description" content="An AI agent that answers tenant calls and texts, dispatches vendors, books showings and collects rent, day or night." />
-        <meta name="twitter:image" content="/video/propagent-commercial-poster.jpg" />
+        <meta name="twitter:image" content="https://propagent.app/video/propagent-commercial-poster.jpg" />
       </Head>
 
       <div className={`${styles.page} ${landingFontVars}`}>
