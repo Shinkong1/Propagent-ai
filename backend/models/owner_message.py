@@ -12,6 +12,7 @@ class OwnerMessageSource(enum.Enum):
     chat = "chat"  # tenant/staff AI assistant chat box
     contact_form = "contact_form"  # Contact Us page (existing, logged-in subscribers)
     sales_inquiry = "sales_inquiry"  # public marketing-site contact form (prospective customers, no account)
+    demo_request = "demo_request"  # public landing-page "Request a demo" form (name/email/units), no account
 
 
 class OwnerMessage(Base):

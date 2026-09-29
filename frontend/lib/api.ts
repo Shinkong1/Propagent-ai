@@ -286,6 +286,9 @@ export const contact = {
   send: (subject: string, message: string) => api.post('/contact/', { subject, message }),
   salesChat: (message: string, history: { role: string; content: string }[]) =>
     api.post('/contact/sales-chat', { message, history }),
+  // Public, no account required -- the landing page's "Request a demo" form.
+  demoRequest: (name: string, email: string, units: string) =>
+    api.post('/contact/demo-request', { name, email, units }),
 };
 
 export const team = {

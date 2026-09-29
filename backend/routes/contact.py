@@ -28,6 +28,12 @@ class SalesContactRequest(BaseModel):
     message: str
 
 
+class DemoRequest(BaseModel):
+    name: str
+    email: EmailStr
+    units: str = ""
+
+
 class SalesChatMessage(BaseModel):
     role: str  # 'user' | 'assistant'
     content: str
@@ -74,6 +80,31 @@ async def send_sales_inquiry(request: Request, payload: SalesContactRequest, db:
         notify_owner,
         db=db,
         source=OwnerMessageSource.sales_inquiry,
+        subject=subject,
+        body=body,
+        organization=None,
+        sender_name=payload.name,
+        sender_email=payload.email,
+    )
+    return {"status": result.email_status}
+
+
+@router.post("/demo-request")
+@limiter.limit("5/minute")
+async def send_demo_request(request: Request, payload: DemoRequest, db: Session = Depends(get_db)):
+    """Public — no account required. The landing page's 'Request a demo'
+    form. Same shape as send_sales_inquiry above (persists via
+    notify_owner regardless of email delivery, so it's visible in Owner
+    Admin even if SMTP is down) — kept as its own endpoint/source value
+    rather than folded into /sales so the two intents (browsing pricing
+    vs. asking for a hands-on walkthrough) stay distinguishable in the
+    Owner Admin inbox."""
+    subject = f"Demo request from {payload.name}"
+    body = f"Units managed: {payload.units or 'not specified'}"
+    result = await run_in_threadpool(
+        notify_owner,
+        db=db,
+        source=OwnerMessageSource.demo_request,
         subject=subject,
         body=body,
         organization=None,
