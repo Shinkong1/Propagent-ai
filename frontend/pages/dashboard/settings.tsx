@@ -897,7 +897,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   {confirmCancelVoiceNumber ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 12, color: '#EF4444' }}>Cancel the addon and release this number?</span>
                       <button onClick={cancelVoiceNumber} disabled={cancelingVoiceNumber} style={{ ...btn, background: '#EF4444', borderColor: '#EF4444' }}>
                         {cancelingVoiceNumber ? 'Canceling...' : 'Yes, cancel'}
