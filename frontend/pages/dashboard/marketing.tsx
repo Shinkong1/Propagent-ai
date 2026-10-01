@@ -3,7 +3,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import {
   ShieldAlert, Megaphone, Search, Building2, Share2, Copy, ExternalLink,
   CheckCircle2, Circle, Linkedin, Twitter, Facebook, Instagram, Home, PlayCircle, RefreshCw, KeyRound,
-  Sparkles,
+  Sparkles, Star, Rocket, Users,
 } from 'lucide-react';
 import { getUser } from '../../lib/auth';
 import { publicListings, admin as adminApi, social as socialApi } from '../../lib/api';
@@ -19,7 +19,18 @@ PropAgent AI handles tenant communication, maintenance dispatch, leasing inquiri
 Free 14-day trial: ${SITE_URL}`,
   twitter: `Property management that runs itself. AI agents handle tenant chat, maintenance dispatch, leasing inquiries & screening — 24/7. Free 14-day trial 👇 ${SITE_URL}`,
   facebook: `Running a rental property (or dozens)? PropAgent AI automates the parts that eat your evenings — tenant messages, maintenance requests, leasing inquiries — with AI agents that actually get the job done. Try it free for 14 days: ${SITE_URL}`,
+  biggerpockets: `Landlords/PMs here -- built an AI tool that's been saving me a lot of after-hours headaches and wanted to share in case it's useful to anyone else.
+
+PropAgent AI picks up tenant calls and texts at any hour, triages and dispatches maintenance within a budget you set, and sends a summary instead of you getting a 2am call about a leak. It also handles showings and rent collection.
+
+Full disclosure, I built it. Not trying to spam the forum, just sharing a tool I think this community specifically would find useful. Happy to answer questions about it here. Free 14-day trial if anyone wants to try it: ${SITE_URL}`,
 };
+
+const PH_KIT = `Tagline: PropAgent AI: an AI agent that runs your rental properties while you sleep
+
+Description: PropAgent AI answers tenant calls and texts, triages and dispatches maintenance, screens leads and books showings, and collects rent -- day or night, then tells you exactly what it did. No more missed 2am leaks or a voicemail box nobody checks. Free 14-day trial.
+
+First comment: Hey Product Hunt! I built PropAgent after hearing the same thing from landlords and small property managers over and over: tenant calls don't stop at 5pm, and neither should a response. PropAgent AI picks up the phone, texts back, dispatches the right vendor within your budget, and gives you a morning summary instead of a 2am phone call. Would love your feedback!`;
 
 const CHECKLIST_KEY = 'marketingHubChecklist';
 const CHECKLIST_ITEMS = [
@@ -30,6 +41,12 @@ const CHECKLIST_ITEMS = [
   { id: 'facebook', label: 'Posted on Facebook' },
   { id: 'zillow', label: 'Applied for Zillow Rental Manager' },
   { id: 'apartments', label: 'Applied for Apartments.com listing' },
+  { id: 'g2', label: 'Claimed free G2 profile' },
+  { id: 'capterra', label: 'Claimed free Capterra listing' },
+  { id: 'saashub', label: 'Added listing on SaaSHub' },
+  { id: 'alternativeto', label: 'Added listing on AlternativeTo' },
+  { id: 'producthunt', label: 'Launched on Product Hunt' },
+  { id: 'biggerpockets', label: 'Posted on BiggerPockets forums' },
 ];
 
 function copy(text: string, label = 'Copied') {
@@ -317,6 +334,59 @@ export default function MarketingHub() {
             body="List directly or apply for their property manager network."
             action={{ label: 'Start on Apartments.com', url: 'https://www.apartments.com/manage/' }}
             done={checked.apartments} onToggle={() => toggleCheck('apartments')}
+          />
+        </Section>
+
+        {/* Software directories -- free B2B listing sites a proptech SaaS
+            belongs on. These are genuinely free to claim/list on (some sell
+            paid placement or analytics add-ons, but the base listing isn't
+            gated); each is also a real backlink, which helps Google too. */}
+        <Section icon={Star} title="Software directories">
+          <Card
+            title="G2"
+            body="The review site B2B software buyers check before they trust a vendor. Claiming your free profile lets you collect reviews from real customers."
+            action={{ label: 'Claim G2 profile', url: 'https://www.g2.com/products/new' }}
+            done={checked.g2} onToggle={() => toggleCheck('g2')}
+          />
+          <Card
+            title="Capterra"
+            body="Same Gartner Digital Markets network as G2 and GetApp -- one free listing, three directories' worth of software-buyer search traffic."
+            action={{ label: 'Claim Capterra listing', url: 'https://www.capterra.com/vendors/sign-up' }}
+            done={checked.capterra} onToggle={() => toggleCheck('capterra')}
+          />
+          <Card
+            title="SaaSHub"
+            body="A free, community-driven SaaS directory -- lower traffic than G2/Capterra, but a free backlink and another place to be found."
+            action={{ label: 'Add to SaaSHub', url: 'https://www.saashub.com/add' }}
+            done={checked.saashub} onToggle={() => toggleCheck('saashub')}
+          />
+          <Card
+            title="AlternativeTo"
+            body="People land here searching 'alternative to [competitor]' -- worth listing PropAgent against the property-management tools landlords already know."
+            action={{ label: 'Add to AlternativeTo', url: 'https://alternativeto.net/software/new/' }}
+            done={checked.alternativeto} onToggle={() => toggleCheck('alternativeto')}
+          />
+        </Section>
+
+        {/* Launch & community -- the highest-effort items here, but also the
+            highest-ceiling: a good Product Hunt day or a well-received
+            BiggerPockets post can outperform everything above combined.
+            Draft copy only -- posting/launching needs your own account, and
+            BiggerPockets specifically moderates self-promotion, so the post
+            below leads with value and discloses it's yours rather than
+            reading as a drive-by ad. */}
+        <Section icon={Rocket} title="Launch & community">
+          <SocialCard
+            icon={Users} name="BiggerPockets forums" color="#1A7A63"
+            post={SOCIAL_POSTS.biggerpockets}
+            shareUrl="https://www.biggerpockets.com/forums/311-tenant-landlord-issues"
+            done={checked.biggerpockets} onToggle={() => toggleCheck('biggerpockets')}
+          />
+          <SocialCard
+            icon={Rocket} name="Product Hunt" color="#DA552F"
+            post={PH_KIT}
+            shareUrl="https://www.producthunt.com/posts/new"
+            done={checked.producthunt} onToggle={() => toggleCheck('producthunt')}
           />
         </Section>
       </div>
