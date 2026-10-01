@@ -3,7 +3,7 @@ import Link from 'next/link';
 import PublicFooter from '../components/PublicFooter';
 import PublicNav from '../components/PublicNav';
 
-const LAST_UPDATED = 'August 3, 2026';
+const LAST_UPDATED = 'October 1, 2026';
 
 export default function Terms() {
   return (
@@ -91,11 +91,16 @@ export default function Terms() {
             <strong>Compliance with Laws.</strong> You agree to comply with all applicable laws, including export control and sanctions laws, in your use of the Service.
           </Section>
 
-          <Section title="17. Changes to These Terms">
+          <Section title="17. Website Content; No Scraping; Our Own AI Training">
+            The text, images, video, source code, design, and other content appearing on propagent.app and within the Service (collectively, "Content") are owned by the Company or its licensors and protected by copyright and other intellectual property laws. Except for ordinary indexing by a search engine's published crawler (for example, to list our pages in search results), you may not use any automated means — including bots, scrapers, crawlers, mirroring tools, or data-collection pipelines used to train, fine-tune, or evaluate an AI or machine-learning model — to access, copy, extract, or reproduce the Content, in whole or in part, without our prior written consent.<br /><br />
+            This Section does not limit the Company's own use of Content, or of Customer Data as described in Section 6, including to operate, secure, and improve the Service and to develop, train, fine-tune, and improve the Company's own AI models and features.
+          </Section>
+
+          <Section title="18. Changes to These Terms">
             We may update these Terms from time to time. We will post the updated Terms with a new "Last updated" date and, for material changes, provide additional notice (such as an email or in-app notification). Continued use of the Service after a material change constitutes acceptance of the updated Terms.
           </Section>
 
-          <Section title="18. Contact">
+          <Section title="19. Contact">
             Questions about these Terms can be sent to propagentapp@gmail.com, or by mail to PropAgent, 9169 W State St #3241, Garden City, ID 83714.
           </Section>
         </div>
