@@ -54,23 +54,29 @@ export default function PublicNav() {
           <span style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 18, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>PropAgent AI</span>
         </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 28, flexShrink: 0 }}>
           {!isMobile && links.map(l => (
             <Link key={l.href} href={l.href} className="pa-navlink pa-focus" aria-current={isActive(l.href) ? 'page' : undefined}>{l.label}</Link>
           ))}
-          {authed ? (
-            <Link href="/dashboard" className="pa-btn pa-btn-primary pa-focus" style={{ ...CTA_STYLE, padding: isMobile ? '8px 14px' : '9px 18px', fontSize: 14 }}>Dashboard</Link>
+          {/* Sign in / Get started (or Dashboard) only render inline on desktop,
+              where there's room. On mobile they used to render here too, right
+              next to the hamburger button -- with no flex-shrink:0 and nowrap
+              text, that overflowed its shrunk box and visually collided with
+              the logo and the menu button (the bug report this fixes). They
+              now move into the slide-down panel below alongside the nav links. */}
+          {!isMobile && (authed ? (
+            <Link href="/dashboard" className="pa-btn pa-btn-primary pa-focus" style={{ ...CTA_STYLE, padding: '9px 18px', fontSize: 14 }}>Dashboard</Link>
           ) : (
             <>
               <Link href="/login" className="pa-navlink pa-focus" aria-current={router.pathname === '/login' ? 'page' : undefined}>{t('landing.signIn')}</Link>
-              <Link href="/signup" className="pa-btn pa-btn-primary pa-focus" style={{ ...CTA_STYLE, padding: isMobile ? '8px 14px' : '9px 18px', fontSize: 14 }}>{t('landing.getStarted')}</Link>
+              <Link href="/signup" className="pa-btn pa-btn-primary pa-focus" style={{ ...CTA_STYLE, padding: '9px 18px', fontSize: 14 }}>{t('landing.getStarted')}</Link>
             </>
-          )}
+          ))}
           {isMobile && (
             <button
               className="pa-focus" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="pa-mobile-menu"
               onClick={() => setOpen(o => !o)}
-              style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid var(--border-strong)', borderRadius: 12, color: 'var(--text-primary)', cursor: 'pointer' }}
+              style={{ width: 40, height: 40, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid var(--border-strong)', borderRadius: 12, color: 'var(--text-primary)', cursor: 'pointer' }}
             >
               {open ? <X size={18} /> : <Menu size={18} />}
             </button>
@@ -86,6 +92,17 @@ export default function PublicNav() {
               color: isActive(l.href) ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: isActive(l.href) ? 600 : 400,
             }}>{l.label}</Link>
           ))}
+          {authed ? (
+            <Link href="/dashboard" className="pa-focus" style={{ padding: '14px 4px', fontSize: 16, fontFamily: 'IBM Plex Sans', fontWeight: 600, textDecoration: 'none', color: 'var(--text-primary)' }}>Dashboard</Link>
+          ) : (
+            <>
+              <Link href="/login" className="pa-focus" aria-current={router.pathname === '/login' ? 'page' : undefined} style={{
+                padding: '14px 4px', fontSize: 16, fontFamily: 'IBM Plex Sans', textDecoration: 'none', borderBottom: '1px solid var(--border-subtle)',
+                color: router.pathname === '/login' ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: router.pathname === '/login' ? 600 : 400,
+              }}>{t('landing.signIn')}</Link>
+              <Link href="/signup" className="pa-btn pa-btn-primary pa-focus" style={{ ...CTA_STYLE, padding: '12px 18px', fontSize: 15, justifyContent: 'center', marginTop: 12 }}>{t('landing.getStarted')}</Link>
+            </>
+          )}
         </div>
       )}
     </div>
