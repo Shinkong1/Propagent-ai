@@ -60,7 +60,6 @@ const STEPS = [
 
 export default function HowItWorks() {
   const head = useReveal<HTMLDivElement>();
-  const stack = useReveal<HTMLDivElement>();
   const [cur, setCur] = useState(0);
   const autoRef = useRef(true);
   const visibleRef = useRef(false);
@@ -141,18 +140,6 @@ export default function HowItWorks() {
             <div className={styles.paneVis} dangerouslySetInnerHTML={{ __html: s.vis }} />
           </div>
         ))}
-      </div>
-
-      {/* Trimmed from 4 chips to 2: "LangGraph agent pipeline" and "FastAPI"
-          are internal implementation detail (meaningless to a landlord, and
-          free intel for a competitor) with zero conversion value. Twilio and
-          Stripe stay because they're recognizable brands a visitor already
-          trusts with their calls and their rent money -- a real trust signal,
-          not a tech-stack credit. */}
-      <div ref={stack.ref} className={`${styles.stack} ${styles.rv} ${stack.inView ? styles.rvIn : ''}`}>
-        <span style={{ border: 0, padding: 0 }}>Built on</span>
-        <span>Twilio Voice &amp; SMS</span>
-        <span>Stripe Billing</span>
       </div>
     </section>
   );

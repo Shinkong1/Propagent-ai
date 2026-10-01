@@ -4,4 +4,47 @@ Disallow: /dashboard
 Disallow: /oauth
 Disallow: /portal
 
+# AI training/scraping crawlers, blocked by name. This is a request, not a
+# lock: it only stops bots whose operators choose to honor robots.txt (every
+# one below publicly says it does), not one that ignores it, spoofs its
+# user-agent, or a human copying the page by hand -- see the chat for what
+# actually can and can't be blocked this way. Search crawlers (Googlebot,
+# Bingbot, etc.) are intentionally left alone above so the site keeps
+# ranking; several entries below are a site's *separate* AI-training opt-out
+# from the same company, not its search crawler.
+User-agent: GPTBot
+Disallow: /
+User-agent: ChatGPT-User
+Disallow: /
+User-agent: OAI-SearchBot
+Disallow: /
+User-agent: ClaudeBot
+Disallow: /
+User-agent: Claude-Web
+Disallow: /
+User-agent: anthropic-ai
+Disallow: /
+User-agent: Google-Extended
+Disallow: /
+User-agent: Applebot-Extended
+Disallow: /
+User-agent: Bytespider
+Disallow: /
+User-agent: PerplexityBot
+Disallow: /
+User-agent: Amazonbot
+Disallow: /
+User-agent: meta-externalagent
+Disallow: /
+User-agent: CCBot
+Disallow: /
+User-agent: Diffbot
+Disallow: /
+User-agent: cohere-ai
+Disallow: /
+User-agent: Omgilibot
+Disallow: /
+User-agent: YouBot
+Disallow: /
+
 Sitemap: https://propagent.app/sitemap.xml
