@@ -73,6 +73,37 @@
   --hover-overlay: rgba(15,23,42,0.04);
 }
 
+/* Auto theme: nobody has explicitly picked dark or light yet (no stored
+   localStorage/account preference -- see lib/ThemeContext.tsx, which in that
+   case leaves data-theme unset instead of forcing one), so follow the
+   device's own light/dark schedule. This is pure CSS, so it applies on
+   first paint before any JS runs and keeps tracking the OS setting live
+   (a system dark-mode schedule flipping at sunset just works) with no
+   listener needed. An explicit in-app choice (data-theme="dark") still
+   wins over this in both directions -- see the ":not" guard. Token values
+   are a literal copy of :root[data-theme="light"] above; keep them in sync. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg-app: #F1F5F9;
+    --bg-surface: #FFFFFF;
+    --bg-toast: #FFFFFF;
+    --border-strong: #E2E8F0;
+    --border-input: #CBD5E1;
+    --border-subtle: #EDF1F7;
+    --text-primary: #0F172A;
+    --text-hover: #1E293B;
+    --text-secondary: #475569;
+    --text-muted: #5A6A80;
+    --text-faint: #647587;
+    --accent: #FBC02D;
+    --accent-dark: #F57F17;
+    --accent-rgb: 251,192,45;
+    --success: #10B981;
+    --danger: #EF4444;
+    --hover-overlay: rgba(15,23,42,0.04);
+  }
+}
+
 body {
   background: var(--bg-app);
   color: var(--text-primary);
@@ -120,6 +151,9 @@ select option {
    ───────────────────────────────────────────────────────────────────────── */
 :root { --pa-gold-text: #FBC02D; }
 :root[data-theme="light"] { --pa-gold-text: #8A5F00; }   /* gold text needs a darker value on light surfaces */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --pa-gold-text: #8A5F00; }
+}
 
 html { scroll-behavior: smooth; }
 body { text-rendering: optimizeLegibility; -webkit-tap-highlight-color: transparent; }
@@ -140,6 +174,10 @@ a[href], button {
 a[href]:hover, button:not(:disabled):hover { filter: brightness(1.12); }
 :root[data-theme="light"] a[href]:hover,
 :root[data-theme="light"] button:not(:disabled):hover { filter: brightness(0.94); }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) a[href]:hover,
+  :root:not([data-theme="dark"]) button:not(:disabled):hover { filter: brightness(0.94); }
+}
 button:not(:disabled):active { transform: translateY(1px); }
 
 /* Keyboard focus is always visible (mouse clicks don't trigger it). */

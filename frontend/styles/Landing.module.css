@@ -213,6 +213,14 @@
   .paneVis { padding: 24px; }
 }
 
+/* Phone only, desktop/tablet untouched: the 3-line bullet list under each
+   step's paragraph restates it in finer detail -- useful extra reading on
+   a laptop, just more words to get through on a phone already scrolling
+   through 5 steps. Headline + one paragraph carries the same point. */
+@media (max-width:560px) {
+  .paneCopy ul { display: none; }
+}
+
 /* features */
 .feats { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
 .feat { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 30px 28px 34px; display: flex; flex-direction: column; gap: 12px; position: relative; background: rgba(10, 19, 36, .6); transition: background .35s; }

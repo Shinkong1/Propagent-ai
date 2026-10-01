@@ -143,12 +143,16 @@ export default function HowItWorks() {
         ))}
       </div>
 
+      {/* Trimmed from 4 chips to 2: "LangGraph agent pipeline" and "FastAPI"
+          are internal implementation detail (meaningless to a landlord, and
+          free intel for a competitor) with zero conversion value. Twilio and
+          Stripe stay because they're recognizable brands a visitor already
+          trusts with their calls and their rent money -- a real trust signal,
+          not a tech-stack credit. */}
       <div ref={stack.ref} className={`${styles.stack} ${styles.rv} ${stack.inView ? styles.rvIn : ''}`}>
         <span style={{ border: 0, padding: 0 }}>Built on</span>
-        <span>LangGraph agent pipeline</span>
         <span>Twilio Voice &amp; SMS</span>
         <span>Stripe Billing</span>
-        <span>FastAPI</span>
       </div>
     </section>
   );

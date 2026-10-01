@@ -20,7 +20,7 @@ export default function VideoSection() {
           <track kind="captions" src="/video/propagent-commercial-captions.vtt" srcLang="en" label="English" default />
           Your browser doesn&apos;t support embedded video. <a href="/video/propagent-commercial.mp4">Download the video</a> instead.
         </video>
-        <div className={styles.videoCaption}>Watch the 30-second version &middot; captions available</div>
+        <div className={styles.videoCaption}>See PropAgent handle a real 2 AM emergency, start to finish &middot; 30 seconds &middot; captions on</div>
       </div>
     </section>
   );
