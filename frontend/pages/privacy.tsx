@@ -4,7 +4,7 @@ import { AlertTriangle } from 'lucide-react';
 import PublicFooter from '../components/PublicFooter';
 import PublicNav from '../components/PublicNav';
 
-const LAST_UPDATED = 'August 3, 2026';
+const LAST_UPDATED = 'October 2, 2026';
 
 export default function Privacy() {
   return (
@@ -64,7 +64,8 @@ export default function Privacy() {
           </Section>
 
           <Section title="9. Cookies">
-            We use essential cookies/local storage to keep you signed in and remember your preferences (theme, language, currency). We do not currently use third-party advertising or tracking cookies.
+            We use essential cookies/local storage to keep you signed in and remember your preferences (theme, language, currency). We do not currently use third-party advertising or tracking cookies.<br /><br />
+            <strong>Website analytics.</strong> To understand how people find propagent.app, we run our own first-party analytics on our public pages (not on signed-in account screens). For each page view we record the page visited, the site or link that referred you, your approximate location (country, region, and city, as reported by our hosting provider), and your device type. We do not store your IP address or your browser's user-agent string, and this analytics does not use cookies. To count unique visitors we use a one-way hash of your IP address and browser details combined with a secret value that changes every day, so a visitor can be counted once per day but not recognized from one day to the next. We also keep one small item in your browser's storage recording how you first reached us (for example, the website that referred you), which we may attach to a demo request or signup so we know which channels are working. This data is visible only to our team and is deleted after approximately 180 days. We do not record anything if your browser sends a Do Not Track or Global Privacy Control signal.
           </Section>
 
           <Section title="10. Children's Privacy">

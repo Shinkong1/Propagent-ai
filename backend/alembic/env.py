@@ -20,6 +20,7 @@ from models import workflow  # noqa: F401
 from models import platform  # noqa: F401
 from models import testimonial  # noqa: F401
 from models import social_connection  # noqa: F401
+from models import site_visit  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

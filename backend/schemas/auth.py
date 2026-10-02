@@ -12,6 +12,7 @@ class SignupRequest(BaseModel):
     last_name: str
     organization_name: str
     referral_code: Optional[str] = None
+    signup_source: Optional[str] = Field(None, max_length=160)
 
     @field_validator("password")
     @classmethod

@@ -6,6 +6,7 @@ import { Zap, Gift } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { auth } from '../lib/api';
 import { setToken, setUser } from '../lib/auth';
+import { getFirstTouchSource } from '../lib/siteTracking';
 import { useLanguage } from '../lib/LanguageContext';
 
 export default function Signup() {
@@ -38,7 +39,8 @@ export default function Signup() {
     }
     setLoading(true);
     try {
-      const payload = referralCode ? { ...form, referral_code: referralCode } : form;
+      const signup_source = getFirstTouchSource();
+      const payload = { ...form, ...(referralCode ? { referral_code: referralCode } : {}), ...(signup_source ? { signup_source } : {}) };
       const res = await auth.signup(payload);
       setToken(res.data.access_token);
       setUser(res.data);

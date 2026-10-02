@@ -94,6 +94,7 @@ async def signup(request: Request, payload: SignupRequest, background_tasks: Bac
     org = Organization(
         name=payload.organization_name, slug=slug,
         referral_code=generate_referral_code(), referred_by_org_id=referred_by_org_id,
+        signup_source=(payload.signup_source or "").strip()[:160] or None,
         trial_ends_at=datetime.utcnow() + timedelta(days=14),
     )
     db.add(org)

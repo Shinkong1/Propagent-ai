@@ -62,6 +62,14 @@ class Settings(BaseSettings):
     # than silently running unauthenticated.
     CRON_SECRET: str = ""
 
+    # Shared secret between the Vercel frontend's /api/track route and the
+    # public POST /site-traffic/track endpoint (website visitor analytics --
+    # see routes/site_traffic.py). Must be set to the SAME value in both the
+    # Render backend and the Vercel frontend env. Empty by default, in which
+    # case the endpoint refuses every request (fail closed) rather than
+    # accepting unauthenticated writes from anyone on the internet.
+    ANALYTICS_TRACK_SECRET: str = ""
+
     # Separate shared secret for the Cloudflare Email Worker that detects
     # inbound replies to Lead CRM outreach emails (infra/cloudflare/
     # email-reply-worker.js -> POST /internal/email/inbound-reply). Kept

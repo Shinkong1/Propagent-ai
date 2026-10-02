@@ -276,6 +276,7 @@ export const admin = {
   deleteTestimonial: (id: string) => api.delete(`/admin/testimonials/${id}`),
   generateMarketingCopy: (copy_type: string, extra_context?: string) =>
     api.post('/admin/marketing/generate-copy', { copy_type, extra_context }),
+  siteTraffic: (days = 30) => api.get('/admin/site-traffic', { params: { days } }),
 };
 
 export const publicTestimonials = {
@@ -287,8 +288,8 @@ export const contact = {
   salesChat: (message: string, history: { role: string; content: string }[]) =>
     api.post('/contact/sales-chat', { message, history }),
   // Public, no account required -- the landing page's "Request a demo" form.
-  demoRequest: (name: string, email: string, units: string) =>
-    api.post('/contact/demo-request', { name, email, units }),
+  demoRequest: (name: string, email: string, units: string, source?: string) =>
+    api.post('/contact/demo-request', { name, email, units, source }),
 };
 
 export const team = {

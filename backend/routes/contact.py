@@ -2,7 +2,7 @@
 import logging
 from fastapi import APIRouter, Depends, Request
 from fastapi.concurrency import run_in_threadpool
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
 
 from database.session import get_db
@@ -32,6 +32,9 @@ class DemoRequest(BaseModel):
     name: str
     email: EmailStr
     units: str = ""
+    # First-touch traffic source captured in the browser (see
+    # frontend/lib/siteTracking.ts), e.g. "linkedin/launch-post" or "direct".
+    source: str = Field("", max_length=160)
 
 
 class SalesChatMessage(BaseModel):
@@ -101,6 +104,8 @@ async def send_demo_request(request: Request, payload: DemoRequest, db: Session 
     Owner Admin inbox."""
     subject = f"Demo request from {payload.name}"
     body = f"Units managed: {payload.units or 'not specified'}"
+    if payload.source.strip():
+        body += f"\nFound us via: {payload.source.strip()}"
     result = await run_in_threadpool(
         notify_owner,
         db=db,

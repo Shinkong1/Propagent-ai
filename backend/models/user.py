@@ -54,6 +54,10 @@ class Organization(Base):
     # required to keep using the app at all. See middleware/auth.py's access check.
     trial_ends_at = Column(DateTime, nullable=True)
     referral_code = Column(String(20), unique=True, nullable=True)
+    # Where the visitor came from when they signed up (utm_source / referrer
+    # host / "direct"), first-touch, captured client-side -- see
+    # frontend/lib/siteTracking.ts and services/site_analytics_service.summary.
+    signup_source = Column(String(160), nullable=True)
     referred_by_org_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=True)
     # Referral reward program. referral_credits_earned lives on the REFERRING org --
     # one free-month credit per referred org whose trial converts to a real paid

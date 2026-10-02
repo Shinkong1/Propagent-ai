@@ -737,3 +737,14 @@ async def generate_marketing_copy_route(request: Request, payload: dict):
         if "not configured" in detail:
             raise HTTPException(status_code=503, detail="ANTHROPIC_API_KEY isn't configured yet — set it in Render to enable this.")
         raise HTTPException(status_code=502, detail=f"Claude generation failed: {detail[:300]}")
+
+
+# ── Website traffic (first-party visitor analytics) -- who's visiting the
+# public marketing site and where they came from. Data is written by
+# routes/site_traffic.py; see models/site_visit.py for what is (and isn't)
+# stored. Powers the Marketing Hub's "Website traffic" panel. ──
+
+@router.get("/site-traffic")
+async def site_traffic_summary(days: int = 30, db: Session = Depends(get_db)):
+    from services.site_analytics_service import summary
+    return await run_in_threadpool(summary, db, days)

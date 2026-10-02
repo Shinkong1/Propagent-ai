@@ -8,6 +8,7 @@ import {
 import { getUser } from '../../lib/auth';
 import { publicListings, admin as adminApi, social as socialApi } from '../../lib/api';
 import toast from 'react-hot-toast';
+import SiteTrafficPanel from '../../components/SiteTrafficPanel';
 
 const SITE_URL = 'https://propagent.app';
 
@@ -162,6 +163,8 @@ export default function MarketingHub() {
             </span>
           </div>
         )}
+
+        <SiteTrafficPanel />
 
         {/* Automated demo */}
         <Section icon={PlayCircle} title="Automated demo">

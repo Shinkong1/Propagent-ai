@@ -3,6 +3,7 @@ import { useState } from 'react';
 import styles from '../../styles/Landing.module.css';
 import { useReveal } from './useReveal';
 import { contact } from '../../lib/api';
+import { getFirstTouchSource } from '../../lib/siteTracking';
 
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
 
@@ -23,7 +24,7 @@ export default function DemoForm() {
     }
     setSubmitting(true);
     try {
-      await contact.demoRequest(trimmedName, email.trim(), units);
+      await contact.demoRequest(trimmedName, email.trim(), units, getFirstTouchSource());
       setNote({ text: `Thanks, ${trimmedName.split(' ')[0]}. We'll be in touch shortly to set up your demo.`, kind: 'ok' });
       setName(''); setEmail('');
     } catch {
