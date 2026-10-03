@@ -55,15 +55,25 @@ export default function SiteTrafficPanel() {
   const [days, setDays] = useState<number>(30);
   const [data, setData] = useState<Summary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     setError(null);
     adminApi.siteTraffic(days)
       .then(r => { if (!cancelled) setData(r.data); })
-      .catch(err => { if (!cancelled) setError(err?.response?.data?.detail || 'Could not load traffic data.'); });
+      .catch(err => {
+        if (cancelled) return;
+        const status = err?.response?.status;
+        const detail = err?.response?.data?.detail;
+        // A restarting Render service answers with no JSON body at all (or no response), so say that
+        // instead of a bare failure -- it's the most common reason this panel errors right after a deploy.
+        setError(detail ? String(detail)
+          : status ? `The server returned an error (${status}).`
+          : 'Could not reach the server. It may be restarting after a deploy.');
+      });
     return () => { cancelled = true; };
-  }, [days]);
+  }, [days, attempt]);
 
   const maxViews = Math.max(1, ...(data?.daily.map(d => d.views) || [1]));
 
@@ -88,7 +98,12 @@ export default function SiteTrafficPanel() {
         </div>
       </div>
 
-      {error && <div style={{ ...card, fontSize: 12.5, color: '#EF4444' }}>{error}</div>}
+      {error && (
+        <div style={{ ...card, fontSize: 12.5, color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <span>{error}</span>
+          <button onClick={() => setAttempt(a => a + 1)} style={{ padding: '5px 11px', borderRadius: 6, fontSize: 11.5, fontFamily: 'IBM Plex Mono', cursor: 'pointer', background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)' }}>Retry</button>
+        </div>
+      )}
       {!data && !error && <div style={{ ...card, fontSize: 12.5, color: 'var(--text-muted)' }}>Loading…</div>}
 
       {data && (
