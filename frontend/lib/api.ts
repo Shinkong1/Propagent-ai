@@ -180,7 +180,8 @@ export const collections = {
 };
 
 export const investment = {
-  analysis: () => api.get('/investment/analysis'),
+  analysis: (assumedCapRate?: number) =>
+    api.get('/investment/analysis', { params: assumedCapRate ? { assumed_cap_rate: assumedCapRate } : {} }),
 };
 
 export const documents = {

@@ -18,10 +18,22 @@ export default function InvestmentAnalysis() {
   const { formatMoney: fmtMoney } = useCurrency();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  // Income-approach value estimate: the cap rate the user chooses to assume.
+  const [capInput, setCapInput] = useState('');
+  const [assumedCap, setAssumedCap] = useState<number | null>(null);
+  const [capError, setCapError] = useState<string | null>(null);
 
   useEffect(() => {
-    investmentApi.analysis().then(r => setData(r.data)).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+    investmentApi.analysis(assumedCap ?? undefined).then(r => setData(r.data)).catch(() => {}).finally(() => setLoading(false));
+  }, [assumedCap]);
+
+  const applyCap = () => {
+    if (!capInput.trim()) { setCapError(null); setAssumedCap(null); return; }
+    const n = Number(capInput);
+    if (!Number.isFinite(n) || n < 1 || n > 20) { setCapError('Enter a cap rate between 1 and 20 (for example 6.5).'); return; }
+    setCapError(null);
+    setAssumedCap(n);
+  };
 
   if (!hasPlanAccess('enterprise')) {
     return <PlanLock minTier="enterprise" titleKey="investment.title" />;
@@ -49,6 +61,7 @@ export default function InvestmentAnalysis() {
     { label: t('investment.propertiesAnalyzed'), value: portfolio.properties_analyzed },
     { label: t('investment.avgCapRate'), value: portfolio.avg_cap_rate !== null ? `${portfolio.avg_cap_rate}%` : '—' },
     { label: t('investment.totalCashFlow'), value: fmtMoney(portfolio.total_annual_cash_flow), warn: portfolio.total_annual_cash_flow < 0 },
+    ...(portfolio.total_estimated_value ? [{ label: 'Est. value (income approach)', value: `~${fmtMoney(portfolio.total_estimated_value)}`, warn: false }] : []),
   ];
 
   return (
@@ -59,6 +72,24 @@ export default function InvestmentAnalysis() {
           <h1 style={{ fontFamily: 'Syne', fontWeight: 800, fontSize: 26, color: 'var(--text-primary)' }}>{t('investment.title')}</h1>
         </div>
         <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 }}>{t('investment.subtitle')}</p>
+
+        <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+          <div style={{ fontFamily: 'Syne', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 4 }}>Estimated value (income approach)</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10, lineHeight: 1.5 }}>
+            Enter the cap rate you want to assume for your market. Each property's estimate is its last 12 months of net operating income divided by that rate.
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <label htmlFor="cap-input" style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Assumed cap rate (%)</label>
+            <input id="cap-input" value={capInput} inputMode="decimal" placeholder="e.g. 6.5" onChange={e => setCapInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') applyCap(); }}
+              style={{ width: 90, padding: '7px 10px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)', fontSize: 13, fontFamily: 'IBM Plex Mono' }} />
+            <button onClick={applyCap} style={{ padding: '7px 14px', borderRadius: 6, background: 'rgba(251,192,45,0.1)', border: '1px solid rgba(251,192,45,0.3)', color: 'var(--pa-gold-text, #FBC02D)', fontSize: 12, fontFamily: 'Syne', fontWeight: 600, cursor: 'pointer' }}>Calculate</button>
+            {assumedCap !== null && <button onClick={() => { setCapInput(''); setAssumedCap(null); setCapError(null); }} style={{ padding: '7px 12px', borderRadius: 6, background: 'var(--bg-app)', border: '1px solid var(--border-strong)', color: 'var(--text-secondary)', fontSize: 12, cursor: 'pointer' }}>Clear</button>}
+          </div>
+          {capError && <div role="alert" style={{ marginTop: 8, fontSize: 12, color: '#EF4444' }}>{capError}</div>}
+          <p style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--border-subtle)', fontSize: 11.5, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+            <strong>This is an estimate, not an appraisal.</strong> It is simple arithmetic on the income and expenses recorded in this account and the cap rate you enter. It does not use comparable sales or market data, and it is not an appraisal, broker price opinion, or market valuation. Only a licensed appraiser can provide an appraisal. Do not rely on it for lending, sale pricing, tax, or legal decisions.
+          </p>
+        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
           {kpis.map(k => (
@@ -119,6 +150,13 @@ export default function InvestmentAnalysis() {
                         <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.roi')}</div>
                         <div style={{ fontSize: 14, color: p.roi < 0 ? '#EF4444' : 'var(--text-secondary)', fontFamily: 'IBM Plex Mono' }}>{p.roi}%</div>
                       </div>
+                      {assumedCap !== null && (
+                        <div>
+                          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>Est. value @ {assumedCap}% cap</div>
+                          <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono' }}>{p.estimated_value ? `~${fmtMoney(p.estimated_value)}` : 'Not available'}</div>
+                          {!p.estimated_value && <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>Needs positive income</div>}
+                        </div>
+                      )}
                       <div>
                         <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginBottom: 3 }}>{t('investment.purchasePrice')}</div>
                         <div style={{ fontSize: 14, color: 'var(--text-secondary)', fontFamily: 'IBM Plex Mono' }}>{fmtMoney(p.purchase_price)}</div>

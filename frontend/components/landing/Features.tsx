@@ -41,6 +41,18 @@ const FEATURES: { title: string; body: string; spec: string; shapes: Shape[] }[]
     shapes: [{ path: 'M6 34V18L20 8l14 10v16H6z' }, { path: 'M16 34v-9h8v9' }],
   },
   {
+    title: 'Photo inspections',
+    body: 'Walk a unit at move-in, move-out or annually. AI flags visible damage in your photos and drafts a report with rough repair estimates.',
+    spec: 'Estimates, not quotes · PDF report',
+    shapes: [{ rect: { x: 7, y: 8, w: 26, h: 28 } }, { path: 'M14 8V5h12v3M14 22l4 4 8-8' }],
+  },
+  {
+    title: 'Portfolio performance',
+    body: 'Cap rate, cash flow and debt coverage for every property, plus an income-based value estimate you can adjust to your market.',
+    spec: 'Estimate, not an appraisal',
+    shapes: [{ path: 'M6 34V6M6 34h28' }, { path: 'M12 26l7-8 6 5 9-12' }],
+  },
+  {
     title: 'Owner reports',
     body: 'A daily digest of everything the agent did, with every call, message and dollar logged for review.',
     spec: 'Daily digest · full audit log',
@@ -54,7 +66,7 @@ function FeatureCard({ f, i }: { f: typeof FEATURES[number]; i: number }) {
     <article
       ref={ref}
       className={`${styles.feat} ${styles.rv} ${inView ? styles.rvIn : ''}`}
-      style={{ transitionDelay: `${(i % 3) * 90}ms` }}
+      style={{ transitionDelay: `${(i % 4) * 90}ms` }}
     >
       <div className={styles.fi}>
         <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">

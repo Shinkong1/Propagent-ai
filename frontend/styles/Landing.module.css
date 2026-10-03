@@ -222,7 +222,7 @@
 }
 
 /* features */
-.feats { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.feats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
 .feat { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 30px 28px 34px; display: flex; flex-direction: column; gap: 12px; position: relative; background: rgba(10, 19, 36, .6); transition: background .35s; }
 .feat::after { content: ""; position: absolute; left: 0; top: 0; height: 2px; width: 0; background: var(--amber); transition: width .5s cubic-bezier(.5, 0, .2, 1); }
 .feat:hover { background: var(--navy-2); }
@@ -234,7 +234,7 @@
 .feat p { color: var(--ink-2); font-size: 15px; }
 .spec { margin-top: auto; padding-top: 8px; font: 400 12px/1.4 var(--mono); color: var(--muted); }
 .draw { stroke-dasharray: 120; stroke-dashoffset: 0; }
-@media (max-width:900px) { .feats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width:1000px) { .feats { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width:600px) { .feats { grid-template-columns: 1fr; } }
 
 /* reveal: visible at rest, only a small lift */

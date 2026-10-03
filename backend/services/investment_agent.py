@@ -40,7 +40,14 @@ def _recommend(cap_rate, cash_flow, dscr):
     return "hold", f"Positive cash flow of ${cash_flow:,.0f}/yr and stable fundamentals — hold and monitor."
 
 
-def compute_investment_analysis(db: Session, org_id) -> dict:
+def compute_investment_analysis(db: Session, org_id, assumed_cap_rate: float = None) -> dict:
+    """assumed_cap_rate (percent, e.g. 6.5), when given, adds an income-approach
+    VALUE ESTIMATE per property: this account's trailing-12-month NOI divided by
+    that cap rate. It is deliberately nothing more than that arithmetic -- no
+    comps, no market data -- and is labeled everywhere it's shown as an estimate,
+    not an appraisal (only a licensed appraiser can give one). Rounded to the
+    nearest $1,000 so it doesn't imply precision it doesn't have.
+    """
     properties = db.query(Property).filter(Property.organization_id == org_id, Property.is_active == True).all()
     end = date.today()
     start = end - timedelta(days=365)
@@ -74,6 +81,11 @@ def compute_investment_analysis(db: Session, org_id) -> dict:
         roi = round((annual_cash_flow / p.purchase_price) * 100, 2) if p.purchase_price else None
         recommendation, explanation = _recommend(financials["cap_rate"], annual_cash_flow, financials["dscr"])
 
+        estimated_value = None
+        noi_annual = financials["annualized_noi"]
+        if assumed_cap_rate and noi_annual and noi_annual > 0:
+            estimated_value = round(noi_annual / (assumed_cap_rate / 100.0), -3)
+
         rows.append({
             "property_id": str(p.id),
             "property_name": p.name,
@@ -87,6 +99,8 @@ def compute_investment_analysis(db: Session, org_id) -> dict:
             "recommendation": recommendation,
             "explanation": explanation,
             "confidence": RECOMMENDATION_CONFIDENCE if recommendation else None,
+            "assumed_cap_rate": assumed_cap_rate,
+            "estimated_value": estimated_value,
             "insufficient_data": False,
         })
 
@@ -95,6 +109,9 @@ def compute_investment_analysis(db: Session, org_id) -> dict:
         "properties_analyzed": len(analyzed),
         "properties_missing_data": len(rows) - len(analyzed),
         "total_annual_cash_flow": round(sum(r["annual_cash_flow"] for r in analyzed), 2) if analyzed else 0.0,
+        "assumed_cap_rate": assumed_cap_rate,
+        "properties_valued": sum(1 for r in analyzed if r.get("estimated_value")),
+        "total_estimated_value": round(sum(r["estimated_value"] for r in analyzed if r.get("estimated_value")), -3) if any(r.get("estimated_value") for r in analyzed) else None,
         "avg_cap_rate": round(sum(r["cap_rate"] for r in analyzed if r["cap_rate"] is not None) / len(analyzed), 2) if analyzed else None,
         "by_recommendation": {
             "buy": sum(1 for r in analyzed if r["recommendation"] == "buy"),
