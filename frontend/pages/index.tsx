@@ -6,6 +6,7 @@ import VideoSection from '../components/landing/VideoSection';
 import HowItWorks from '../components/landing/HowItWorks';
 import Features from '../components/landing/Features';
 import DemoForm from '../components/landing/DemoForm';
+import DemoDashboardButton from '../components/landing/DemoDashboardButton';
 import { landingFontVars } from '../lib/landingFonts';
 import styles from '../styles/Landing.module.css';
 
@@ -56,6 +57,7 @@ export default function Home() {
                 <div className={styles.ctaRow}>
                   <a className={`${styles.btn} ${styles.btnAmber}`} href="#demo">Book a demo</a>
                   <a className={`${styles.btn} ${styles.btnGhost}`} href="#how">See how it works</a>
+                  <DemoDashboardButton />
                 </div>
               </div>
             </div>
